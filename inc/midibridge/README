@@ -1,0 +1,39 @@
+The midibridge is a Javascript API for interacting with the midi devices on your computer. 
+
+It provides methods for detecting the midi devices and for connecting these devices with each other.
+
+The midibridge itself is considered a midi device as well, so it can be connected to the detected devices.
+
+The midibridge can generate and send midi events to midi output devices, and receive midi events from midi input devices.
+
+The midibridge can also filter and alter midi events. 
+
+Recording and playing back midi events with a sequencer will be added in later versions.
+
+A midi output device is a physical output port on your computer, a virtual output port or a software synthesizer. It can also be a sequencer, a file or a function.
+
+A midi input device is a physical or virtual input port, a sequencer, a file or a function.
+
+A midi device can be both in- and output. The midibridge itself for instance is both in- and output because it can send and receive midi events.
+
+The actual interaction with the midi devices on your computer is done by a Java applet. The midibridge automatically adds the applet to your webpage.
+
+The midibridge has no visual parts, it is 'headless' code. You could say the midibridge enables you to write a 'front-end' on top of the applet. 
+
+Midi Devices -> Java Applet -> Javascript Midibridge API -> a GUI in Javascript, Flash, SVG, C# (Silverlight)
+
+Because the midibridge is written in native Javascript, you can use it conflict-free with any Javascript framework.
+
+
+The only files you need to get started are:
+
+/lib/midibridge-0.5.1.min.js
+/java/midiapplet.jar
+
+
+/lib/MidiBridge.js is the non-minified version of /lib/midibridge-0.5.1.min.js
+
+The other files and notably the files in the /js folder are code snippets that i have used in the quick start guide and the documentation on my blogpost, see:
+
+http://www.abumarkub.net/abublog/?p=399 
+

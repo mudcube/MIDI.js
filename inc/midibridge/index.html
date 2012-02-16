@@ -1,0 +1,83 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Cache-Control" Content="no-cache">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script type="text/javascript" src="lib/MidiBridge.js"></script>
+<script type="text/javascript">
+window.onload = function() {
+
+	var jsmidi = parent.jsmidi;
+	var notes = {};
+	var events = {};
+	var startTime = 0;
+	var eventTimeOn = {};
+	var eventTimeOff = {};
+	for (var key in parent.MIDI.noteToKey) {
+		events[key] = [];
+		eventTimeOn[key] = 0;
+		eventTimeOff[key] = 0;
+	}	
+
+	parent.writeMIDI = function() {
+		var tracks = [];
+		for (var key in events) {
+			tracks.push(new jsmidi.MidiTrack({ events: events[key] }));			
+		}
+		var song  = jsmidi.MidiWriter({ tracks: tracks });
+		return "data:audio/mid;base64," + song.b64;
+	};
+
+	midiBridge.init({
+		connectAllInputsToFirstOutput: true,
+		data: function(event) {
+			if (!(event.status == 128 || event.status == 144)) return;
+			//
+            var noteName = event.noteName;
+            var now = (new Date()).getTime();
+			var id = parseInt(event.data1);
+			var velocity = parseInt(event.data2);
+			//
+			if (event.status == midiBridge.NOTE_ON) {
+				console.log(noteName, "on");
+				//
+				eventTimeOn[id] = now;
+	            //
+			} else {
+console.log(id, noteName, "off")
+				if (!startTime) startTime = now;
+				if (!eventTimeOn[id]) eventTimeOn[id] = startTime;
+				if (!eventTimeOff[id]) eventTimeOff[id] = startTime;
+				//
+				var begin = now - eventTimeOff[id];
+				var end = now - eventTimeOn[id];
+				var duration = Math.max(0, begin - end);
+				//
+				var note = {
+					duration: duration,
+					channel: 0,
+					pitch: id,
+					volume: velocity
+				};
+				//
+				events[id].push(jsmidi.MidiEvent.noteOn(note));				
+				note.duration = end;
+console.log('begin', begin, 'end', end, begin-end);
+				events[id].push(jsmidi.MidiEvent.noteOff(note));
+				//
+	            eventTimeOff[id] = now;
+			}
+		},
+		ready: function() {
+			if (typeof(MIDI) === "undefined") var MIDI = {};
+			MIDI.Plugin = midiBridge;
+			if (parent.MIDI && parent.MIDI.Java) {
+				parent.MIDI.Java.confirm(MIDI.Plugin);
+			}
+		}
+	});
+};
+</script>
+<body></body>
+</html>

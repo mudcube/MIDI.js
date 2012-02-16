@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <script src="./js/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+ <script src="./js/DOMLoader.script.js" type="text/javascript"></script>
+ <script src="./js/MIDI.audioDetect.js" type="text/javascript"></script>
+ <script src="./js/MIDI.loadPlugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI.Plugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI.Player.js" type="text/javascript"></script>
+ <!-- base64 packages -->
+ <script src="./js/VersionControl.Base64.js" type="text/javascript"></script>
+ <script src="./js/lib/base64binary.js" type="text/javascript"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+window.onload = function () {
+	MIDI.loadPlugin(function() {
+		for (var n = 50; n < 100; n ++) {
+			var delay = (n - 50) / 4; // play one note every quarter second
+			var note = MIDI.pianoKeyOffset + n; // the MIDI note
+			var velocity = 127; // how hard the note hits
+			// play the note
+			MIDI.noteOn(0, note, velocity, delay);
+		}
+	});	
+};
+
+</script>
+</body>
+</html>
