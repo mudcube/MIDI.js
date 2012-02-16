@@ -1,0 +1,18 @@
+{
+  "name"          : "atob",
+  "homepage"      : "https://github.com/coolaj86/node-browser-compat",
+  "description"   : "atob for Node.JS (it's a one-liner)",
+   "repository"   : {
+                      "type": "git",
+                      "url": "git://github.com/coolaj86/node-browser-compat.git"
+                    },
+  "keywords"      : ["atob", "browser"],
+  "author"        : "AJ ONeal <coolaj86@gmail.com> (http://coolaj86.info)",
+  "engines"       : {
+                      "node": ">= 0.4.0"
+                    },
+  "dependencies"  : {
+                    },
+  "main"          : "index",
+  "version"       : "1.0.0"
+}
