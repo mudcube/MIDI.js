@@ -1,4 +1,6 @@
 /*
+	var loader = new widgets.Loader({ message: "loading: New loading message..." });
+	-----
 	var loader = new widgets.Loader({
 		id: "loader",
 		bars: 12,
@@ -8,7 +10,7 @@
 	});
 	loader.stop();	
 
-	loader.message("New loading message...");
+	loader.message("loading: New loading message...");
 
 */
 
@@ -23,6 +25,23 @@ var defaultConfig = {
 	radius: 0,
 	lineWidth: 20,
 	lineHeight: 70
+};
+
+var getWindowSize = function() {
+	if (window.innerWidth && window.innerHeight) {
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+	} else if (document.body && document.body.offsetWidth) {
+		var width = window.innerWidth = document.body.offsetWidth;
+		var height = window.innerHeight = document.body.offsetHeight;
+	} else if (document.compatMode === 'CSS1Compat' && document.documentElement && document.documentElement.offsetWidth) {
+		var width = window.innerWidth = document.documentElement.offsetWidth;
+		var height = window.innerHeight = document.documentElement.offsetHeight;
+	}
+	return {
+		width: width,
+		height: height
+	};
 };
 
 root.Loader = function (config) {
@@ -51,21 +70,15 @@ root.Loader = function (config) {
 		canvas.style.cssText = "opacity: 1; position: absolute; z-index: 1000;";
 		div.appendChild(canvas);
 		document.body.appendChild(div);
+	} else {
+		that.span = canvas.parentNode.getElementsByTagName("span")[0];
 	}
-	if (window.innerWidth && window.innerHeight) {
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-	} else if (document.body && document.body.offsetWidth) {
-		var width = document.body.offsetWidth;
-		var height = document.body.offsetHeight;
-	} else if (document.compatMode === "CSS1Compat" && document.documentElement && document.documentElement.offsetWidth ) {
-		var width = document.documentElement.offsetWidth;
-		var height = document.documentElement.offsetHeight;
-	}
+	//
 	var max = config.lineHeight + 20;
 	var size = max * 2 + config.radius;
-	width -= size;
-	height -= size;
+	var windowSize = getWindowSize();
+	var width = windowSize.width - size;
+	var height = windowSize.height - size;
 	canvas.width = size;
 	canvas.height = size;
 	canvas.style.left = (width / 2) + "px";
@@ -88,6 +101,17 @@ root.Loader = function (config) {
 	ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
 	//
 	function animate() {
+		var windowSize = getWindowSize();
+		var width = windowSize.width - size;
+		var height = windowSize.height - size;
+		//
+		canvas.style.left = (width / 2) + "px";
+		canvas.style.top = (height / 2) + "px";
+		if (config.message) {
+			that.span.style.left = ((width + size) / 2  - that.span.offsetWidth/2) + "px";
+			that.span.style.top = (height / 2 + size - 10) + "px";
+		}
+		//
 		ctx.save();
 		ctx.clearRect(0, 0, size, size);
 		ctx.translate(size / 2, size / 2);
@@ -125,7 +149,7 @@ root.Loader = function (config) {
 		//
 		if (config.messageAnimate) {
 			var iteration = offset / 0.07 >> 0;
-			if (iteration % 10 == 0) {
+			if (iteration % 10 === 0) {
 				var length = config.messageAnimate.length;
 				var n = iteration / 10 % length;
 				that.span.innerHTML = config.message + config.messageAnimate[n];

@@ -1,7 +1,7 @@
 /*
 
-	Event.js : v1.1 : mudcu.be
-	-----------------------
+	Event.js : v1.2 : 2012.02.22
+	-----------------------------
 	/// calling "Event" with "new" provides additional support;
 	Event(syntax.area, "click", function(event, self) {
 		self.stop().prevent().remove();
@@ -28,6 +28,16 @@
 		"mouseup": function(event, self) {
 			binding.remove(); // just remove this listener
 		}	
+	});
+	
+	/// on-element-is-ready (loads before onload)
+	Event("document.body", "ready", function(event, state, wheelData, self) {
+		self.stop.prevent.remove();		
+	});
+
+	/// easier mousewheel events
+	Event.mousewheel(window, function(event, state, wheelData, self) {
+		self.stop.prevent.remove();		
 	});
 
 */
@@ -75,6 +85,16 @@ var Event = (function(root) { "use strict";
 		if (type.indexOf && type.indexOf(",") !== -1) { 
 			type = type.split(",");
 		}
+		// check for element to load on interval (before onload)
+		if (typeof(target) === "string" && type === "ready") {
+			var interval = window.setInterval(function() {
+				if (eval(target)) {
+					window.clearInterval(interval);
+					listener();
+				}
+			}, 10);
+			return that;
+		}
 		// check type for multipel events
 		if (typeof(type) !== "string") { // has multiple events
 			that.events = {};
@@ -85,6 +105,7 @@ var Event = (function(root) { "use strict";
 					}
 				}
 			} else { // has multiple listeners glued together (array)
+				if (typeof(listener) !== "function") return "missing listener";
 				for (var n = 0, length = type.length; n < length; n ++) {
 					that.events[type[n]] = Event(target, type[n], listener, scope);
 				}
@@ -103,10 +124,10 @@ var Event = (function(root) { "use strict";
 			};
 			return that;
 		} else { // is single call
-			if (!(target && type && listener)) return "missing data.";
+			if (!(target && type && listener)) return "missing listener.";
 			type = standardize(type);
 		}
-		// tracked wrapper
+		// the wrapped unique id
 		var wrapperID = type + getEventID(target) + "." + getEventID(listener);
 		if (!wrappers[wrapperID]) { // create new wrapper
 			wrappers[wrapperID] = function(event) {
@@ -146,9 +167,19 @@ var Event = (function(root) { "use strict";
 		return that;
 	};	
 
+	//////////////// LEGACY SUPPORT //////////////////
+
 	root.add = function(target, type, listener, scope) {
-		type = standardize(type);
-		target[add](type, wrap(type, target, listener, scope || target), false);
+		if (typeof(type) !== "string") {
+			var config = type;
+			for (var type in config) {
+				if (isEvent[type] && typeof(config[type]) === "function") {
+					root.add(target, type, config[type]);
+				}
+			}
+			return config;
+		}
+		target[add](standardize(type), wrap(type, target, listener, scope || target), false);
 		return listener;
 	};
 	
@@ -165,6 +196,7 @@ var Event = (function(root) { "use strict";
 		} else { // <= IE8
 			event.cancelBubble = true;
 		}
+		return root;
 	};
 	
 	root.prevent = 
@@ -174,6 +206,7 @@ var Event = (function(root) { "use strict";
 		} else { // <= IE8
 			event.returnValue = false;
 		}
+		return root;
 	};
 	
 	///////////// 
@@ -197,7 +230,24 @@ var Event = (function(root) { "use strict";
 		}
 		return wrappers[wrapperID];
 	};
+	
+	//////////////// MouseWheel ////////////////
+	
+	root.mousewheel = function(target, listener, timeout) {
+		var interval = 0;
+		var self = Event(target, "mousewheel", function(event) {
+			event = event || window.event;
+			var wheelData = event.detail ? event.detail * -1 : event.wheelDelta / 40;
+			listener(event, "wheel", wheelData);
+			window.clearInterval(interval);
+			interval = window.setInterval(function() {
+				window.clearInterval(interval);
+				listener(event, "wheelup", wheelData, self);
+			}, timeout || 150);
+		});
+		return self;
+	};
 	//
 	return root;
 	//
-})(Event);
+})({});
