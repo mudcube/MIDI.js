@@ -56,7 +56,7 @@ root.clearAnimation = function() {
 
 root.setAnimation = function(config) {
 	var callback = (typeof(config) === "function") ? config : config.callback;
-	var delay = config.delay || 100;
+	var delay = config.delay || 24;
 	var currentTime = 0;
 	var tOurTime = 0;
 	var tTheirTime = 0;
@@ -96,7 +96,7 @@ root.setAnimation = function(config) {
 
 // helpers
 
-var loadMidiFile = function() { // reads midi into javascript array of events
+root.loadMidiFile = function() { // reads midi into javascript array of events
 	root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp);
 	root.data = root.replayer.getData();
 	root.endTime = getLength();
@@ -107,7 +107,7 @@ root.loadFile = function (file, callback) {
 	if (file.indexOf("base64,") !== -1) {
 		var data = window.atob(file.split(",")[1]);
 		root.currentData = data;
-		loadMidiFile();
+		root.loadMidiFile();
 		if (callback) callback(data);
 		return;
 	}
@@ -125,7 +125,7 @@ root.loadFile = function (file, callback) {
 			}
 			var data = window.atob(ff.join(""));
 			root.currentData = data;
-			loadMidiFile();
+			root.loadMidiFile();
 			if (callback) callback(data);
 		}
 	};

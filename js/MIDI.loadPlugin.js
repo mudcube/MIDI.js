@@ -15,7 +15,7 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 var plugins = { "#webaudio": true, "#html5": true, "#java": true, "#flash": true };
 
 MIDI.loadPlugin = function(callback, instrument) {
-	var type, loader;
+	var type = "";
 	var instrument = instrument || "";
 	MIDI.audioDetect(function(types) {
 		// use the most appropriate plugin if not specified
@@ -27,15 +27,15 @@ MIDI.loadPlugin = function(callback, instrument) {
 			}
 		}
 		if (type === "") {
-			var isSafari = navigator.userAgent.toLowerCase().indexOf("safari") !== -1;
 			if (window.webkitAudioContext) { // Chrome
 				type = "#webaudio";
-			} else if (window.Audio && isSafari === false) { // Firefox
+			} else if (window.Audio) { // Firefox
 				type = "#html5";
-			} else { // Safari and Internet Explorer
+			} else { // Internet Explorer
 				type = "#flash";
 			}
 		}
+		if (typeof(loader) === "undefined") var loader;
 		// use audio/ogg when supported
 		var filetype = types["audio/ogg"] ? "ogg" : "mp3";
 		// load the specified plugin
@@ -59,7 +59,7 @@ MIDI.loadPlugin = function(callback, instrument) {
 			case "#html5":
 				// works well in Firefox
 				DOMLoader.sendRequest({
-					url: "./soundfont/soundfont-" + filetype + ".js",
+					url: "./soundfont/soundfont-" + filetype + instrument + ".js",
 					callback: function (response) {
 						MIDI.Soundfont = JSON.parse(response.responseText);
 						if (loader) loader.message("Downloading: 100%<br>Processing...");

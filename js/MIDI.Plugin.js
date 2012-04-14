@@ -280,7 +280,7 @@ if (window.Audio) (function () {
 	root.connect = function (callback) {
 		soundManager.flashVersion = 9;
 		soundManager.useHTML5Audio = true;
-		soundManager.url = '../../swf/';
+		soundManager.url = '../inc/SoundManager2/swf/';
 		soundManager.useHighPerformance = true;
 		soundManager.wmode = 'transparent';
 		soundManager.flashPollingInterval = 1;
@@ -292,8 +292,8 @@ if (window.Audio) (function () {
 				if (typeof (loader) === "undefined") return;
 				loader.message("Processing: " + this.sID);
 			};
-			for (var i = 10; i < 65 + 10; i++) {
-				var id = noteReverse[i + 26];
+			for (var i = 0; i < 88; i++) {
+				var id = noteReverse[i + 21];
 				notes[id] = soundManager.createSound({
 					id: id,
 					url: './soundfont/mp3/' + id + '.mp3',
@@ -311,7 +311,7 @@ if (window.Audio) (function () {
 			MIDI.chordOff = root.chordOff;
 			//
 			var interval = window.setInterval(function () {
-				if (loaded.length !== 65) return;
+				if (loaded.length !== 88) return;
 				window.clearInterval(interval);
 				if (callback) callback();
 			}, 25);

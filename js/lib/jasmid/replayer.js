@@ -7,7 +7,6 @@ var clone = function (o) {
 };
 
 function Replayer(midiFile, timeWarp, eventProcessor) {
-//console.log(midiFile)
 	var trackStates = [];
 	var beatsPerMinute = 120;
 	var ticksPerBeat = midiFile.header.ticksPerBeat;
@@ -64,7 +63,7 @@ function Replayer(midiFile, timeWarp, eventProcessor) {
 				var beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
 				var secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
 			}
-			var time = secondsToGenerate * 1000 * timeWarp || 0;
+			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
 			temporal.push([ midiEvent, time]);
 			midiEvent = getNextEvent();
 		};
@@ -76,7 +75,6 @@ function Replayer(midiFile, timeWarp, eventProcessor) {
 	processEvents();
 	return {
 		"getData": function() {
-//		console.log(temporal)
 			return clone(temporal);
 		}
 	};
