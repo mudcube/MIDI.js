@@ -123,7 +123,7 @@ root.loadFile = function (file, callback) {
 			for (var z = 0; z < mx; z++) {
 				ff[z] = scc(t.charCodeAt(z) & 255);
 			}
-			var data = window.atob(ff.join(""));
+	        var data = ff.join("");
 			root.currentData = data;
 			root.loadMidiFile();
 			if (callback) callback(data);
