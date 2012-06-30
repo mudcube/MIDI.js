@@ -4,7 +4,6 @@
 # ------------------------------------
 # nodejs     - http://nodejs.org/
 # gzip       - http://www.gzip.org/
-# base64     - http://josefsson.org/base64/
 # fluidsynth - http://www.audiosoftstore.com/downloads.html
 # oggenc     - http://www.rarewares.org/ogg-oggenc.php
 # lame       - http://lame.sourceforge.net/
@@ -58,7 +57,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 			./inc/oggenc -m 32 -M 64 "$file.wav"
 			mv "$file.ogg" "$OGGFILE"
 			# from OGG to base64 embedded in Javascript
-			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/ogg;base64,`base64 -i \"$OGGFILE\" -o -`\","
+			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/ogg;base64,`node ./inc/base64.js \"$OGGFILE\"`\","
 			if [ $SINGLE -eq 1 ]; then
 				echo $JSHEADER > "$OGGFILE.js"
 				echo $JSCONTENT >> "$OGGFILE.js"
@@ -78,7 +77,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 			MP3FILE=`echo "${file%.midi}.mp3"`
 			./inc/lame -v -b 8 -B 32 "$file.wav" "$MP3FILE"
 			# from MP3 to base64 embedded in Javascript
-			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/mpeg;base64,`base64 -i \"$MP3FILE\" -o -`\","
+			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/mpeg;base64,`node ./inc/base64.js \"$MP3FILE\"`\","
 			if [ $SINGLE -eq 1 ]; then
 				echo $JSHEADER > "$MP3FILE.js"
 				echo $JSCONTENT >> "$MP3FILE.js"
