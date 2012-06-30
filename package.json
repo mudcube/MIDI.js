@@ -1,0 +1,11 @@
+{
+  "name": "midi",
+  "version": "0.0.1",
+  "description": "HTML5 midi player",
+  "author": "Michael Deal",
+  "scripts": {
+    "preinstall": "./build.sh"
+  },
+  "main": "./build/MIDI.minimal",
+  "license": "MIT"
+}
