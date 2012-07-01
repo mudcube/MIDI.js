@@ -2,14 +2,13 @@
 	Soundfont Builder : 0.1
 */
 
-///
 window = {}; // create fake window
 atob = require('atob');
 btoa = require('btoa');
 http = require('http');
 fs = require('fs');
 ///
-require('./inc/jsmidi.js');
+require('./jsmidi.js');
 
 //////////////
 

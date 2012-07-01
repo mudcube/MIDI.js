@@ -1,9 +1,7 @@
 /* 
-
 	JSMIDI
 	---------
 	https://github.com/sergi/jsmidi
-
  */
 
 (function (window) {

@@ -36,7 +36,7 @@ JSHEADER="{"
 JSFOOTER="}"
 
 # create MIDI files for audible notes
-node "./sf2-piano.js"
+node "./inc/gen-midi.js"
 
 # write the headers
 if [ $OGG -eq 1 ]; then
@@ -57,7 +57,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 			./inc/oggenc -m 32 -M 64 "$file.wav"
 			mv "$file.ogg" "$OGGFILE"
 			# from OGG to base64 embedded in Javascript
-			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/ogg;base64,`node ./inc/base64.js \"$OGGFILE\"`\","
+			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/ogg;base64,`node ./inc/gen-base64.js \"$OGGFILE\"`\","
 			if [ $SINGLE -eq 1 ]; then
 				echo $JSHEADER > "$OGGFILE.js"
 				echo $JSCONTENT >> "$OGGFILE.js"
@@ -77,7 +77,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 			MP3FILE=`echo "${file%.midi}.mp3"`
 			./inc/lame -v -b 8 -B 32 "$file.wav" "$MP3FILE"
 			# from MP3 to base64 embedded in Javascript
-			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/mpeg;base64,`node ./inc/base64.js \"$MP3FILE\"`\","
+			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/mpeg;base64,`node ./inc/gen-base64.js \"$MP3FILE\"`\","
 			if [ $SINGLE -eq 1 ]; then
 				echo $JSHEADER > "$MP3FILE.js"
 				echo $JSCONTENT >> "$MP3FILE.js"
