@@ -225,7 +225,11 @@ if (typeof(MusicTheory.Synesthesia) === "undefined") MusicTheory.Synesthesia = {
 			9: [ 29, 94, 52 ],
 			10: [ 62, 78, 74 ],
 			11: [ 60, 90, 60 ]
-		}
+		},
+		'Circle of Fifths (2012)': {
+			ref: "Stuart Wheatman", // http://www.valleysfamilychurch.org/
+			english: [],
+			data: ['#122400', '#2E002E', '#002914', '#470000', '#002142', '#2E2E00', '#290052', '#003D00', '#520029', '#003D3D', '#522900', '#000080', '#244700', '#570057', '#004D26', '#7A0000', '#003B75', '#4C4D00', '#47008F', '#006100', '#850042', '#005C5C', '#804000', '#0000C7', '#366B00', '#80007F', '#00753B', '#B80000', '#0057AD', '#6B6B00', '#6600CC', '#008A00', '#B8005C', '#007F80', '#B35900', '#2424FF', '#478F00', '#AD00AD', '#00994D', '#F00000', '#0073E6', '#8F8F00', '#8A14FF', '#00AD00', '#EB0075', '#00A3A3', '#E07000', '#6B6BFF', '#5CB800', '#DB00DB', '#00C261', '#FF5757', '#3399FF', '#ADAD00', '#B56BFF', '#00D600', '#FF57AB', '#00C7C7', '#FF9124', '#9999FF', '#6EDB00', '#FF29FF', '#00E070', '#FF9999', '#7ABDFF', '#D1D100', '#D1A3FF', '#00FA00', '#FFA3D1', '#00E5E6', '#FFC285', '#C2C2FF', '#80FF00', '#FFA8FF', '#00E070', '#FFCCCC', '#C2E0FF', '#F0F000', '#EBD6FF', '#ADFFAD', '#FFD6EB', '#8AFFFF', '#FFEBD6', '#EBEBFF', '#E0FFC2', '#FFEBFF', '#E5FFF2', '#FFF5F5']		}
 	};
 
 	root.map = function(type) {
@@ -240,18 +244,28 @@ if (typeof(MusicTheory.Synesthesia) === "undefined") MusicTheory.Synesthesia = {
 		var syn = root.data;
 		var colors = syn[type] || syn["D. D. Jameson (1844)"];
 		for (var note = 0; note <= 88; note ++) { // creates mapping for 88 notes
-			var clr = colors[(note + 9) % 12];
-			if (clr[0] == clr[1] && clr[1] == clr[2]) {
-				clr = blend(parray, colors[(note + 10) % 12]);
-			}		
-			var amount = clr[2] / 10;
-			var octave = note / 12 >> 0;
-			var octaveLum = clr[2] + amount * octave - 3 * amount; // map luminance to octave		
-			data[note] = {
-				hsl: 'hsla(' + clr[0] + ',' + clr[1] + '%,' + octaveLum + '%, 1)',
-				hex: Color.Space({H:clr[0], S:clr[1], L:octaveLum}, "HSL>RGB>HEX>STRING")
-			};
-			var parray = clr;
+			if (colors.data) {
+				data[note] = {
+					hsl: colors.data[note],
+					hex: colors.data[note] 
+				}
+			} else {
+				var clr = colors[(note + 9) % 12];
+				var H = clr.H || clr[0];
+				var S = clr.S || clr[1];
+				var L = clr.L || clr[2];
+				if (H == S && S == L) {
+					clr = blend(parray, colors[(note + 10) % 12]);
+				}		
+				var amount = L / 10;
+				var octave = note / 12 >> 0;
+				var octaveLum = L + amount * octave - 3 * amount; // map luminance to octave		
+				data[note] = {
+					hsl: 'hsla(' + H + ',' + S + '%,' + octaveLum + '%, 1)',
+					hex: Color.Space({H:H, S:S, L:octaveLum}, "HSL>RGB>HEX>W3")
+				};
+				var parray = clr;
+			}
 		}
 		return data;
 	};

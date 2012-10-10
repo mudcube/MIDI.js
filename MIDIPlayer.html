@@ -4,26 +4,25 @@
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
  <title>MIDI.js - Sequencing in Javascript.</title>
  <!-- soundfont.js css -->
- <link href="./index.css" rel="stylesheet" type="text/css" />
+ <link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
  <!-- soundfont.js package -->
- <script src="./js/Color.js" type="text/javascript"></script>
+ <script src="./js/Color/Space.js" type="text/javascript"></script>
  <script src="./js/Event.js" type="text/javascript"></script>
- <script src="./js/Event.Mouse.js" type="text/javascript"></script>
  <script src="./js/DOMLoader.XMLHttp.js" type="text/javascript"></script>
  <script src="./js/DOMLoader.script.js" type="text/javascript"></script>
- <script src="./js/MIDI.audioDetect.js" type="text/javascript"></script>
- <script src="./js/MIDI.loadPlugin.js" type="text/javascript"></script>
- <script src="./js/MIDI.Plugin.js" type="text/javascript"></script>
- <script src="./js/MIDI.Player.js" type="text/javascript"></script>
- <script src="./js/MusicTheory.Synesthesia.js" type="text/javascript"></script>
- <script src="./js/Widgets.Loader.js" type="text/javascript"></script>
+ <script src="./js/MIDI/audioDetect.js" type="text/javascript"></script>
+ <script src="./js/MIDI/loadPlugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI/Plugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI/Player.js" type="text/javascript"></script>
+ <script src="./js/MusicTheory/Synesthesia.js" type="text/javascript"></script>
+ <script src="./js/Widgets/Loader.js" type="text/javascript"></script>
  <!-- jasmid package -->
- <script src="./js/lib/jasmid/stream.js"></script>
- <script src="./js/lib/jasmid/midifile.js"></script>
- <script src="./js/lib/jasmid/replayer.js"></script>
+ <script src="./inc/jasmid/stream.js"></script>
+ <script src="./inc/jasmid/midifile.js"></script>
+ <script src="./inc/jasmid/replayer.js"></script>
  <!-- base64 packages -->
- <script src="./js/VersionControl.Base64.js" type="text/javascript"></script>
- <script src="./js/lib/base64binary.js" type="text/javascript"></script>
+ <script src="./js/Polyfill/Base64.js" type="text/javascript"></script>
+ <script src="./inc/base64binary.js" type="text/javascript"></script>
 </head>
 <body>
 <img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
@@ -35,8 +34,8 @@
   <div style="margin: 0 auto; width: 160px; float: right;">
   <input type="image" src="./images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
   <input type="image" src="./images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
-  <input type="image" src="./images/backward.png" align="absmiddle" value="stop" onclick="getNextSong(-1);">
-  <input type="image" src="./images/forward.png" align="absmiddle" value="stop" onclick="getNextSong(+1);">
+  <input type="image" src="./images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
+  <input type="image" src="./images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
   </div>
   <div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
    <span id="time1" class="time">0:00</span>
@@ -128,11 +127,6 @@ MIDI.Player.setAnimation(function(data) {
  <h3>Example(s): &nbsp;<a href="http://twitter.com/mudcube">Tweet</a> me your app to be included!</h3>
 
  <li class="indent square">
- <a href="http://qiao.github.com/euphony/">Euphony</a><br>3D visualization of a piano with notes dropping from the sky.
- <br>Coded by <a href="https://github.com/qiao/">Qiao</a>.</li>
- <hr size=1 style="opacity: 0.25;">
-
- <li class="indent square">
  <a href="http://mudcu.be/piano/">Color Piano</a><br>Learn piano songs without reading sheet music.
  <br>Coded by <a href="http://mudcu.be/">mud</a>.</li>
  <hr size=1 style="opacity: 0.25;">
@@ -156,6 +150,7 @@ MIDI.Player.setAnimation(function(data) {
 if (typeof(console) === "undefined") var console = { log: function() { } };
 
 // Begin loading indication.
+var player;
 var loader = new widgets.Loader({
 	message: "loading: Soundfont..."
 });
@@ -212,7 +207,7 @@ Event.add(window, "load", function(event) {
 		var title = document.getElementById("title");
 		title.innerHTML = "Sound being generated with " + MIDI.lang + ".";
 		// this sets up the MIDI.Player and gets things going...
-		var player = MIDI.Player;
+		player = MIDI.Player;
 		player.timeWarp = 1; // speed the song is played back
 		player.loadFile(song[songid++%3], player.start);
 		// control the piano keys colors
@@ -221,7 +216,7 @@ Event.add(window, "load", function(event) {
 			var pianoKey = data.note - MIDI.pianoKeyOffset;
 			var d = colorElements[pianoKey];
 			if (data.message === 144) {
-				d.style.background = "#" + colorMap[data.note-27].hex;
+				d.style.background = colorMap[data.note-27].hex;
 				d.style.color = "#fff";
 			} else {
 				d.style.background = "";
@@ -245,19 +240,15 @@ var MIDIPlayerPercentage = function(player) {
 	var capsule = document.getElementById("capsule");
 	var timeCursor = document.getElementById("cursor");
 	//
-	Event.drag({
-		type: "absolute",
-		element: capsule,
-		callback: function (event, coords, state, self) {
-			var ab = abPos(capsule);
-			player.currentTime = (coords.x - ab.x) / 420 * player.endTime;
-			if (player.currentTime < 0) player.currentTime = 0;
-			if (player.currentTime > player.endTime) player.currentTime = player.endTime;
-			if (state === "down") {
-				player.pause(true);
-			} else if (state === "up") {
-				player.resume();
-			}
+	Event.add(capsule, "drag", function (event, self) {
+		Event.cancel(event);
+		player.currentTime = (self.x) / 420 * player.endTime;
+		if (player.currentTime < 0) player.currentTime = 0;
+		if (player.currentTime > player.endTime) player.currentTime = player.endTime;
+		if (self.state === "down") {
+			player.pause(true);
+		} else if (self.state === "up") {
+			player.resume();
 		}
 	});
 	//
@@ -267,7 +258,7 @@ var MIDIPlayerPercentage = function(player) {
 		if (seconds.length == 1) seconds = "0" + seconds;
 		return minutes + ":" + seconds;
 	};
-	getNextSong = function(n) {
+	player.getNextSong = function(n) {
 		var id = Math.abs((songid += n) % song.length);
 		player.loadFile(song[id], player.start); // load MIDI
 	};
@@ -314,7 +305,7 @@ var ColorSphereBackground = function() {
 	var onMouseMove = function(event) {
 		ctx.drawImage(theSphere, 0, 0);
 		if (event) {
-			var coords = Event.coords(event);
+			var coords = Event.proxy.getCoord(event);
 			coords.x -= document.body.scrollLeft;
 			coords.y -= document.body.scrollTop;
 			px = coords.x;

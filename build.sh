@@ -5,7 +5,7 @@ OUT=build/MIDI.minimal.js
 
 echo "//MIDI.js minimal Browserify wrapper" > $OUT
 
-for file in js/DOMLoader.*.js js/VersionControl.Base64.js js/lib/base64binary.js js/MIDI.*.js
+for file in js/DOMLoader.*.js js/Polyfill/Base64.js inc/base64binary.js js/MIDI.*.js
 do
   cat $file >> $OUT
   echo "" >> $OUT

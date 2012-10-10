@@ -2,7 +2,7 @@
 	
 	MIDI.Player : 0.3
 	-------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	-------------------------------------
 	requires jasmid
 	
@@ -56,23 +56,23 @@ root.clearAnimation = function() {
 
 root.setAnimation = function(config) {
 	var callback = (typeof(config) === "function") ? config : config.callback;
-	var delay = config.delay || 24;
+	var interval = config.interval || 30;
 	var currentTime = 0;
 	var tOurTime = 0;
 	var tTheirTime = 0;
 	//
 	root.clearAnimation();
-	root.interval = window.setInterval(function (){
+	root.interval = window.setInterval(function () {
 		if (root.endTime === 0) return;
 		if (root.playing) {
-			currentTime = (tTheirTime == root.currentTime) ? tOurTime-(new Date()).getTime() : 0;
+			currentTime = (tTheirTime === root.currentTime) ? tOurTime - (new Date).getTime() : 0;
 			if (root.currentTime === 0) {
 				currentTime = 0;
 			} else {
 				currentTime = root.currentTime - currentTime;
 			}
-			if (tTheirTime != root.currentTime) {
-				tOurTime = (new Date()).getTime();
+			if (tTheirTime !== root.currentTime) {
+				tOurTime = (new Date).getTime();
 				tTheirTime = root.currentTime;
 			}
 		} else { // paused
@@ -91,7 +91,7 @@ root.setAnimation = function(config) {
 			end: t2,
 			events: noteRegistrar
 		});
-	}, delay);
+	}, interval);
 };
 
 // helpers
@@ -111,6 +111,10 @@ root.loadFile = function (file, callback) {
 		if (callback) callback(data);
 		return;
 	}
+	///
+	var title = file.split(" - ")[1] || file;
+	document.getElementById("playback-title").innerHTML = title.replace(".mid","");
+	///
 	var fetch = new XMLHttpRequest();
 	fetch.open('GET', file);
 	fetch.overrideMimeType("text/plain; charset=x-user-defined");
@@ -123,7 +127,7 @@ root.loadFile = function (file, callback) {
 			for (var z = 0; z < mx; z++) {
 				ff[z] = scc(t.charCodeAt(z) & 255);
 			}
-	        var data = ff.join("");
+			var data = ff.join("");
 			root.currentData = data;
 			root.loadMidiFile();
 			if (callback) callback(data);
@@ -140,8 +144,7 @@ var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener callback
 var scheduleTracking = function (channel, note, currentTime, offset, message, velocity) {
-	var interval = window.setInterval(function () {
-		window.clearInterval(interval);
+	var interval = window.setTimeout(function () {
 		var data = {
 			channel: channel,
 			note: note,
