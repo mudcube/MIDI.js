@@ -54,7 +54,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 		# from WAV to OGG
 		if [ $OGG -eq 1 ]; then
 			OGGFILE=`echo ${file%.midi}.ogg`;
-			./inc/oggenc -m 32 -M 64 "$file.wav"
+			oggenc -m 32 -M 64 "$file.wav"
 			mv "$file.ogg" "$OGGFILE"
 			# from OGG to base64 embedded in Javascript
 			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/ogg;base64,`node ./inc/gen-base64.js \"$OGGFILE\"`\","
@@ -75,7 +75,7 @@ find $MIDIDIR -name '*.midi' -print0 | while read -d $'\0' file
 		# from WAV to MP3
 		if [ $MP3 -eq 1 ]; then
 			MP3FILE=`echo "${file%.midi}.mp3"`
-			./inc/lame -v -b 8 -B 32 "$file.wav" "$MP3FILE"
+			lame -v -b 8 -B 32 "$file.wav" "$MP3FILE"
 			# from MP3 to base64 embedded in Javascript
 			JSCONTENT="\"`basename \"${file%.midi}\"`\": \"data:audio/mpeg;base64,`node ./inc/gen-base64.js \"$MP3FILE\"`\","
 			if [ $SINGLE -eq 1 ]; then
