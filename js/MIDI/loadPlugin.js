@@ -60,12 +60,12 @@ MIDI.loadPlugin = function(callback, instrument) {
 				// works well in Firefox
 				DOMLoader.sendRequest({
 					url: "./soundfont/soundfont-" + filetype + instrument + ".js",
-					callback: function (response) {
+					onload: function (response) {
 						MIDI.Soundfont = JSON.parse(response.responseText);
 						if (loader) loader.message("Downloading: 100%<br>Processing...");
 						MIDI.HTML5.connect(callback);
 					}, 
-					progress: function (evt) {
+					onprogress: function (evt) {
 						var percent = evt.loaded / 1719931 * 100 >> 0;
 						if (loader) loader.message("Downloading: " + (percent + "%"));
 					}
@@ -75,12 +75,12 @@ MIDI.loadPlugin = function(callback, instrument) {
 				// works well in Chrome
 				DOMLoader.sendRequest({
 					url: "./soundfont/soundfont-" + filetype + instrument + ".js",
-					callback: function(response) {
+					onload: function(response) {
 						MIDI.Soundfont = JSON.parse(response.responseText);
 						if (loader) loader.message("Downloading: 100%<br>Processing...");
 						MIDI.WebAudioAPI.connect(callback);
 					}, 
-					progress: function (evt) {
+					onprogress: function (evt) {
 						var percent = evt.loaded / 1719931 * 100 >> 0;
 						if (loader) loader.message("Downloading: " + (percent + "%"));
 					}

@@ -27,7 +27,7 @@
 
 if (typeof(widgets) === "undefined") var widgets = {};
 
-widgets.Loader = (function(root) {
+widgets.Loader = (function(root) { "use strict";
 
 var PI = Math.PI;
 var defaultConfig = { 
@@ -86,6 +86,7 @@ return function (conf) {
 		var div = document.createElement("div");
 		var span = document.createElement("span");
 		div.appendChild(span);
+		div.className = defaultConfig.id;
 		that.span = span;
 		that.div = div;
 		var canvas = document.createElement("canvas");

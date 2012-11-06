@@ -1,7 +1,12 @@
 /*
-
-	DOMLoader : 0.2 : mudcu.be
-	---------------------------
+	----------------------------------------------------
+	DOMLoader.script.js : 0.1.2 : 2012/09/08 : http://mudcu.be
+	----------------------------------------------------
+	Copyright 2011-2012 Mudcube. All rights reserved.
+	----------------------------------------------------
+	/// No verification
+	DOMLoader.script.add("../js/jszip/jszip.js");
+	/// Strict loading order and verification.
 	DOMLoader.script.add({
 		strictOrder: true,
 		srcs: [
@@ -24,10 +29,19 @@
 			console.log(3)
 		}
 	});
-	
+	/// Just verification.
+	DOMLoader.script.add({
+		src: "../js/jszip/jszip.js",
+		verify: "JSZip",
+		callback: function() {
+			console.log(1)
+		}
+	});
 */
 
-if (typeof(DOMLoader) === "undefined") DOMLoader = {};
+if (typeof(DOMLoader) === "undefined") var DOMLoader = {};
+
+(function() { "use strict";
 
 DOMLoader.script = function() {
 	this.loaded = {};
@@ -37,6 +51,9 @@ DOMLoader.script = function() {
 
 DOMLoader.script.prototype.add = function(config) {
 	var that = this;
+	if (typeof(config) === "string") {
+		config = { src: config };
+	}
 	var srcs = config.srcs;
 	if (typeof(srcs) === "undefined") {
 		srcs = [{ 
@@ -49,7 +66,7 @@ DOMLoader.script.prototype.add = function(config) {
 	/// 
 	var testElement = function(element, test) {
 		if (that.loaded[element.src]) return;
-		if (test && !eval(test)) return;
+		if (test && typeof(window[test]) === "undefined") return;
 		that.loaded[element.src] = true;
 		//
 		if (that.loading[element.src]) that.loading[element.src]();
@@ -61,10 +78,23 @@ DOMLoader.script.prototype.add = function(config) {
 	///
 	var batchTest = [];
 	var addElement = function(element) {
-		if (/([\w\d.\[\]])$/.test(element.verify)) { // check whether its a variable reference
-			element.test = "(typeof(" + element.verify + ") !== \"undefined\")";
-			batchTest.push(element.test);
+		if (typeof(element) === "string") {
+			element = {
+				src: element,
+				verify: config.verify
+			};
 		}
+		if (/([\w\d.])$/.test(element.verify)) { // check whether its a variable reference
+			element.test = element.verify;
+			if (typeof(element.test) === "object") {
+				for (var key in element.test) {
+					batchTest.push(element.test[key]);
+				}			
+			} else {
+				batchTest.push(element.test);
+			}
+		}
+		if (that.loaded[element.src]) return;
 		var script = document.createElement("script");
 		script.onreadystatechange = function() {
 			if (this.readyState !== "loaded" && this.readyState !== "complete") return;
@@ -72,6 +102,9 @@ DOMLoader.script.prototype.add = function(config) {
 		};
 		script.onload = function() {
 			testElement(element);
+		};
+		script.onerror = function() {
+
 		};
 		script.setAttribute("type", "text/javascript");
 		script.setAttribute("src", element.src);
@@ -87,7 +120,29 @@ DOMLoader.script.prototype.add = function(config) {
 				testElement(srcs[n], srcs[n].test);
 			}
 		}
-		if (!config.strictOrder && eval(batchTest.join(" && "))) { // finished loading all the requested scripts
+		var istrue = true;
+		for (var n = 0; n < batchTest.length; n ++) {
+			var test = batchTest[n];
+			if (test && test.indexOf(".") !== -1) {
+				test = test.split(".");
+				var level0 = window[test[0]];
+				if (typeof(level0) === "undefined") continue;
+				if (test.length === 2) { //- this is a bit messy and could handle more cases
+					if (typeof(level0[test[1]]) === "undefined") {
+						istrue = false;
+					}
+				} else if (test.length === 3) {
+					if (typeof(level0[test[1]][test[2]]) === "undefined") {
+						istrue = false;
+					}
+				}
+			} else {
+				if (typeof(window[test]) === "undefined") {
+					istrue = false;
+				}
+			}
+		}
+		if (!config.strictOrder && istrue) { // finished loading all the requested scripts
 			if (config.callback) config.callback();
 		} else { // keep calling back the function
 			setTimeout(function() { //- should get slower over time?
@@ -121,7 +176,6 @@ DOMLoader.script.prototype.add = function(config) {
 		getNext();
 	} else { // loose ordering
 		for (var ID = 0; ID < srcs.length; ID ++) {
-			if (that.loaded[srcs[ID].src]) return;
 			addElement(srcs[ID]);
 		}
 		onLoad();
@@ -129,3 +183,5 @@ DOMLoader.script.prototype.add = function(config) {
 };
 
 DOMLoader.script = (new DOMLoader.script());
+
+})();

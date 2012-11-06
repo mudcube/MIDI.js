@@ -203,7 +203,7 @@
 	*	Track for proper command/control-key for Mac/PC.
 	----------------------------------------------------
 	Event.add(window, "keyup keydown", Event.proxy.metaTracker);
-	console.log(Event.metaKey);
+	console.log(Event.proxy.metaKey);
 
 	*	Test for event features, in this example Drag & Drop file support.
 	----------------------------------------------------
@@ -269,30 +269,36 @@ var eventManager = function(target, type, listener, configure, trigger) {
 	configure = configure || {};
 	// Check for element to load on interval (before onload).
 	if (typeof(target) === "string" && type === "ready") {
+		var time = (new Date).getTime();
 		var timeout = configure.timeout;
-		var speed = configure.interval || 1000 / 60;
+		var ms = configure.interval || 1000 / 60;
 		var interval = setInterval(function() {
+			if ((new Date).getTime() - time > timeout) {
+				clearInterval(interval);
+			}
 			if (document.querySelector(target)) {
 				clearInterval(interval);
 				listener();
 			}
-		}, speed);
+		}, ms);
 		return;
 	}
 	// Get DOM element from Query Selector.
 	if (typeof(target) === "string") {
 		target = document.querySelectorAll(target);
-		if (target.length === 0) return;
-		if (target.length === 1) {
+		if (target.length === 0) return createError("Missing target on listener!"); // No results.
+		if (target.length === 1) { // Single target.
 			target = target[0];
-		} else { /// Handle multiple targets.
-			var events = {};
-			for (var n = 0, length = target.length; n < length; n ++) {
-				var event = eventManager(target[n], type, listener, configure, trigger);
-				if (event) events[n] = event;
-			}	
-			return batch(events);
 		}
+	}
+	/// Handle multiple targets.
+	if (target.length > 0) { 
+		var events = {};
+		for (var n = 0, length = target.length; n < length; n ++) {
+			var event = eventManager(target[n], type, listener, clone(configure), trigger);
+			if (event) events[n] = event;
+		}	
+		return createBatchCommands(events);
 	}
 	// Check for multiple events in one string.
 	if (type.indexOf && type.indexOf(" ") !== -1) type = type.split(" ");
@@ -302,23 +308,23 @@ var eventManager = function(target, type, listener, configure, trigger) {
 		var events = {};
 		if (typeof(type.length) === "number") { // Handle multiple listeners glued together.
 			for (var n = 0, length = type.length; n < length; n ++) { // Array [type]
-				var event = eventManager(target, type[n], listener, configure, trigger);
+				var event = eventManager(target, type[n], listener, clone(configure), trigger);
 				if (event) events[type[n]] = event;
 			}
 		} else { // Handle multiple listeners.
 			for (var key in type) { // Object {type}
 				if (typeof(type[key]) === "function") { // without configuration.
-					var event = eventManager(target, key, type[key], configure, trigger);
+					var event = eventManager(target, key, type[key], clone(configure), trigger);
 				} else { // with configuration.
-					var event = eventManager(target, key, type[key].listener, type[key], trigger);
+					var event = eventManager(target, key, type[key].listener, clone(type[key]), trigger);
 				}
 				if (event) events[key] = event;
 			}
 		}
-		return batch(events);
+		return createBatchCommands(events);
 	}
 	// Ensure listener is a function.
-	if (typeof(listener) !== "function") return;
+	if (typeof(listener) !== "function") return createError("Listener is not a function! ", target, type, listener);
 	// Generate a unique wrapper identifier.
 	var useCapture = configure.useCapture || false;
 	var id = normalize(type) + getID(target) + "." + getID(listener) + "." + (useCapture ? 1 : 0);
@@ -346,14 +352,13 @@ var eventManager = function(target, type, listener, configure, trigger) {
 			wrappers[id] = root.proxy[type](configure); 
 		}
 	} else { // Fire native event.
+		var type = normalize(type);
 		if (trigger === "remove") { // Remove event listener.
 			if (!wrappers[id]) return; // Already removed.
 			target[remove](type, listener, useCapture); 
 			delete wrappers[id];
 		} else if (trigger === "add") { // Attach event listener.
 			if (wrappers[id]) return wrappers[id]; // Already attached.
-			var type = normalize(type);
-			// Attach listener.
 			target[add](type, listener, useCapture); 
 			// Record wrapper.
 			wrappers[id] = { 
@@ -370,7 +375,7 @@ var eventManager = function(target, type, listener, configure, trigger) {
 };
 
 /// Perform batch actions on multiple events.
-var batch = function(events) {
+var createBatchCommands = function(events) {
 	return {
 		remove: function() { // Remove multiple events.
 			for (var key in events) {
@@ -383,6 +388,13 @@ var batch = function(events) {
 			}
 		}
 	};
+};
+
+/// Display error message in console.
+var createError = function(message) {
+	if (typeof(console) === "undefined") return;
+	if (typeof(console.error) === "undefined") return;
+	console.error(arguments);
 };
 
 /// Handle naming discrepancies between platforms.
@@ -423,7 +435,7 @@ var counter = 0;
 var getID = function(object) {
 	if (object === window) return "#window";
 	if (object === document) return "#document";
-	if (!object) return console.log("Missing target on listener!");
+	if (!object) return createError("Missing target on listener!");
 	if (!object.uniqueID) object.uniqueID = "id" + counter ++;
 	return object.uniqueID;
 };
@@ -442,7 +454,6 @@ root.createPointerEvent = function (event, self, preventRecord) {
 	var eventName = self.gesture;
 	var target = self.target;
 	var pts = event.changedTouches || root.proxy.getCoords(event);
-	///
 	if (pts.length) {
 		var pt = pts[0];
 		self.pointers = preventRecord ? [] : pts;
@@ -568,19 +579,28 @@ root.pointerSetup = function(conf, self) {
 	///
 	if (Event.modifyEventListener) conf.listener = Event.createPointerEvent;
 	/// Convenience commands.
+	var fingers = 0;
 	var type = self.gesture.indexOf("pointer") === 0 && Event.modifyEventListener ? "pointer" : "mouse";
+	self.proxy = function(listener) {
+		self.defaultListener = conf.listener;
+		conf.listener = listener;
+		listener(conf.event, self);
+	};
 	self.remove = function() {
 		if (conf.onPointerDown) Event.remove(conf.target, type + "down", conf.onPointerDown);
 		if (conf.onPointerMove) Event.remove(conf.doc, type + "move", conf.onPointerMove);
 		if (conf.onPointerUp) Event.remove(conf.doc, type + "up", conf.onPointerUp);
 	};
-	self.enable = function(opt) {
+	self.resume = function(opt) {
 		if (conf.onPointerMove && (!opt || opt.move)) Event.add(conf.doc, type + "move", conf.onPointerMove);
 		if (conf.onPointerUp && (!opt || opt.move)) Event.add(conf.doc, type + "up", conf.onPointerUp);
+		conf.fingers = fingers;
 	};
-	self.disable = function(opt) {
+	self.pause = function(opt) {
+		fingers = conf.fingers;
 		if (conf.onPointerMove && (!opt || opt.move)) Event.remove(conf.doc, type + "move", conf.onPointerMove);
 		if (conf.onPointerUp && (!opt || opt.up)) Event.remove(conf.doc, type + "up", conf.onPointerUp);
+		conf.fingers = 0;
 	};
 	///
 	return self;
@@ -614,8 +634,13 @@ root.pointerStart = function(event, self, conf) {
 				break;
 		}
 		///
-		var x = (touch.pageX + bbox.scrollLeft - pt.offsetX) * bbox.scaleX;
-		var y = (touch.pageY + bbox.scrollTop - pt.offsetY) * bbox.scaleY;
+		if (conf.position === "relative") {
+			var x = (touch.pageX + bbox.scrollLeft - pt.offsetX) * bbox.scaleX;
+			var y = (touch.pageY + bbox.scrollTop - pt.offsetY) * bbox.scaleY;
+		} else {
+			var x = (touch.pageX - pt.offsetX);
+			var y = (touch.pageY - pt.offsetY);
+		}
 		///
 		pt.rotation = 0;
 		pt.scale = 1;
@@ -625,7 +650,13 @@ root.pointerStart = function(event, self, conf) {
 		///
 		conf.fingers ++;
 	};
-	//
+	///
+	conf.event = event;
+	if (self.defaultListener) {
+		conf.listener = self.defaultListener;
+		delete self.defaultListener;
+	}
+	///
 	var isTouchStart = !conf.fingers;
 	var track = conf.tracker;
 	var touches = event.changedTouches || root.getCoords(event);
@@ -658,7 +689,7 @@ root.pointerStart = function(event, self, conf) {
 			addTouchStart(touch, sid);
 		} else { // Start tracking fingers.
 			track = conf.tracker = {};
-			conf.bbox = root.getBoundingBox(conf.target);
+			self.bbox = conf.bbox = root.getBoundingBox(conf.target);
 			conf.fingers = 0;
 			conf.cancel = false;
 			addTouchStart(touch, sid);
@@ -788,7 +819,10 @@ root.getCoord = function(event) {
 		};
 	} else if(typeof(event.pageX) !== "undefined" && typeof(event.pageY) !== "undefined") { // Desktop browsers.
 		root.getCoord = function(event) {
-			return event;
+			return {
+				x: event.pageX,
+				y: event.pageY
+			};
 		};
 	} else { // Internet Explorer <=8.0
 		root.getCoord = function(event) {
@@ -855,7 +889,7 @@ root.getBoundingBox = function(o) {
 	Keep track of metaKey, the proper ctrlKey for users platform.
 */
 
-root.metaTracker = (function() {
+(function() {
 	var agent = navigator.userAgent.toLowerCase();
 	var mac = agent.indexOf("macintosh") !== -1;
 	if (mac && agent.indexOf("khtml") !== -1) { // chrome, safari.
@@ -865,7 +899,10 @@ root.metaTracker = (function() {
 	} else { // windows, linux, or mac opera.
 		var watch = { 17: true };
 	}
-	return function(event) {
+	root.isMetaKey = function(event) {
+		return !!watch[event.keyCode];
+	};
+	root.metaTracker = function(event) {
 		if (watch[event.keyCode]) {
 			root.metaKey = event.type === "keydown";
 		}
@@ -911,8 +948,13 @@ root.click = function(conf) {
 			var pointer = pointers[0];
 			var bbox = conf.bbox;
 			var newbbox = root.getBoundingBox(conf.target);
-			var ax = (pointer.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
-			var ay = (pointer.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			if (conf.position === "relative") {
+				var ax = (pointer.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
+				var ay = (pointer.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			} else {
+				var ax = (pointer.pageX - bbox.x1);
+				var ay = (pointer.pageY - bbox.y1);
+			}
 			if (ax > 0 && ax < bbox.width && // Within target coordinates.
 				ay > 0 && ay < bbox.height &&
 				bbox.scrollTop === newbbox.scrollTop) {
@@ -984,8 +1026,13 @@ root.dblclick = function(conf) {
 			pointer1 = pointers[0];
 		}
 		var bbox = conf.bbox;
-		var ax = (pointer1.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
-		var ay = (pointer1.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+		if (conf.position === "relative") {
+			var ax = (pointer1.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
+			var ay = (pointer1.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+		} else {
+			var ax = (pointer1.pageX - bbox.x1);
+			var ay = (pointer1.pageY - bbox.y1);
+		}
 		if (!(ax > 0 && ax < bbox.width && // Within target coordinates..
 			  ay > 0 && ay < bbox.height &&
 			  Math.abs(pointer1.pageX - pointer0.pageX) <= 25 && // Within drift deviance.
@@ -1044,6 +1091,18 @@ if (typeof(Event.proxy) === "undefined") Event.proxy = {};
 
 Event.proxy = (function(root) { "use strict";
 
+root.dragElement = function(that, event) {
+	root.drag({
+		event: event,
+		target: that,
+		position: "move",
+		listener: function(event, self) {
+			that.style.left = self.x + "px";
+			that.style.top = self.y + "px";
+		}
+	});
+};
+
 root.drag = function(conf) {
 	conf.gesture = "drag";
 	conf.onPointerDown = function (event) {
@@ -1071,8 +1130,13 @@ root.drag = function(conf) {
 			self.identifier = identifier;
 			self.start = pt.start;
 			self.fingers = 1; // TODO(mud): option to track as single set, or individually.
-			self.x = (pt.pageX + bbox.scrollLeft - pt.offsetX) * bbox.scaleX;
-			self.y = (pt.pageY + bbox.scrollTop - pt.offsetY) * bbox.scaleY;
+			if (conf.position === "relative") {
+				self.x = (pt.pageX + bbox.scrollLeft - pt.offsetX) * bbox.scaleX;
+				self.y = (pt.pageY + bbox.scrollTop - pt.offsetY) * bbox.scaleY;
+			} else {
+				self.x = (pt.pageX - pt.offsetX);
+				self.y = (pt.pageY - pt.offsetY);
+			}
 			///
 			conf.listener(event, self);
 		}
@@ -1157,8 +1221,13 @@ root.gesture = function(conf) {
 			// Check whether "pt" is used by another gesture.
 			if (!pt) continue; 
 			// Find the actual coordinates.
-			pt.move.x = (touch.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
-			pt.move.y = (touch.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			if (conf.position === "relative") {
+				pt.move.x = (touch.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
+				pt.move.y = (touch.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			} else {
+				pt.move.x = (touch.pageX - bbox.x1);
+				pt.move.y = (touch.pageY - bbox.y1);
+			}
 		}
 		///
 		if (conf.fingers < conf.minFingers) return;
@@ -1564,8 +1633,13 @@ root.longpress = function(conf) {
 			var identifier = touch.identifier || Infinity;
 			var pt = conf.tracker[identifier];
 			if (!pt) continue;
-			var x = (touch.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
-			var y = (touch.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			if (conf.position === "relative") {
+				var x = (touch.pageX + bbox.scrollLeft - bbox.x1) * bbox.scaleX;
+				var y = (touch.pageY + bbox.scrollTop - bbox.y1) * bbox.scaleY;
+			} else {
+				var x = (touch.pageX - bbox.x1);
+				var y = (touch.pageY - bbox.y1);
+			}
 			if (!(x > 0 && x < bbox.width && // Within target coordinates..
 				  y > 0 && y < bbox.height &&
 				  Math.abs(x - pt.start.x) <= 25 && // Within drift deviance.

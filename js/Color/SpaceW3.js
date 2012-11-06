@@ -28,7 +28,7 @@
 if (typeof(Color) === "undefined") Color = {};
 if (typeof(Color.Space) === "undefined") Color.Space = {};
 
-(function () {
+(function () { "use strict";
 
 var functions = {
 	// holds generated cached conversion functions.
@@ -383,7 +383,7 @@ root.HSV_RGB = function (o) {
 	var H = o.H / 360;
 	var S = o.S / 100;
 	var V = o.V / 100;
-	var R, G, B;
+	var R, G, B, D, A, C;
 	if (S === 0) {
 		R = G = B = Math.round(V * 255);
 	} else {
