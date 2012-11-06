@@ -65,10 +65,9 @@ var root = Color.Space = function(color, route) {
 		}
 		key += (pos === 0 ? "" : "_") + r[pos];
 		color = root[key](color);
-		f = "Color.Space."+key+"("+f+")";
-	}
-	
-	functions[route] = eval("(function(color) { return "+f+" })");
+//		f = "Color.Space."+key+"("+f+")";
+	}	
+//	functions[route] = eval("(function(color) { return "+f+" })");
 	return color;
 };
 
