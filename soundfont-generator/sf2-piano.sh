@@ -4,7 +4,7 @@
 # ------------------------------------
 # nodejs     - http://nodejs.org/
 # gzip       - http://www.gzip.org/
-# fluidsynth - http://www.audiosoftstore.com/downloads.html
+# fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/
 # oggenc     - http://www.rarewares.org/ogg-oggenc.php
 # lame       - http://lame.sourceforge.net/
 
