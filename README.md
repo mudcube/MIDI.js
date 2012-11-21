@@ -1,13 +1,16 @@
+<pre>
  <h3>Description of package;</h3>
  <li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
 <li class="indent">
 <pre>
 // interface to download soundfont, then execute callback;
-MIDI.loadPlugin(callback, soundfont);
+MIDI.loadPlugin(callback);
 // simple example to get started;
-MIDI.loadPlugin(function() {
-	MIDI.noteOn(0, 100, 127, 0); // plays note once loaded
-}, "soundfont/soundfont-ogg-guitar.js");
+MIDI.loadPlugin({
+	instrument: "acoustic_grand_piano", // or 1 (default)
+	instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
+	callback: function() { }
+});
 </pre>
 </li>
  <li><a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: &nbsp;Customizable base64 Soundfont.</li>
@@ -69,3 +72,4 @@ MIDI.Player.setAnimation(function(data) {
  <li>Flash package: &nbsp;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a></li>
  <li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;Reads MIDI file byte-code, and translats into a Javascript array.</li>
  <li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &nbsp;Cleans up XML base64-requests for Web Audio API.</li>
+</pre>
