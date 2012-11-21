@@ -1,6 +1,8 @@
 /* 
 	----------------------------------------------------
-	Color Space : 1.2 : 2012.09.01 : http://mudcu.be
+	Color Space : 1.2 : 2012.11.06
+	----------------------------------------------------
+	https://github.com/mudcube/Color.Space.js
 	----------------------------------------------------
 	RGBA <-> HSLA  <-> W3
 	RGBA <-> HSVA
@@ -25,14 +27,17 @@
 	#000000
 */
 
-if (typeof(Color) === "undefined") Color = {};
+if (typeof(Color) === "undefined") var Color = {};
 if (typeof(Color.Space) === "undefined") Color.Space = {};
 
 (function () { "use strict";
 
+var useEval = false; // caches functions for quicker access.
+
 var functions = {
 	// holds generated cached conversion functions.
 };
+
 var shortcuts = {
 	"HEX24>HSL": "HEX24>RGB>HSL",
 	"HEX32>HSLA": "HEX32>RGBA>HSLA",
@@ -65,9 +70,13 @@ var root = Color.Space = function(color, route) {
 		}
 		key += (pos === 0 ? "" : "_") + r[pos];
 		color = root[key](color);
-//		f = "Color.Space."+key+"("+f+")";
+		if (useEval) {
+			f = "Color.Space."+key+"("+f+")";
+		}
 	}	
-//	functions[route] = eval("(function(color) { return "+f+" })");
+	if (useEval) {
+		functions[route] = eval("(function(color) { return "+f+" })");
+	}
 	return color;
 };
 
