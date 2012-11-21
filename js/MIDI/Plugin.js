@@ -102,11 +102,14 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	};
 
 	// FIX: needs some way to fade out smoothly..
+        // POSSIBLE FIX: fade out smoothly using gain and ramping to value
 	root.noteOff = function (channel, note, delay) {
-//		var source = sources[channel+""+note];
-//		if (!source) return;
-//		source.noteOff(delay || 0);
-//		return source;
+		var source = sources[channel+""+note];
+		if (!source) return;
+		source.gain.linearRampToValueAtTime(1, delay);
+		source.gain.linearRampToValueAtTime(0, delay + 0.1);
+		source.noteOff(delay || 0);
+		return source;
 	};
 
 	root.chordOff = function (channel, chord, delay) {
