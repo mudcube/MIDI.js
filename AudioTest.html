@@ -19,11 +19,11 @@ var loader;
 window.onload = function () {
 	loader = new widgets.Loader;
 	MIDI.loadPlugin({
-		instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
+		instruments: [ "acoustic_grand_piano", "synth_drum" ], // or multiple instruments
 		callback: function() {
 			loader.stop();
 			MIDI.programChange(0, 0);
-			MIDI.programChange(1, 24);
+			MIDI.programChange(1, 118);
 			for (var n = 0; n < 100; n ++) {
 				var delay = n / 4; // play one note every quarter second
 				var note = MIDI.pianoKeyOffset + n; // the MIDI note
