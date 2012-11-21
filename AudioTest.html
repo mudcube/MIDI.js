@@ -15,17 +15,20 @@
 <script type="text/javascript">
 
 window.onload = function () {
-	MIDI.loadPlugin(function() {
-		for (var n = 0; n < 100; n ++) {
-			var delay = n / 4; // play one note every quarter second
-			var note = MIDI.pianoKeyOffset + n; // the MIDI note
-			var velocity = 127; // how hard the note hits
-			// play the note
-			MIDI.noteOn(0, note, velocity, delay);
-			// play the some note 3-steps up
-			MIDI.noteOn(0, note + 3, velocity, delay);
+	MIDI.loadPlugin({
+		instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
+		callback: function() {
+			for (var n = 0; n < 100; n ++) {
+				var delay = n / 4; // play one note every quarter second
+				var note = MIDI.pianoKeyOffset + n; // the MIDI note
+				var velocity = 127; // how hard the note hits
+				// play the note
+				MIDI.noteOn(0, note, velocity, delay);
+				// play the some note 3-steps up
+				MIDI.noteOn(0, note + 3, velocity, delay);
+			}		
 		}
-	});	
+	});
 };
 
 </script>
