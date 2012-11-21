@@ -1,10 +1,9 @@
 /*
-
+	-------------------------------------
 	MIDI.loadPlugin(callback, type);
 	-------------------------------------
 	https://github.com/mudx/MIDI.js
 	-------------------------------------
-
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
