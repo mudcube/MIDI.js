@@ -1,6 +1,6 @@
 /*
-
-	MIDI.Plugin : 0.3
+	-------------------------------------
+	MIDI.Plugin : 0.3 : 11/20/2012
 	-------------------------------------
 	https://github.com/mudx/MIDI.js
 	-------------------------------------
@@ -11,7 +11,7 @@
 	MIDI.channels
 	MIDI.keyToNote
 	MIDI.noteToKey
-	
+	-------------------------------------
 	setMute?
 	getInstruments?
 
@@ -79,16 +79,13 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		sources[channel + "" + note] = source;
 		source.buffer = audioBuffers[note];
 		source.connect(ctx.destination);
-		//
+		///
 		var gainNode = ctx.createGainNode();
 		var value = -0.5 + (velocity / 100) * 2;
 		var minus = (1 - masterVolume) * 2;
 		gainNode.connect(ctx.destination);
 		gainNode.gain.value = Math.max(-1, value - minus);
 		source.connect(gainNode);
-		//
-//		source.playbackRate.value = 2;
-		///
 		source.noteOn(delay || 0);
 		return source;
 	};
@@ -102,13 +99,14 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	};
 
 	// FIX: needs some way to fade out smoothly..
-        // POSSIBLE FIX: fade out smoothly using gain and ramping to value
+	// POSSIBLE FIX: fade out smoothly using gain and ramping to value
 	root.noteOff = function (channel, note, delay) {
+		delay = delay || 0;
 		var source = sources[channel+""+note];
 		if (!source) return;
 		source.gain.linearRampToValueAtTime(1, delay);
-		source.gain.linearRampToValueAtTime(0, delay + 0.1);
-		source.noteOff(delay || 0);
+		source.gain.linearRampToValueAtTime(0, delay + 0.75);
+		source.noteOff(delay + 0.75);
 		return source;
 	};
 
