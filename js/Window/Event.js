@@ -1,13 +1,23 @@
 /*
 	----------------------------------------------------
-	Event.js : 1.0.9 : 2012/07/28 : MIT License
+	Event.js : 1.1.1 : 2012/11/19 : MIT License
 	----------------------------------------------------
 	https://github.com/mudcube/Event.js
 	----------------------------------------------------
-	1  : click, dblclick, dbltap
-	1+ : tap, longpress, drag, swipe
-	2+ : pinch, rotate
-	   : mousewheel, devicemotion, shake
+	1	: click, dblclick, dbltap
+	1+	: tap, longpress, drag, swipe
+	2+	: pinch, rotate
+		: mousewheel, devicemotion, shake
+	----------------------------------------------------
+	TODO
+	----------------------------------------------------
+		* switch configuration to 4th argument on addEventListener
+		* bbox calculation for elements scaled with transform.
+	----------------------------------------------------
+	NOTES
+	----------------------------------------------------
+	* When using other libraries that may have built in "Event" namespace,
+		i.e. Typescript, you can use "eventjs" instead of "Event" for all example calls.
 	----------------------------------------------------
 	REQUIREMENTS: querySelector, querySelectorAll
 	----------------------------------------------------
@@ -88,8 +98,8 @@
 			console.log(self.identifier);
 			console.log(self.start);
 			console.log(self.fingers); // somewhere between "2" and "4".
-			self.disable(); // disable event.
-			self.enable(); // enable event.
+			self.pause(); // disable event.
+			self.resume(); // enable event.
 			self.remove(); // remove event.
 		}
 	});
@@ -212,6 +222,7 @@
 */
 
 if (typeof(Event) === "undefined") var Event = {};
+if (typeof(eventjs) === "undefined") var eventjs = Event;
 
 Event = (function(root) { "use strict";
 
@@ -258,26 +269,39 @@ root.supports = function (target, type) {
 	if (target.setAttribute && target.removeAttribute) {
 		target.setAttribute(type, "");
 		var isSupported = typeof target[type] === "function";
-		if (typeof target[type] !== "undefined") target[type] = undefined;
+		if (typeof target[type] !== "undefined") target[type] = null;
 		target.removeAttribute(type);
 		return isSupported;
 	}
 };
 
+var clone = function (obj) {
+	if (!obj || typeof (obj) !== 'object') return obj;
+	var temp = new obj.constructor();
+	for (var key in obj) {
+		if (!obj[key] || typeof (obj[key]) !== 'object') {
+			temp[key] = obj[key];
+		} else { // clone sub-object
+			temp[key] = clone(obj[key]);
+		}
+	}
+	return temp;
+};
+
 /// Handle custom *EventListener commands.
-var eventManager = function(target, type, listener, configure, trigger) {
+var eventManager = function(target, type, listener, configure, trigger, fromOverwrite) {
 	configure = configure || {};
 	// Check for element to load on interval (before onload).
 	if (typeof(target) === "string" && type === "ready") {
-		var time = (new Date).getTime();
+		var time = (new Date()).getTime();
 		var timeout = configure.timeout;
 		var ms = configure.interval || 1000 / 60;
-		var interval = setInterval(function() {
-			if ((new Date).getTime() - time > timeout) {
-				clearInterval(interval);
+		var interval = window.setInterval(function() {
+			if ((new Date()).getTime() - time > timeout) {
+				window.clearInterval(interval);
 			}
 			if (document.querySelector(target)) {
-				clearInterval(interval);
+				window.clearInterval(interval);
 				listener();
 			}
 		}, ms);
@@ -292,11 +316,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 		}
 	}
 	/// Handle multiple targets.
+	var event;
+	var events = {};
 	if (target.length > 0) { 
-		var events = {};
-		for (var n = 0, length = target.length; n < length; n ++) {
-			var event = eventManager(target[n], type, listener, clone(configure), trigger);
-			if (event) events[n] = event;
+		for (var n0 = 0, length0 = target.length; n0 < length0; n0 ++) {
+			event = eventManager(target[n0], type, listener, clone(configure), trigger);
+			if (event) events[n0] = event;
 		}	
 		return createBatchCommands(events);
 	}
@@ -305,18 +330,17 @@ var eventManager = function(target, type, listener, configure, trigger) {
 	if (type.indexOf && type.indexOf(",") !== -1) type = type.split(",");
 	// Attach or remove multiple events associated with a target.
 	if (typeof(type) !== "string") { // Has multiple events.
-		var events = {};
 		if (typeof(type.length) === "number") { // Handle multiple listeners glued together.
-			for (var n = 0, length = type.length; n < length; n ++) { // Array [type]
-				var event = eventManager(target, type[n], listener, clone(configure), trigger);
-				if (event) events[type[n]] = event;
+			for (var n1 = 0, length1 = type.length; n1 < length1; n1 ++) { // Array [type]
+				event = eventManager(target, type[n1], listener, clone(configure), trigger);
+				if (event) events[type[n1]] = event;
 			}
 		} else { // Handle multiple listeners.
 			for (var key in type) { // Object {type}
 				if (typeof(type[key]) === "function") { // without configuration.
-					var event = eventManager(target, key, type[key], clone(configure), trigger);
+					event = eventManager(target, key, type[key], clone(configure), trigger);
 				} else { // with configuration.
-					var event = eventManager(target, key, type[key].listener, clone(type[key]), trigger);
+					event = eventManager(target, key, type[key].listener, clone(type[key]), trigger);
 				}
 				if (event) events[key] = event;
 			}
@@ -324,12 +348,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 		return createBatchCommands(events);
 	}
 	// Ensure listener is a function.
-	if (typeof(listener) !== "function") return createError("Listener is not a function! ", target, type, listener);
+	if (typeof(listener) !== "function") return createError("Listener is not a function!");
 	// Generate a unique wrapper identifier.
 	var useCapture = configure.useCapture || false;
 	var id = normalize(type) + getID(target) + "." + getID(listener) + "." + (useCapture ? 1 : 0);
 	// Handle the event.
-	if (root.Gesture._gestureHandlers[type]) { // Fire custom event.
+	if (root.Gesture && root.Gesture._gestureHandlers[type]) { // Fire custom event.
 		if (trigger === "remove") { // Remove event listener.
 			if (!wrappers[id]) return; // Already removed.
 			wrappers[id].remove();
@@ -339,7 +363,7 @@ var eventManager = function(target, type, listener, configure, trigger) {
 			// Retains "this" orientation.
 			if (configure.useCall && !root.modifyEventListener) {
 				var tmp = listener;
-				var listener = function(event, self) {
+				listener = function(event, self) {
 					for (var key in self) event[key] = self[key];
 					return tmp.call(target, event);
 				};
@@ -348,11 +372,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 			configure.gesture = type; 
 			configure.target = target;
 			configure.listener = listener;
+			configure.fromOverwrite = fromOverwrite;
 			// Record wrapper.
 			wrappers[id] = root.proxy[type](configure); 
 		}
 	} else { // Fire native event.
-		var type = normalize(type);
+		type = normalize(type);
 		if (trigger === "remove") { // Remove event listener.
 			if (!wrappers[id]) return; // Already removed.
 			target[remove](type, listener, useCapture); 
@@ -394,7 +419,7 @@ var createBatchCommands = function(events) {
 var createError = function(message) {
 	if (typeof(console) === "undefined") return;
 	if (typeof(console.error) === "undefined") return;
-	console.error(arguments);
+	console.error(message);
 };
 
 /// Handle naming discrepancies between platforms.
@@ -426,7 +451,7 @@ var normalize = (function() {
 		} else {
 			return type;
 		}
-	}
+	};
 })();
 
 /// Event wrappers to keep track of all events placed in the window.
@@ -477,7 +502,7 @@ if (root.modifyEventListener) (function() {
 			var handle = trigger + "EventListener";
 			var handler = proto[handle];
 			proto[handle] = function (type, listener, useCapture) {
-				if (root.Gesture._gestureHandlers[type]) { // capture custom events.
+				if (root.Gesture && root.Gesture._gestureHandlers[type]) { // capture custom events.
 					var configure = useCapture;
 					if (typeof(useCapture) === "object") {
 						configure.useCall = true;
@@ -485,9 +510,9 @@ if (root.modifyEventListener) (function() {
 						configure = {
 							useCall: true,
 							useCapture: useCapture
-						}
+						};
 					}
-					eventManager(this, type, listener, configure, trigger);
+					eventManager(this, type, listener, configure, trigger, true);
 					handler.call(this, type, listener, useCapture);
 				} else { // use native function.
 					handler.call(this, normalize(type), listener, useCapture);
@@ -527,8 +552,6 @@ if (root.modifySelectors) (function() {
 return root;
 
 })(Event);
-
-
 /*
 	----------------------------------------------------
 	Event.proxy : 0.4.2 : 2012/07/29 : MIT License
@@ -577,7 +600,7 @@ root.pointerSetup = function(conf, self) {
 	self.target = conf.target;
 	self.pointerType = Event.pointerType;
 	///
-	if (Event.modifyEventListener) conf.listener = Event.createPointerEvent;
+	if (Event.modifyEventListener && conf.fromOverwrite) conf.listener = Event.createPointerEvent;
 	/// Convenience commands.
 	var fingers = 0;
 	var type = self.gesture.indexOf("pointer") === 0 && Event.modifyEventListener ? "pointer" : "mouse";
@@ -732,7 +755,7 @@ root.pointerEnd = function(event, self, conf, onPointerUp) {
 		}
 	}
 /*
-	// This should work but fails in Safari on iOS4.
+	// This should work but fails in Safari on iOS4 so not using it.
 	var touches = event.changedTouches || root.getCoords(event);
 	var length = touches.length;
 	// Record changed touches have ended (this should work).
@@ -912,8 +935,6 @@ root.getBoundingBox = function(o) {
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Click" event proxy.
 	----------------------------------------------------
@@ -978,8 +999,6 @@ Event.Gesture._gestureHandlers.click = root.click;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Double-Click" aka "Double-Tap" event proxy.
 	----------------------------------------------------
@@ -1074,8 +1093,6 @@ Event.Gesture._gestureHandlers.dblclick = root.dblclick;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Drag" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -1167,8 +1184,6 @@ Event.Gesture._gestureHandlers.drag = root.drag;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Gesture" event proxy (2+ fingers).
 	----------------------------------------------------
@@ -1317,8 +1332,6 @@ Event.Gesture._gestureHandlers.gesture = root.gesture;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Pointer" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -1374,8 +1387,6 @@ Event.Gesture._gestureHandlers.pointerup = root.pointerup;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Device Motion" and "Shake" event proxy.
 	----------------------------------------------------
@@ -1479,8 +1490,6 @@ Event.Gesture._gestureHandlers.shake = root.shake;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Swipe" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -1531,10 +1540,24 @@ root.swipe = function(conf) {
 			var velocity2
 			var degree1;
 			var degree2;
+		/// Calculate centroid of gesture.
+		var start = { x: 0, y: 0 };
+		var endx = 0;
+		var endy = 0;
+		var length = 0;
+			///
 			for (var sid in conf.tracker) {
 				var touch = conf.tracker[sid];
 				var xdist = touch.move.x - touch.start.x;
 				var ydist = touch.move.y - touch.start.y;
+
+			endx += touch.move.x;
+			endy += touch.move.y;
+			start.x += touch.start.x;
+			start.y += touch.start.y;
+			length ++;
+
+
 				var distance = Math.sqrt(xdist * xdist + ydist * ydist);
 				var ms = touch.moveTime - touch.startTime;
 				var degree2 = Math.atan2(xdist, ydist) / RAD_DEG + 180;
@@ -1548,8 +1571,14 @@ root.swipe = function(conf) {
 				} else {
 					return;
 				}
-			}			
+			}
+			///
 			if (velocity1 > conf.threshold) {
+				start.x /= length;
+				start.y /= length;
+				self.start = start;
+				self.x = endx / length;
+				self.y = endy / length;
 				self.angle = -((((degree1 / conf.snap + 0.5) >> 0) * conf.snap || 360) - 360);
 				self.velocity = velocity1;
 				self.fingers = conf.gestureFingers;
@@ -1573,8 +1602,6 @@ Event.Gesture._gestureHandlers.swipe = root.swipe;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Tap" and "Longpress" event proxy.
 	----------------------------------------------------
@@ -1691,8 +1718,6 @@ Event.Gesture._gestureHandlers.longpress = root.longpress;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Mouse Wheel" event proxy.
 	----------------------------------------------------
@@ -1726,7 +1751,7 @@ root.wheel = function(conf) {
 	var onMouseWheel = function(event) {
 		event = event || window.event;
 		self.state = count++ ? "change" : "start";
-		self.wheelDelta = event.detail ? event.detail * -40 : event.wheelDelta;
+		self.wheelDelta = event.detail ? event.detail * -20 : event.wheelDelta;
 		conf.listener(event, self);
 		clearTimeout(interval);
 		interval = setTimeout(function() {
@@ -1752,5 +1777,3 @@ Event.Gesture._gestureHandlers.wheel = root.wheel;
 return root;
 
 })(Event.proxy);
-
-
