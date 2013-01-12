@@ -446,15 +446,15 @@ root.HSV_RGB = function (o) {
 
 })();
 /*
-
+	-------------------------------------
 	MIDI.audioDetect : 0.3
 	-------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	-------------------------------------
 	Probably, Maybe, No... Absolutely!
 	-------------------------------------
 	Test to see what types of <audio> MIME types are playable by the browser.
-
+	-------------------------------------
 */
 
 if (typeof(MIDI) === "undefined") var MIDI = {};
@@ -512,7 +512,7 @@ MIDI.audioDetect = function(callback) {
 	-----------------------------------------------------------
 	MIDI.loadPlugin : 0.1 : 11/20/2012
 	-----------------------------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	-----------------------------------------------------------
 	MIDI.loadPlugin({
 		instrument: "acoustic_grand_piano", // or 1 (default)
@@ -536,6 +536,8 @@ MIDI.loadPlugin = function(conf) {
 		MIDI.Soundfont[data] = true;
 		return data;		
 	});
+	///
+	MIDI.soundfontUrl = conf.soundfontUrl || MIDI.soundfontUrl || "./soundfont/";
 	/// Detect the best type of audio to use.
 	MIDI.audioDetect(function(types) {
 		var type = "";
@@ -570,15 +572,13 @@ var connect = {};
 
 connect.java = function(filetype, instruments, callback) {
 	// works well cross-browser, and fully featured, but has delay when Java machine starts.
-	if (typeof(loader) === "undefined") var loader;
-	if (loader) loader.message("Soundfont (500KB)<br>Java Interface...");
+	if (MIDI.loader) MIDI.loader.message("Java API...");
 	MIDI.Java.connect(callback);
 };
 
 connect.flash = function(filetype, instruments, callback) {
 	// fairly quick, but requires loading of individual MP3s (more http requests).
-	if (typeof(loader) === "undefined") var loader;
-	if (loader) loader.message("Soundfont (2MB)<br>Flash Interface...");
+	if (MIDI.loader) MIDI.loader.message("Flash API...");
 	DOMLoader.script.add({
 		src: "./inc/SoundManager2/script/soundmanager2.js",
 		verify: "SoundManager",
@@ -589,21 +589,18 @@ connect.flash = function(filetype, instruments, callback) {
 };
 
 connect.audiotag = function(filetype, instruments, callback) {
+	if (MIDI.loader) MIDI.loader.message("HTML5 Audio API...");
 	// works ok, kinda like a drunken tuna fish, across the board.
-	if (typeof(loader) === "undefined") var loader;
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
-				url: "./soundfont/" + instrumentId + "-" + filetype + ".js",
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
 				onload: function (response) {
 					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (loader) loader.message("Downloading", 100);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
 					queue.getNext();
-				}, 
-				onprogress: function (evt) {
-					var percent = Math.round(evt.loaded / evt.total * 100);
-					if (loader) loader.message("Downloading", percent);
 				}
 			});
 		},
@@ -614,20 +611,18 @@ connect.audiotag = function(filetype, instruments, callback) {
 };
 
 connect.webaudio = function(filetype, instruments, callback) {
+	if (MIDI.loader) MIDI.loader.message("Web Audio API...");
 	// works awesome! safari and chrome support
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
-				url: "./soundfont/" + instrumentId + "-" + filetype + ".js",
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
 				onload: function(response) {
 					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (loader) loader.message("Downloading", 100);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
 					queue.getNext();
-				}, 
-				onprogress: function (evt) {
-					var percent = Math.round(evt.loaded / evt.total * 100);
-					if (loader) loader.message("Downloading", percent);
 				}
 			});
 		},
@@ -646,6 +641,18 @@ var plugins = {
 	"#flash": true 
 };
 
+var getPercent = function(event) {
+	if (!this.totalSize) {
+		if (this.getResponseHeader("Content-Length-Raw")) {
+			this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
+		} else {
+			this.totalSize = event.total;
+		}
+	}
+	var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
+	if (MIDI.loader) MIDI.loader.update(null, "Downloading...", percent);
+};
+
 var createQueue = function(conf) {
 	var self = {};
 	self.queue = [];
@@ -662,13 +669,13 @@ var createQueue = function(conf) {
 
 })();
 /*
-	
+	-------------------------------------
 	MIDI.Player : 0.3
 	-------------------------------------
 	https://github.com/mudcube/MIDI.js
 	-------------------------------------
-	requires jasmid
-	
+	#jasmid
+	-------------------------------------
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
@@ -947,7 +954,7 @@ var stopAudio = function () {
 	--------------------------------------------
 	MIDI.Plugin : 0.3 : 11/20/2012
 	--------------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
 	MIDI.WebAudioAPI
 	MIDI.Flash
@@ -959,7 +966,7 @@ var stopAudio = function () {
 	--------------------------------------------
 	setMute?
 	getInstruments?
-
+	-------------------------------------
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
@@ -994,8 +1001,8 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		ctx.decodeAudioData(buffer, function (buffer) {
 			var msg = url;
 			while (msg.length < 3) msg += "&nbsp;";
-			if (typeof (loader) !== "undefined") {
-				loader.message(synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
+			if (typeof (MIDI.loader) !== "undefined") {
+				MIDI.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
 			}
 			buffer.id = url;
 			bufferList[index] = buffer;
@@ -1275,7 +1282,7 @@ if (window.Audio) (function () {
 				var instrumentId = synth.number;
 				notes[instrumentId+""+id] = soundManager.createSound({
 					id: id,
-					url: "./soundfont/"+instrument+"-mp3/" + id + ".mp3",
+					url: MIDI.soundfontUrl + instrument + "-mp3/" + id + ".mp3",
 					multiShot: true,
 					autoLoad: true,
 					onload: onload
@@ -1285,8 +1292,8 @@ if (window.Audio) (function () {
 				var loaded = [];
 				var onload = function () {
 					loaded.push(this.sID);
-					if (typeof (loader) === "undefined") return;
-					loader.message("Processing: " + this.sID);
+					if (typeof (MIDI.loader) === "undefined") return;
+					MIDI.loader.update(null, "Processing: " + this.sID);
 				};
 				for (var i = 0; i < 88; i++) {
 					var id = noteReverse[i + 21];
@@ -1705,7 +1712,7 @@ if (typeof(MusicTheory) === "undefined") MusicTheory = {};
 
 })();
 /*
-
+	------------------------------------------------------------
 	MusicTheory.Synesthesia : 0.3
 	------------------------------------------------------------
 	Peacock:  “Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
@@ -1716,7 +1723,7 @@ if (typeof(MusicTheory) === "undefined") MusicTheory = {};
 	Jones:  The art of light & color, New York: Van Nostrand Reinhold, 1972
 	------------------------------------------------------------
 	Reference: http://rhythmiclight.com/archives/ideas/colorscales.html
-
+	------------------------------------------------------------
 */
 
 if (typeof(MusicTheory) === "undefined") var MusicTheory = {};
@@ -2166,18 +2173,17 @@ widgets.Loader = function (configure) {
 	ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
 
 	/// Public functions.
-	this.messageId;
 	this.messages = {};
 	this.message = function (message, onstart) {
 		if (!this.interval) return this.start(onstart, message);
-		if (this.messageId) return this.update(this.messageId, message);
-		return this.messageId = this.add({
+		return this.add({
 			message: message, 
 			onstart: onstart
 		});
 	};
 	
 	this.update = function(id, message, percent) {
+		if (!id) for (var id in this.messages);
 		var item = this.messages[id];
 		item.message = message;
 		if (typeof(percent) === "number") item.span.innerHTML = percent + "%";
@@ -2234,7 +2240,6 @@ widgets.Loader = function (configure) {
 		this.span.appendChild(container);
 		this.span.style.display = "block";
 		this.update(item.seed, message);
-		this.center();
 		/// Escape event loop.
 		if (conf.onstart) {
 			window.setTimeout(conf.onstart, 50);
@@ -2270,7 +2275,7 @@ widgets.Loader = function (configure) {
 	
 	this.start = function (onstart, message) {
 		if (!(message || configure.message)) return;
-		return this.messageId = this.add({
+		return this.add({
 			message: message || configure.message, 
 			onstart: onstart
 		});
@@ -2304,14 +2309,13 @@ widgets.Loader = function (configure) {
 		canvas.style.top = (height / 2) + "px";
 		canvas.style.width = (size) + "px";
 		canvas.style.height = (size) + "px";
-		that.span.style.left = ((width + size) / 2 - that.span.offsetWidth / 2) + "px";
 		that.span.style.top = (height / 2 + size - 10) + "px";
 	};
 
 	var style = document.createElement("style");
 	style.innerHTML = '\
 .loader { color: #fff; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
-.loader span.message { font-family: monospace; font-size: 14px; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; }\
+.loader span.message { line-height: 1.5em; font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
 .loader span.message div { border-bottom: 1px solid #222; padding: 5px 10px; clear: both; text-align: left; opacity: 1; }\
 .loader span.message div:last-child { border-bottom: none; }\
 ';
@@ -2323,7 +2327,7 @@ widgets.Loader = function (configure) {
 		}, 1);
 		window.setTimeout(function() { // wait for opacity=0 before removing the element.
 			item.container.parentNode.removeChild(item.container);
-		}, 10);
+		}, 250);
 	};
 	var renderAnimation = function () {
 		var timestamp = (new Date()).getTime();
@@ -2753,14 +2757,24 @@ if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
 }
 /*
 	----------------------------------------------------
-	Event.js : 1.0.9 : 2012/07/28 : MIT License
+	Event.js : 1.1.1 : 2012/11/19 : MIT License
 	----------------------------------------------------
 	https://github.com/mudcube/Event.js
 	----------------------------------------------------
-	1  : click, dblclick, dbltap
-	1+ : tap, longpress, drag, swipe
-	2+ : pinch, rotate
-	   : mousewheel, devicemotion, shake
+	1	: click, dblclick, dbltap
+	1+	: tap, longpress, drag, swipe
+	2+	: pinch, rotate
+		: mousewheel, devicemotion, shake
+	----------------------------------------------------
+	TODO
+	----------------------------------------------------
+		* switch configuration to 4th argument on addEventListener
+		* bbox calculation for elements scaled with transform.
+	----------------------------------------------------
+	NOTES
+	----------------------------------------------------
+	* When using other libraries that may have built in "Event" namespace,
+		i.e. Typescript, you can use "eventjs" instead of "Event" for all example calls.
 	----------------------------------------------------
 	REQUIREMENTS: querySelector, querySelectorAll
 	----------------------------------------------------
@@ -2841,8 +2855,8 @@ if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
 			console.log(self.identifier);
 			console.log(self.start);
 			console.log(self.fingers); // somewhere between "2" and "4".
-			self.disable(); // disable event.
-			self.enable(); // enable event.
+			self.pause(); // disable event.
+			self.resume(); // enable event.
 			self.remove(); // remove event.
 		}
 	});
@@ -2965,6 +2979,7 @@ if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
 */
 
 if (typeof(Event) === "undefined") var Event = {};
+if (typeof(eventjs) === "undefined") var eventjs = Event;
 
 Event = (function(root) { "use strict";
 
@@ -3011,26 +3026,39 @@ root.supports = function (target, type) {
 	if (target.setAttribute && target.removeAttribute) {
 		target.setAttribute(type, "");
 		var isSupported = typeof target[type] === "function";
-		if (typeof target[type] !== "undefined") target[type] = undefined;
+		if (typeof target[type] !== "undefined") target[type] = null;
 		target.removeAttribute(type);
 		return isSupported;
 	}
 };
 
+var clone = function (obj) {
+	if (!obj || typeof (obj) !== 'object') return obj;
+	var temp = new obj.constructor();
+	for (var key in obj) {
+		if (!obj[key] || typeof (obj[key]) !== 'object') {
+			temp[key] = obj[key];
+		} else { // clone sub-object
+			temp[key] = clone(obj[key]);
+		}
+	}
+	return temp;
+};
+
 /// Handle custom *EventListener commands.
-var eventManager = function(target, type, listener, configure, trigger) {
+var eventManager = function(target, type, listener, configure, trigger, fromOverwrite) {
 	configure = configure || {};
 	// Check for element to load on interval (before onload).
 	if (typeof(target) === "string" && type === "ready") {
-		var time = (new Date).getTime();
+		var time = (new Date()).getTime();
 		var timeout = configure.timeout;
 		var ms = configure.interval || 1000 / 60;
-		var interval = setInterval(function() {
-			if ((new Date).getTime() - time > timeout) {
-				clearInterval(interval);
+		var interval = window.setInterval(function() {
+			if ((new Date()).getTime() - time > timeout) {
+				window.clearInterval(interval);
 			}
 			if (document.querySelector(target)) {
-				clearInterval(interval);
+				window.clearInterval(interval);
 				listener();
 			}
 		}, ms);
@@ -3045,11 +3073,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 		}
 	}
 	/// Handle multiple targets.
+	var event;
+	var events = {};
 	if (target.length > 0) { 
-		var events = {};
-		for (var n = 0, length = target.length; n < length; n ++) {
-			var event = eventManager(target[n], type, listener, clone(configure), trigger);
-			if (event) events[n] = event;
+		for (var n0 = 0, length0 = target.length; n0 < length0; n0 ++) {
+			event = eventManager(target[n0], type, listener, clone(configure), trigger);
+			if (event) events[n0] = event;
 		}	
 		return createBatchCommands(events);
 	}
@@ -3058,18 +3087,17 @@ var eventManager = function(target, type, listener, configure, trigger) {
 	if (type.indexOf && type.indexOf(",") !== -1) type = type.split(",");
 	// Attach or remove multiple events associated with a target.
 	if (typeof(type) !== "string") { // Has multiple events.
-		var events = {};
 		if (typeof(type.length) === "number") { // Handle multiple listeners glued together.
-			for (var n = 0, length = type.length; n < length; n ++) { // Array [type]
-				var event = eventManager(target, type[n], listener, clone(configure), trigger);
-				if (event) events[type[n]] = event;
+			for (var n1 = 0, length1 = type.length; n1 < length1; n1 ++) { // Array [type]
+				event = eventManager(target, type[n1], listener, clone(configure), trigger);
+				if (event) events[type[n1]] = event;
 			}
 		} else { // Handle multiple listeners.
 			for (var key in type) { // Object {type}
 				if (typeof(type[key]) === "function") { // without configuration.
-					var event = eventManager(target, key, type[key], clone(configure), trigger);
+					event = eventManager(target, key, type[key], clone(configure), trigger);
 				} else { // with configuration.
-					var event = eventManager(target, key, type[key].listener, clone(type[key]), trigger);
+					event = eventManager(target, key, type[key].listener, clone(type[key]), trigger);
 				}
 				if (event) events[key] = event;
 			}
@@ -3077,12 +3105,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 		return createBatchCommands(events);
 	}
 	// Ensure listener is a function.
-	if (typeof(listener) !== "function") return createError("Listener is not a function! ", target, type, listener);
+	if (typeof(listener) !== "function") return createError("Listener is not a function!");
 	// Generate a unique wrapper identifier.
 	var useCapture = configure.useCapture || false;
 	var id = normalize(type) + getID(target) + "." + getID(listener) + "." + (useCapture ? 1 : 0);
 	// Handle the event.
-	if (root.Gesture._gestureHandlers[type]) { // Fire custom event.
+	if (root.Gesture && root.Gesture._gestureHandlers[type]) { // Fire custom event.
 		if (trigger === "remove") { // Remove event listener.
 			if (!wrappers[id]) return; // Already removed.
 			wrappers[id].remove();
@@ -3092,7 +3120,7 @@ var eventManager = function(target, type, listener, configure, trigger) {
 			// Retains "this" orientation.
 			if (configure.useCall && !root.modifyEventListener) {
 				var tmp = listener;
-				var listener = function(event, self) {
+				listener = function(event, self) {
 					for (var key in self) event[key] = self[key];
 					return tmp.call(target, event);
 				};
@@ -3101,11 +3129,12 @@ var eventManager = function(target, type, listener, configure, trigger) {
 			configure.gesture = type; 
 			configure.target = target;
 			configure.listener = listener;
+			configure.fromOverwrite = fromOverwrite;
 			// Record wrapper.
 			wrappers[id] = root.proxy[type](configure); 
 		}
 	} else { // Fire native event.
-		var type = normalize(type);
+		type = normalize(type);
 		if (trigger === "remove") { // Remove event listener.
 			if (!wrappers[id]) return; // Already removed.
 			target[remove](type, listener, useCapture); 
@@ -3147,7 +3176,7 @@ var createBatchCommands = function(events) {
 var createError = function(message) {
 	if (typeof(console) === "undefined") return;
 	if (typeof(console.error) === "undefined") return;
-	console.error(arguments);
+	console.error(message);
 };
 
 /// Handle naming discrepancies between platforms.
@@ -3179,7 +3208,7 @@ var normalize = (function() {
 		} else {
 			return type;
 		}
-	}
+	};
 })();
 
 /// Event wrappers to keep track of all events placed in the window.
@@ -3230,7 +3259,7 @@ if (root.modifyEventListener) (function() {
 			var handle = trigger + "EventListener";
 			var handler = proto[handle];
 			proto[handle] = function (type, listener, useCapture) {
-				if (root.Gesture._gestureHandlers[type]) { // capture custom events.
+				if (root.Gesture && root.Gesture._gestureHandlers[type]) { // capture custom events.
 					var configure = useCapture;
 					if (typeof(useCapture) === "object") {
 						configure.useCall = true;
@@ -3238,9 +3267,9 @@ if (root.modifyEventListener) (function() {
 						configure = {
 							useCall: true,
 							useCapture: useCapture
-						}
+						};
 					}
-					eventManager(this, type, listener, configure, trigger);
+					eventManager(this, type, listener, configure, trigger, true);
 					handler.call(this, type, listener, useCapture);
 				} else { // use native function.
 					handler.call(this, normalize(type), listener, useCapture);
@@ -3280,8 +3309,6 @@ if (root.modifySelectors) (function() {
 return root;
 
 })(Event);
-
-
 /*
 	----------------------------------------------------
 	Event.proxy : 0.4.2 : 2012/07/29 : MIT License
@@ -3330,7 +3357,7 @@ root.pointerSetup = function(conf, self) {
 	self.target = conf.target;
 	self.pointerType = Event.pointerType;
 	///
-	if (Event.modifyEventListener) conf.listener = Event.createPointerEvent;
+	if (Event.modifyEventListener && conf.fromOverwrite) conf.listener = Event.createPointerEvent;
 	/// Convenience commands.
 	var fingers = 0;
 	var type = self.gesture.indexOf("pointer") === 0 && Event.modifyEventListener ? "pointer" : "mouse";
@@ -3485,7 +3512,7 @@ root.pointerEnd = function(event, self, conf, onPointerUp) {
 		}
 	}
 /*
-	// This should work but fails in Safari on iOS4.
+	// This should work but fails in Safari on iOS4 so not using it.
 	var touches = event.changedTouches || root.getCoords(event);
 	var length = touches.length;
 	// Record changed touches have ended (this should work).
@@ -3665,8 +3692,6 @@ root.getBoundingBox = function(o) {
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Click" event proxy.
 	----------------------------------------------------
@@ -3731,8 +3756,6 @@ Event.Gesture._gestureHandlers.click = root.click;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Double-Click" aka "Double-Tap" event proxy.
 	----------------------------------------------------
@@ -3827,8 +3850,6 @@ Event.Gesture._gestureHandlers.dblclick = root.dblclick;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Drag" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -3920,8 +3941,6 @@ Event.Gesture._gestureHandlers.drag = root.drag;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Gesture" event proxy (2+ fingers).
 	----------------------------------------------------
@@ -4070,8 +4089,6 @@ Event.Gesture._gestureHandlers.gesture = root.gesture;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Pointer" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -4127,8 +4144,6 @@ Event.Gesture._gestureHandlers.pointerup = root.pointerup;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Device Motion" and "Shake" event proxy.
 	----------------------------------------------------
@@ -4232,8 +4247,6 @@ Event.Gesture._gestureHandlers.shake = root.shake;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Swipe" event proxy (1+ fingers).
 	----------------------------------------------------
@@ -4284,10 +4297,24 @@ root.swipe = function(conf) {
 			var velocity2
 			var degree1;
 			var degree2;
+		/// Calculate centroid of gesture.
+		var start = { x: 0, y: 0 };
+		var endx = 0;
+		var endy = 0;
+		var length = 0;
+			///
 			for (var sid in conf.tracker) {
 				var touch = conf.tracker[sid];
 				var xdist = touch.move.x - touch.start.x;
 				var ydist = touch.move.y - touch.start.y;
+
+			endx += touch.move.x;
+			endy += touch.move.y;
+			start.x += touch.start.x;
+			start.y += touch.start.y;
+			length ++;
+
+
 				var distance = Math.sqrt(xdist * xdist + ydist * ydist);
 				var ms = touch.moveTime - touch.startTime;
 				var degree2 = Math.atan2(xdist, ydist) / RAD_DEG + 180;
@@ -4301,8 +4328,14 @@ root.swipe = function(conf) {
 				} else {
 					return;
 				}
-			}			
+			}
+			///
 			if (velocity1 > conf.threshold) {
+				start.x /= length;
+				start.y /= length;
+				self.start = start;
+				self.x = endx / length;
+				self.y = endy / length;
 				self.angle = -((((degree1 / conf.snap + 0.5) >> 0) * conf.snap || 360) - 360);
 				self.velocity = velocity1;
 				self.fingers = conf.gestureFingers;
@@ -4326,8 +4359,6 @@ Event.Gesture._gestureHandlers.swipe = root.swipe;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Tap" and "Longpress" event proxy.
 	----------------------------------------------------
@@ -4444,8 +4475,6 @@ Event.Gesture._gestureHandlers.longpress = root.longpress;
 return root;
 
 })(Event.proxy);
-
-
 /*
 	"Mouse Wheel" event proxy.
 	----------------------------------------------------
@@ -4479,7 +4508,7 @@ root.wheel = function(conf) {
 	var onMouseWheel = function(event) {
 		event = event || window.event;
 		self.state = count++ ? "change" : "start";
-		self.wheelDelta = event.detail ? event.detail * -40 : event.wheelDelta;
+		self.wheelDelta = event.detail ? event.detail * -20 : event.wheelDelta;
 		conf.listener(event, self);
 		clearTimeout(interval);
 		interval = setTimeout(function() {
@@ -4505,5 +4534,3 @@ Event.Gesture._gestureHandlers.wheel = root.wheel;
 return root;
 
 })(Event.proxy);
-
-
