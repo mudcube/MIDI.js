@@ -2,7 +2,7 @@
 	-----------------------------------------------------------
 	MIDI.loadPlugin : 0.1 : 11/20/2012
 	-----------------------------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	-----------------------------------------------------------
 	MIDI.loadPlugin({
 		instrument: "acoustic_grand_piano", // or 1 (default)
@@ -26,6 +26,8 @@ MIDI.loadPlugin = function(conf) {
 		MIDI.Soundfont[data] = true;
 		return data;		
 	});
+	///
+	MIDI.soundfontUrl = conf.soundfontUrl || MIDI.soundfontUrl || "./soundfont/";
 	/// Detect the best type of audio to use.
 	MIDI.audioDetect(function(types) {
 		var type = "";
@@ -60,15 +62,13 @@ var connect = {};
 
 connect.java = function(filetype, instruments, callback) {
 	// works well cross-browser, and fully featured, but has delay when Java machine starts.
-	if (typeof(loader) === "undefined") var loader;
-	if (loader) loader.message("Soundfont (500KB)<br>Java Interface...");
+	if (MIDI.loader) MIDI.loader.message("Java API...");
 	MIDI.Java.connect(callback);
 };
 
 connect.flash = function(filetype, instruments, callback) {
 	// fairly quick, but requires loading of individual MP3s (more http requests).
-	if (typeof(loader) === "undefined") var loader;
-	if (loader) loader.message("Soundfont (2MB)<br>Flash Interface...");
+	if (MIDI.loader) MIDI.loader.message("Flash API...");
 	DOMLoader.script.add({
 		src: "./inc/SoundManager2/script/soundmanager2.js",
 		verify: "SoundManager",
@@ -79,21 +79,18 @@ connect.flash = function(filetype, instruments, callback) {
 };
 
 connect.audiotag = function(filetype, instruments, callback) {
+	if (MIDI.loader) MIDI.loader.message("HTML5 Audio API...");
 	// works ok, kinda like a drunken tuna fish, across the board.
-	if (typeof(loader) === "undefined") var loader;
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
-				url: "./soundfont/" + instrumentId + "-" + filetype + ".js",
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
 				onload: function (response) {
 					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (loader) loader.message("Downloading", 100);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
 					queue.getNext();
-				}, 
-				onprogress: function (evt) {
-					var percent = Math.round(evt.loaded / evt.total * 100);
-					if (loader) loader.message("Downloading", percent);
 				}
 			});
 		},
@@ -104,20 +101,18 @@ connect.audiotag = function(filetype, instruments, callback) {
 };
 
 connect.webaudio = function(filetype, instruments, callback) {
+	if (MIDI.loader) MIDI.loader.message("Web Audio API...");
 	// works awesome! safari and chrome support
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
-				url: "./soundfont/" + instrumentId + "-" + filetype + ".js",
+				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+				onprogress: getPercent,
 				onload: function(response) {
 					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (loader) loader.message("Downloading", 100);
+					if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
 					queue.getNext();
-				}, 
-				onprogress: function (evt) {
-					var percent = Math.round(evt.loaded / evt.total * 100);
-					if (loader) loader.message("Downloading", percent);
 				}
 			});
 		},
@@ -134,6 +129,18 @@ var plugins = {
 	"#audiotag": true, 
 	"#java": true, 
 	"#flash": true 
+};
+
+var getPercent = function(event) {
+	if (!this.totalSize) {
+		if (this.getResponseHeader("Content-Length-Raw")) {
+			this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
+		} else {
+			this.totalSize = event.total;
+		}
+	}
+	var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
+	if (MIDI.loader) MIDI.loader.update(null, "Downloading...", percent);
 };
 
 var createQueue = function(conf) {

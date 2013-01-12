@@ -154,9 +154,6 @@ if (typeof(console) === "undefined") var console = { log: function() { } };
 
 // Begin loading indication.
 var player;
-var loader = new widgets.Loader({
-	message: "loading: Soundfont..."
-});
 
 // Tchaikovsky via Disklavier World.
 var songid = 0;
@@ -205,6 +202,7 @@ Event.add(window, "load", function(event) {
 		colors.appendChild(d);
 	}
 	//
+	MIDI.loader = new widgets.Loader;
 	MIDI.loadPlugin(function () {
 		// this is the language we are running in
 		var title = document.getElementById("title");
@@ -230,7 +228,7 @@ Event.add(window, "load", function(event) {
 		ColorSphereBackground();
 		MIDIPlayerPercentage(player);
 		//
-		loader.stop();
+		MIDI.loader.stop();
 	});
 });
 

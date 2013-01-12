@@ -66,7 +66,7 @@ RefreshFrame = function () {
 		var len = circleRadius * (1 + 1.0 / nbrPoints - r);
 		if (Math.floor(a / PI2) !== Math.floor(tines[i] / PI2)) {
 			MIDI.noteOn(0, i + 21, 100, 0);
-			MIDI.noteOn(1, i + 21 + 36, 100, 0);
+			MIDI.noteOn(0, i + 21 + 36, 100, 0);
 			lastSound[i] = ms;
 		}
 		var x = (cx + Math.cos(a) * len);
@@ -85,10 +85,11 @@ RefreshFrame = function () {
 };
 
 window.onload = function () {
+	MIDI.loader = new widgets.Loader;
 	MIDI.loadPlugin({
 		instrument: "acoustic_grand_piano", // or multiple instruments
 		callback: function() {
-			loader.stop();	
+			MIDI.loader.stop();	
 			var canvas = document.getElementById('mycanvas');
 			canvas.style.width = gw + "px";
 			canvas.style.width = gw + "px";
@@ -105,10 +106,6 @@ window.onload = function () {
 		}
 	});
 };
-
-var loader = new widgets.Loader({
-	message: "loading: Music Box..."
-});
 
 </script>
 </body>

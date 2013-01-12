@@ -1,5 +1,5 @@
 /*
-
+	------------------------------------------------------------
 	MusicTheory.Synesthesia : 0.3
 	------------------------------------------------------------
 	Peacock:  “Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
@@ -10,7 +10,7 @@
 	Jones:  The art of light & color, New York: Van Nostrand Reinhold, 1972
 	------------------------------------------------------------
 	Reference: http://rhythmiclight.com/archives/ideas/colorscales.html
-
+	------------------------------------------------------------
 */
 
 if (typeof(MusicTheory) === "undefined") var MusicTheory = {};

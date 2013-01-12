@@ -2,7 +2,7 @@
 	--------------------------------------------
 	MIDI.Plugin : 0.3 : 11/20/2012
 	--------------------------------------------
-	https://github.com/mudx/MIDI.js
+	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
 	MIDI.WebAudioAPI
 	MIDI.Flash
@@ -14,7 +14,7 @@
 	--------------------------------------------
 	setMute?
 	getInstruments?
-
+	-------------------------------------
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
@@ -49,8 +49,8 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		ctx.decodeAudioData(buffer, function (buffer) {
 			var msg = url;
 			while (msg.length < 3) msg += "&nbsp;";
-			if (typeof (loader) !== "undefined") {
-				loader.message(synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
+			if (typeof (MIDI.loader) !== "undefined") {
+				MIDI.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
 			}
 			buffer.id = url;
 			bufferList[index] = buffer;
@@ -330,7 +330,7 @@ if (window.Audio) (function () {
 				var instrumentId = synth.number;
 				notes[instrumentId+""+id] = soundManager.createSound({
 					id: id,
-					url: "./soundfont/"+instrument+"-mp3/" + id + ".mp3",
+					url: MIDI.soundfontUrl + instrument + "-mp3/" + id + ".mp3",
 					multiShot: true,
 					autoLoad: true,
 					onload: onload
@@ -340,8 +340,8 @@ if (window.Audio) (function () {
 				var loaded = [];
 				var onload = function () {
 					loaded.push(this.sID);
-					if (typeof (loader) === "undefined") return;
-					loader.message("Processing: " + this.sID);
+					if (typeof (MIDI.loader) === "undefined") return;
+					MIDI.loader.update(null, "Processing: " + this.sID);
 				};
 				for (var i = 0; i < 88; i++) {
 					var id = noteReverse[i + 21];
