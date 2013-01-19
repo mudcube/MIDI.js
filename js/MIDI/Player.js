@@ -210,7 +210,7 @@ var startAudio = function (currentTime, fromCache) {
 	//
 	for (var n = 0; n < length && messages < 100; n++) {
 		queuedTime += data[n][1];
-		if (queuedTime <= currentTime) {
+		if (queuedTime < currentTime) {
 			offset = queuedTime;
 			continue;
 		}
