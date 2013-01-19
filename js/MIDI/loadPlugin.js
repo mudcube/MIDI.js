@@ -134,7 +134,6 @@ connect.webaudio = function(filetype, instruments, callback) {
 					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
 					verify: "MIDI.Soundfont." + instrumentId,
 					callback: function() {
-					console.log(MIDI.Soundfont[instrumentId])
 						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
 						queue.getNext();
 					}
