@@ -1,6 +1,6 @@
 /*
 	-----------------------------------------------------------
-	MIDI.loadPlugin : 0.1 : 11/20/2012
+	MIDI.loadPlugin : 0.1.2 : 01/18/2012
 	-----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	-----------------------------------------------------------
@@ -16,6 +16,8 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 
 (function() { "use strict";
 
+var USE_XHR = false; // Turn on to get "onprogress" event. XHR will not work from file://
+
 MIDI.loadPlugin = function(conf) {
 	if (typeof(conf) === "function") conf = { callback: conf };
 	/// Get the instrument name.
@@ -23,7 +25,6 @@ MIDI.loadPlugin = function(conf) {
 	if (typeof(instruments) !== "object") instruments = [ instruments ];
 	instruments.map(function(data) {
 		if (typeof(data) === "number") data = MIDI.GeneralMIDI.byId[data];
-		MIDI.Soundfont[data] = true;
 		return data;		
 	});
 	///
@@ -84,15 +85,26 @@ connect.audiotag = function(filetype, instruments, callback) {
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			DOMLoader.sendRequest({
-				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function (response) {
-					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
-					queue.getNext();
-				}
-			});
+			if (USE_XHR) {
+				DOMLoader.sendRequest({
+					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function (response) {
+						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
+						queue.getNext();
+					}
+				});
+			} else {
+				DOMLoader.script.add({
+					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					verify: instrumentId,
+					callback: function() {
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			}
 		},
 		onComplete: function() {
 			MIDI.AudioTag.connect(callback);
@@ -106,15 +118,27 @@ connect.webaudio = function(filetype, instruments, callback) {
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			DOMLoader.sendRequest({
-				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function(response) {
-					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-					queue.getNext();
-				}
-			});
+			if (USE_XHR) {
+				DOMLoader.sendRequest({
+					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function(response) {
+						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			} else {
+				DOMLoader.script.add({
+					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					verify: "MIDI.Soundfont." + instrumentId,
+					callback: function() {
+					console.log(MIDI.Soundfont[instrumentId])
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			}
 		},
 		onComplete: function() {
 			MIDI.WebAudioAPI.connect(callback);
