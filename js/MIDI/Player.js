@@ -235,7 +235,7 @@ var startAudio = function (currentTime, fromCache) {
 				eventQueue.push({
 					event: event,
 					source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset - 10, 128)
+					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
 				});
 				break;
 			default:

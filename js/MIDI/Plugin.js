@@ -89,10 +89,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.connect(ctx.destination);
 		///
 		var gainNode = ctx.createGainNode();
-		var value = -0.5 + (velocity / 100) * 2;
-		var minus = (1 - masterVolume) * 2;
+		var value = (velocity / 100) * masterVolume * 2 - 1;
 		gainNode.connect(ctx.destination);
-		gainNode.gain.value = Math.max(-1, value - minus);
+		gainNode.gain.value = Math.max(-1, value);
 		source.connect(gainNode);
 		source.noteOn(delay || 0);
 		return source;
