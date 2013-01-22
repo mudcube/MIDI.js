@@ -1,4 +1,5 @@
- <li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
+<pre>
+<li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
 <li class="indent">
 <pre>
 // interface to download soundfont, then execute callback;
@@ -70,3 +71,4 @@ MIDI.Player.setAnimation(function(data) {
  <li>Flash package: &nbsp;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a></li>
  <li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;Reads MIDI file byte-code, and translats into a Javascript array.</li>
  <li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &nbsp;Cleans up XML base64-requests for Web Audio API.</li>
+</pre>
