@@ -8,6 +8,7 @@ CODE EXAMPLES (from the repo)
 
 DEMOS
 
+* <a href="http://my.vexflow.com/articles/53">VexFlow</a>
 * <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a>
 * <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a>
 * <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a>
