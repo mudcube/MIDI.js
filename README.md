@@ -1,6 +1,6 @@
 CODE EXAMPLES (from the repo)
 
-* ./demo-Basic.html is the most basic implementation as seen here:
+* ./demo-Basic.html is the most basic implementation.
 * ./demo-MIDIPlayer.html shows how to parse MIDI files, and interact with the data stream.
 * ./demo-WhitneyMusicBox.html is a audio/visual experiment by Jim Bumgardner
 
@@ -15,14 +15,8 @@ DEMOS
 
 -------------
 
-SOUNDFONT GENERATORS (*not* required to get started!)
-
-* Ruby
-* Shell
-
--------------
-
 * <a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
+
 <pre>
 // interface to download soundfont, then execute callback;
 MIDI.loadPlugin(callback);

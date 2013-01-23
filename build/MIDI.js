@@ -510,7 +510,7 @@ MIDI.audioDetect = function(callback) {
 })();
 /*
 	-----------------------------------------------------------
-	MIDI.loadPlugin : 0.1 : 11/20/2012
+	MIDI.loadPlugin : 0.1.2 : 01/18/2012
 	-----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	-----------------------------------------------------------
@@ -526,6 +526,9 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 
 (function() { "use strict";
 
+// Turn on to get "onprogress" event. XHR will not work from file://
+var USE_XHR = false; 
+
 MIDI.loadPlugin = function(conf) {
 	if (typeof(conf) === "function") conf = { callback: conf };
 	/// Get the instrument name.
@@ -533,7 +536,6 @@ MIDI.loadPlugin = function(conf) {
 	if (typeof(instruments) !== "object") instruments = [ instruments ];
 	instruments.map(function(data) {
 		if (typeof(data) === "number") data = MIDI.GeneralMIDI.byId[data];
-		MIDI.Soundfont[data] = true;
 		return data;		
 	});
 	///
@@ -594,15 +596,26 @@ connect.audiotag = function(filetype, instruments, callback) {
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			DOMLoader.sendRequest({
-				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function (response) {
-					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
-					queue.getNext();
-				}
-			});
+			if (USE_XHR) {
+				DOMLoader.sendRequest({
+					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function (response) {
+						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
+						queue.getNext();
+					}
+				});
+			} else {
+				DOMLoader.script.add({
+					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					verify: instrumentId,
+					callback: function() {
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			}
 		},
 		onComplete: function() {
 			MIDI.AudioTag.connect(callback);
@@ -616,15 +629,26 @@ connect.webaudio = function(filetype, instruments, callback) {
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			DOMLoader.sendRequest({
-				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function(response) {
-					MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-					if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-					queue.getNext();
-				}
-			});
+			if (USE_XHR) {
+				DOMLoader.sendRequest({
+					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function(response) {
+						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			} else {
+				DOMLoader.script.add({
+					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					verify: "MIDI.Soundfont." + instrumentId,
+					callback: function() {
+						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
+						queue.getNext();
+					}
+				});
+			}
 		},
 		onComplete: function() {
 			MIDI.WebAudioAPI.connect(callback);
@@ -880,7 +904,7 @@ var startAudio = function (currentTime, fromCache) {
 	//
 	for (var n = 0; n < length && messages < 100; n++) {
 		queuedTime += data[n][1];
-		if (queuedTime <= currentTime) {
+		if (queuedTime < currentTime) {
 			offset = queuedTime;
 			continue;
 		}
@@ -905,7 +929,7 @@ var startAudio = function (currentTime, fromCache) {
 				eventQueue.push({
 					event: event,
 					source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset - 10, 128)
+					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
 				});
 				break;
 			default:
@@ -1041,10 +1065,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.connect(ctx.destination);
 		///
 		var gainNode = ctx.createGainNode();
-		var value = -0.5 + (velocity / 100) * 2;
-		var minus = (1 - masterVolume) * 2;
+		var value = (velocity / 100) * masterVolume * 2 - 1;
 		gainNode.connect(ctx.destination);
-		gainNode.gain.value = Math.max(-1, value - minus);
+		gainNode.gain.value = Math.max(-1, value);
 		source.connect(gainNode);
 		source.noteOn(delay || 0);
 		return source;
@@ -1984,73 +2007,6 @@ if (typeof(MusicTheory.Synesthesia) === "undefined") MusicTheory.Synesthesia = {
 	};
 
 })(MusicTheory.Synesthesia);
-// http://ntt.cc/2008/01/19/base64-encoder-decoder-with-javascript.html
-
-// window.atob and window.btoa
-
-(function (window) {
-
-	var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	
-	window.btoa || (window.btoa = function encode64(input) {
-		input = escape(input);
-		var output = "";
-		var chr1, chr2, chr3 = "";
-		var enc1, enc2, enc3, enc4 = "";
-		var i = 0;
-		do {
-			chr1 = input.charCodeAt(i++);
-			chr2 = input.charCodeAt(i++);
-			chr3 = input.charCodeAt(i++);
-			enc1 = chr1 >> 2;
-			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-			enc4 = chr3 & 63;
-			if (isNaN(chr2)) {
-				enc3 = enc4 = 64;
-			} else if (isNaN(chr3)) {
-				enc4 = 64;
-			}
-			output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) + keyStr.charAt(enc3) + keyStr.charAt(enc4);
-			chr1 = chr2 = chr3 = "";
-			enc1 = enc2 = enc3 = enc4 = "";
-		} while (i < input.length);
-		return output;
-	});
-	
-	window.atob || (window.atob = function(input) {
-		var output = "";
-		var chr1, chr2, chr3 = "";
-		var enc1, enc2, enc3, enc4 = "";
-		var i = 0;
-		// remove all characters that are not A-Z, a-z, 0-9, +, /, or =
-		var base64test = /[^A-Za-z0-9\+\/\=]/g;
-		if (base64test.exec(input)) {
-			alert("There were invalid base64 characters in the input text.\n" + "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" + "Expect errors in decoding.");
-		}
-		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-		do {
-			enc1 = keyStr.indexOf(input.charAt(i++));
-			enc2 = keyStr.indexOf(input.charAt(i++));
-			enc3 = keyStr.indexOf(input.charAt(i++));
-			enc4 = keyStr.indexOf(input.charAt(i++));
-			chr1 = (enc1 << 2) | (enc2 >> 4);
-			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-			chr3 = ((enc3 & 3) << 6) | enc4;
-			output = output + String.fromCharCode(chr1);
-			if (enc3 != 64) {
-				output = output + String.fromCharCode(chr2);
-			}
-			if (enc4 != 64) {
-				output = output + String.fromCharCode(chr3);
-			}
-			chr1 = chr2 = chr3 = "";
-			enc1 = enc2 = enc3 = enc4 = "";
-		} while (i < input.length);
-		return unescape(output);
-	});
-
-}(this));
 /* 
 	----------------------------------------------------
 	Loader.js : 0.4.2 : 2012/11/09
