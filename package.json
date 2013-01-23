@@ -1,11 +1,16 @@
 {
   "name": "midi",
-  "version": "0.0.2",
-  "description": "HTML5 midi player",
+  "version": "0.3.0",
+  "description": "Library to assist in creating HTML5 MIDI apps.",
   "author": "Michael Deal",
+  "contributors" : [ "Sergi Mansilla", "Daniel van der Meer", "Mohit Muthanna", "Pete Otaqui" ],
   "scripts": {
-    "preinstall": "./build.sh"
+    "preinstall": "grunt"
   },
-  "main": "./build/MIDI.minimal",
+  "repository": {
+  	"type": "git",
+  	"url": "git://github.com/mudcube/MIDI.js.git"
+  },
+  "main": "./build/MIDI.min.js",
   "license": "MIT"
 }
