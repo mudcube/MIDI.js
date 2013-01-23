@@ -52,7 +52,8 @@ MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile c
 MIDI.Player.resume(); // resume the MIDI track from pause.
 MIDI.Player.pause(); // pause the MIDI track.
 MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
-<b>Callback whenever a note is played;</b>
+
+// <b>Callback whenever a note is played;</b>
 MIDI.Player.removeListener(); // removes current listener.
 MIDI.Player.addListener(function(data) { // set it to your own function!
     var now = data.now; // where we are now
@@ -63,7 +64,8 @@ MIDI.Player.addListener(function(data) { // set it to your own function!
     var velocity = data.velocity; // the velocity of the note
     // then do whatever you want with the information!
 });
-<b>Smooth animation, interpolates between onMidiEvent calls;</b>
+
+// <b>Smooth animation, interpolates between onMidiEvent calls;</b>
 MIDI.Player.clearAnimation(); // clears current animation.
 MIDI.Player.setAnimation(function(data) {
     var now = data.now; // where we are now
