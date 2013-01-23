@@ -62,12 +62,6 @@ MIDI.loadPlugin = function(conf) {
 
 var connect = {};
 
-connect.java = function(filetype, instruments, callback) {
-	// works well cross-browser, and fully featured, but has delay when Java machine starts.
-	if (MIDI.loader) MIDI.loader.message("Java API...");
-	MIDI.Java.connect(callback);
-};
-
 connect.flash = function(filetype, instruments, callback) {
 	// fairly quick, but requires loading of individual MP3s (more http requests).
 	if (MIDI.loader) MIDI.loader.message("Flash API...");

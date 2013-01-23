@@ -84,7 +84,6 @@ MIDI.Player.setAnimation(function(data) {
  <h3>Many thanks to the authors of these libraries;</h3>
 * <a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: HTML5 specs
 * <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudioAPI</a>: W3C proposal by Google
-* Java package: <a href="https://github.com/abudaan/midibridge-js">MIDIBridge</a> by <a href="http://abumarkub.net">Daniel van der Meer</a>. Supports MIDI keyboard, and 128 General MIDI instruments.
 * Flash package: <a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a>
 * <a href="https://github.com/gasman/jasmid">jasmid</a>: Reads MIDI file byte-code, and translats into a Javascript array.
 * <a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: Cleans up XML base64-requests for Web Audio API.
