@@ -1,25 +1,6 @@
 CODE EXAMPLES (from the repo)
 
 * ./demo-Basic.html is the most basic implementation as seen here:
-<pre>
-	MIDI.loadPlugin({
-		soundfontUrl: "./soundfont/", // path to soundfont directory
-		instruments: [ "acoustic_grand_piano", "synth_drum" ], // multiple instruments
-		callback: function() {
-			MIDI.programChange(0, 0); // change channel 0 to instrument 0 (acoustic_grand_piano)
-			MIDI.programChange(1, 118); // change channel 1 to instrument 118 (synth_drum)
-			for (var n = 0; n < 100; n ++) {
-				var delay = n / 4; // play one note every quarter second
-				var note = MIDI.pianoKeyOffset + n; // the MIDI note
-				var velocity = 127; // how hard the note hits
-				// play the note
-				MIDI.noteOn(0, note, velocity, delay);
-				// play the some note 3-steps up
-				MIDI.noteOn(1, note + 3, velocity, delay);
-			}		
-		}
-	});
-</pre>
 * ./demo-MIDIPlayer.html shows how to parse MIDI files, and interact with the data stream.
 * ./demo-WhitneyMusicBox.html is a audio/visual experiment by Jim Bumgardner
 
@@ -55,6 +36,7 @@ MIDI.loadPlugin({
 
 * <a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: Customizable base64 Soundfont.
 * <a href="./js/MIDI.Plugin.js">MIDI.Plugin.js</a>: Ties together the following frameworks;
+
 <pre>
 MIDI.noteOn(channel, note, velocity, delay);
 MIDI.noteOff(channel, note, delay);
@@ -63,7 +45,9 @@ MIDI.chordOff(channel, chord, delay);
 MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 </pre>
+
 * <a href="./js/MIDI.Player.js">MIDI.Player.js</a>: Streams the MIDI to the browser.
+
 <pre>
 MIDI.Player.currentTime = integer; // time we are at now within the song.
 MIDI.Player.endTime = integer; // time when song ends.
