@@ -62,6 +62,11 @@ MIDI.loadPlugin = function(conf) {
 
 var connect = {};
 
+connect.webmidi = function(filetype, instruments, callback) {
+	if (MIDI.loader) MIDI.loader.message("Web MIDI API...");
+	MIDI.WebMIDI.connect(callback);
+};
+
 connect.flash = function(filetype, instruments, callback) {
 	// fairly quick, but requires loading of individual MP3s (more http requests).
 	if (MIDI.loader) MIDI.loader.message("Flash API...");
@@ -143,9 +148,9 @@ connect.webaudio = function(filetype, instruments, callback) {
 /// Helpers
 
 var plugins = {
+	"#webmidi": true, 
 	"#webaudio": true, 
 	"#audiotag": true, 
-	"#java": true, 
 	"#flash": true 
 };
 

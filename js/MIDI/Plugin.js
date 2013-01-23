@@ -18,7 +18,6 @@
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
-if (typeof (MIDI.Plugin) === "undefined") MIDI.Plugin = {};
 
 (function() { "use strict";
 
@@ -126,7 +125,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	};
 
 	root.connect = function (callback) {
-		MIDI.lang = 'WebAudioAPI';
+		MIDI.technology = "Web Audio API";
 		MIDI.setVolume = root.setVolume;
 		MIDI.programChange = root.programChange;
 		MIDI.noteOn = root.noteOn;
@@ -240,7 +239,7 @@ if (window.Audio) (function () {
 				id: key
 			};
 		}
-		MIDI.lang = 'AudioTag';
+		MIDI.technology = "HTML Audio Tag";
 		MIDI.setVolume = root.setVolume;
 		MIDI.programChange = root.programChange;
 		MIDI.noteOn = root.noteOn;
@@ -348,7 +347,7 @@ if (window.Audio) (function () {
 				}
 			}
 			///
-			MIDI.lang = 'Flash';
+			MIDI.technology = "Flash";
 			MIDI.setVolume = root.setVolume;
 			MIDI.programChange = root.programChange;
 			MIDI.noteOn = root.noteOn;
@@ -369,6 +368,60 @@ if (window.Audio) (function () {
 			noteReverse[MIDI.keyToNote[key]] = key;
 		}
 	};
+})();
+
+/*
+	--------------------------------------------
+	WebMIDI - Native Soundbank
+	--------------------------------------------
+*/
+
+(function () {
+	var root = MIDI.WebMIDI = {};
+	root.connect = function (callback) {
+		// deferred loading of <applet>
+		MIDI.technology = "Web MIDI API";
+		if (callback) callback();
+	};
+
+	MIDI.programChange = function (channel, program) {
+		plugin.send([0xC0 + channel, program]);
+	};
+
+	MIDI.setVolume = function (n) {
+		
+	};
+
+	MIDI.noteOn = function (channel, note, velocity, delay) {
+		plugin.send([0x90 + channel, note, velocity], delay * 1000);
+	};
+
+	MIDI.noteOff = function (channel, note, delay) {
+		plugin.send([0x80 + channel, note], delay * 1000);
+	};
+
+	MIDI.chordOn = function (channel, chord, velocity, delay) {
+		for (var key in chord) {
+			var note = chord[key];
+			plugin.send([0x90 + channel, note, velocity], delay * 1000);
+		}
+	};
+	
+	MIDI.chordOff = function (channel, chord, delay) {
+		for (var key in chord) {
+			var note = chord[key];
+			plugin.send(0x80, channel, note, velocity, delay * 1000);
+		}
+	};
+	
+	MIDI.stopAllNotes = function () {
+
+	};
+
+	MIDI.getInstruments = function() {
+		return [];
+	};
+
 })();
 
 /*
