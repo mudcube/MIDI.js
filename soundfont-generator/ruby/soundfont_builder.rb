@@ -26,7 +26,7 @@ require 'fileutils'
 require 'midilib'
 include FileUtils
 
-BUILD_DIR = "../soundfont"            # Output path
+BUILD_DIR = "../../soundfont"            # Output path
 SOUNDFONT = "./FluidR3_GM.sf2"        # Soundfont file path
 
 # This script will generate MIDI.js-compatible instrument JS files for
