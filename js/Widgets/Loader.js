@@ -131,6 +131,7 @@ widgets.Loader = function (configure) {
 	
 	this.update = function(id, message, percent) {
 		if (!id) for (var id in this.messages);
+		if (!id) return this.message(message);
 		var item = this.messages[id];
 		item.message = message;
 		if (typeof(percent) === "number") item.span.innerHTML = percent + "%";
@@ -262,7 +263,7 @@ widgets.Loader = function (configure) {
 	var style = document.createElement("style");
 	style.innerHTML = '\
 .loader { color: #fff; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
-.loader span.message { line-height: 1.5em; font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
+.loader span.message { font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
 .loader span.message div { border-bottom: 1px solid #222; padding: 5px 10px; clear: both; text-align: left; opacity: 1; }\
 .loader span.message div:last-child { border-bottom: none; }\
 ';
