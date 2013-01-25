@@ -1,8 +1,9 @@
 CODE EXAMPLES (from the repo)
 
-* ./demo-Basic.html is the most basic implementation.
-* ./demo-MIDIPlayer.html shows how to parse MIDI files, and interact with the data stream.
-* ./demo-WhitneyMusicBox.html is a audio/visual experiment by Jim Bumgardner
+* ./demo-Basic.html - the most basic implementation.
+* ./demo-MIDIPlayer.html - how to parse MIDI files, and interact with the data stream.
+* ./demo-MultipleInstruments.html - synth drum and piano playing together
+* ./demo-WhitneyMusicBox.html - a audio/visual experiment by Jim Bumgardner
 
 -------------
 
@@ -23,7 +24,7 @@ DEMOS
 MIDI.loadPlugin(callback);
 // simple example to get started;
 MIDI.loadPlugin({
-    instrument: "acoustic_grand_piano", // or 1 (default)
+    instrument: "acoustic_grand_piano", // or the instrument code 1 (aka the default)
     instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
     callback: function() { }
 });
