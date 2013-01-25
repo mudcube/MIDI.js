@@ -22,6 +22,7 @@
 
     // load the Jazz plugin
     var o1 = document.createElement("object");
+    o1.style.cssText = "top: -500px; position: absolute;";
     o1.id = "_Jazz" + Math.random() + "ie";
     o1.classid = "CLSID:1ACE1618-1C7D-4561-AEE1-34842AA85E90";
 

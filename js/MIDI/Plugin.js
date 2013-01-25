@@ -1,25 +1,93 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3 : 11/20/2012
+	MIDI.Plugin : 0.3.2 : 2013/01/24
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
-	MIDI.WebAudioAPI
-	MIDI.Flash
-	MIDI.HTML5
-	MIDI.GeneralMIDI
-	MIDI.channels
-	MIDI.keyToNote
-	MIDI.noteToKey
+	APIs:
+		MIDI.WebMIDIAPI
+		MIDI.WebAudioAPI
+		MIDI.Flash
+		MIDI.HTML5
 	--------------------------------------------
-	setMute?
-	getInstruments?
-	-------------------------------------
+	Helpers:
+		MIDI.GeneralMIDI
+		MIDI.channels
+		MIDI.keyToNote
+		MIDI.noteToKey
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
 
 (function() { "use strict";
+
+/*
+	--------------------------------------------
+	Web MIDI API - Native Soundbank
+	--------------------------------------------
+	https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
+*/
+
+(function () {
+	var plugin = null;
+	var output = null;
+	var channels = [];
+	var root = MIDI.WebMIDI = {};
+	root.connect = function (callback) {
+		MIDI.technology = "Web MIDI API";
+		navigator.requestMIDIAccess(function (access) {
+			plugin = access;
+			output = plugin.getOutput(0);
+			if (callback) callback();
+		}, function (err) {
+			console.log("uh-oh! Something went wrong!  Error code: " + err.code );
+		});
+	};
+
+	MIDI.programChange = function (channel, program) { // change channel instrument
+		output.send([0xC0 + channel, program]);
+	};
+
+	MIDI.setVolume = function (channel, volume) { // set channel volume
+		output.send([0xB0 + channel, 0x07, volume]);
+	};
+
+	MIDI.noteOn = function (channel, note, velocity, delay) {
+		output.send([0x90 + channel, note, velocity], delay * 1000);
+	};
+
+	MIDI.noteOff = function (channel, note, delay) {
+		output.send([0x80 + channel, note], delay * 1000);
+	};
+
+	MIDI.chordOn = function (channel, chord, velocity, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x90 + channel, note, velocity], delay * 1000);
+		}
+	};
+	
+	MIDI.chordOff = function (channel, chord, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x80, channel, note, velocity], delay * 1000);
+		}
+	};
+	
+	MIDI.stopAllNotes = function () {
+		for (var channel = 0; channel < 16; channel ++) {
+			output.send([0xB0 + channel, 0x7B, 0]);
+		}
+	};
+
+	MIDI.getInput = function () {
+		return plugin.getInputs();
+	};
+	
+	MIDI.getOutputs = function () {
+		return plugin.getOutputs();
+	};
+})();
 
 /*
 	--------------------------------------------
@@ -152,7 +220,6 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 			}
 		}
 	};
-
 })();
 
 /*
@@ -368,60 +435,6 @@ if (window.Audio) (function () {
 			noteReverse[MIDI.keyToNote[key]] = key;
 		}
 	};
-})();
-
-/*
-	--------------------------------------------
-	WebMIDI - Native Soundbank
-	--------------------------------------------
-*/
-
-(function () {
-	var root = MIDI.WebMIDI = {};
-	root.connect = function (callback) {
-		// deferred loading of <applet>
-		MIDI.technology = "Web MIDI API";
-		if (callback) callback();
-	};
-
-	MIDI.programChange = function (channel, program) {
-		plugin.send([0xC0 + channel, program]);
-	};
-
-	MIDI.setVolume = function (n) {
-		
-	};
-
-	MIDI.noteOn = function (channel, note, velocity, delay) {
-		plugin.send([0x90 + channel, note, velocity], delay * 1000);
-	};
-
-	MIDI.noteOff = function (channel, note, delay) {
-		plugin.send([0x80 + channel, note], delay * 1000);
-	};
-
-	MIDI.chordOn = function (channel, chord, velocity, delay) {
-		for (var key in chord) {
-			var note = chord[key];
-			plugin.send([0x90 + channel, note, velocity], delay * 1000);
-		}
-	};
-	
-	MIDI.chordOff = function (channel, chord, delay) {
-		for (var key in chord) {
-			var note = chord[key];
-			plugin.send(0x80, channel, note, velocity, delay * 1000);
-		}
-	};
-	
-	MIDI.stopAllNotes = function () {
-
-	};
-
-	MIDI.getInstruments = function() {
-		return [];
-	};
-
 })();
 
 /*
