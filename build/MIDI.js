@@ -163,7 +163,7 @@ connect.audiotag = function(filetype, instruments, callback) {
 			} else {
 				DOMLoader.script.add({
 					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: instrumentId,
+					verify: "MIDI.Soundfont." + instrumentId,
 					callback: function() {
 						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
 						queue.getNext();
@@ -252,7 +252,10 @@ var createQueue = function(conf) {
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
-	APIs:
+	Inspired by javax.sound.midi (albeit a super simple version): 
+		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
+	--------------------------------------------
+	Technologies:
 		MIDI.WebMIDIAPI
 		MIDI.WebAudioAPI
 		MIDI.Flash
@@ -423,15 +426,16 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		return source;
 	};
 
-	// FIX: needs some way to fade out smoothly..
-	// POSSIBLE FIX: fade out smoothly using gain and ramping to value
 	root.noteOff = function (channel, note, delay) {
 		delay = delay || 0;
+		if (delay < ctx.currentTime) delay += ctx.currentTime;
 		var source = sources[channel + "" + note];
 		if (!source) return;
+		// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
+		// a 'release' parameter for ADSR like time settings."
 		source.gain.linearRampToValueAtTime(1, delay);
-		source.gain.linearRampToValueAtTime(0, delay + 0.75);
-		source.noteOff(delay + 0.75);
+		source.gain.linearRampToValueAtTime(0, delay + 0.2);
+		source.noteOff(delay + 0.3);
 		return source;
 	};
 
@@ -526,10 +530,9 @@ if (window.Audio) (function () {
 		var id = note2id[note];
 		if (!notes[id]) return;
 		if (delay) {
-			var interval = window.setTimeout(function () {
+			return window.setTimeout(function () {
 				playChannel(channel, id);
 			}, delay * 1000);
-			return interval;
 		} else {
 			playChannel(channel, id);
 		}
@@ -606,10 +609,9 @@ if (window.Audio) (function () {
 		note = id + "" + noteReverse[note];
 		if (!notes[note]) return;
 		if (delay) {
-			var interval = window.setTimeout(function() { 
+			return window.setTimeout(function() { 
 				notes[note].play({ volume: velocity * 2 });
 			}, delay * 1000);
-			return interval;
 		} else {
 			notes[note].play({ volume: velocity * 2 });
 		}
