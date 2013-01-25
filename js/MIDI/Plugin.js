@@ -183,11 +183,11 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		if (delay < ctx.currentTime) delay += ctx.currentTime;
 		var source = sources[channel + "" + note];
 		if (!source) return;
-		// @Miranet: "the values of 0.4 and 0.5 could ofcourse be used as 
+		// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
 		// a 'release' parameter for ADSR like time settings."
 		source.gain.linearRampToValueAtTime(1, delay);
-		source.gain.linearRampToValueAtTime(0, delay + 0.4);
-		source.noteOff(delay + 0.5);
+		source.gain.linearRampToValueAtTime(0, delay + 0.2);
+		source.noteOff(delay + 0.3);
 		return source;
 	};
 
