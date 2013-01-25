@@ -33,8 +33,63 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	var output = null;
 	var channels = [];
 	var root = MIDI.WebMIDI = {};
+
+	root.setVolume = function (channel, volume) { // set channel volume
+		output.send([0xB0 + channel, 0x07, volume]);
+	};
+
+	root.programChange = function (channel, program) { // change channel instrument
+		output.send([0xC0 + channel, program]);
+	};
+
+	root.noteOn = function (channel, note, velocity, delay) {
+		output.send([0x90 + channel, note, velocity], delay * 1000);
+	};
+
+	root.noteOff = function (channel, note, delay) {
+		output.send([0x80 + channel, note], delay * 1000);
+	};
+
+	root.chordOn = function (channel, chord, velocity, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x90 + channel, note, velocity], delay * 1000);
+		}
+	};
+	
+	root.chordOff = function (channel, chord, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x80, channel, note, velocity], delay * 1000);
+		}
+	};
+	
+	root.stopAllNotes = function () {
+		for (var channel = 0; channel < 16; channel ++) {
+			output.send([0xB0 + channel, 0x7B, 0]);
+		}
+	};
+
+	root.getInput = function () {
+		return plugin.getInputs();
+	};
+	
+	root.getOutputs = function () {
+		return plugin.getOutputs();
+	};
+
 	root.connect = function (callback) {
 		MIDI.technology = "Web MIDI API";
+		MIDI.setVolume = root.setVolume;
+		MIDI.programChange = root.programChange;
+		MIDI.noteOn = root.noteOn;
+		MIDI.noteOff = root.noteOff;
+		MIDI.chordOn = root.chordOn;
+		MIDI.chordOff = root.chordOff;
+		MIDI.stopAllNotes = root.stopAllNotes;
+		MIDI.getInput = root.getInput;
+		MIDI.getOutputs = root.getOutputs;
+
 		navigator.requestMIDIAccess(function (access) {
 			plugin = access;
 			output = plugin.getOutput(0);
@@ -42,50 +97,6 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 		}, function (err) {
 			console.log("uh-oh! Something went wrong!  Error code: " + err.code );
 		});
-	};
-
-	MIDI.programChange = function (channel, program) { // change channel instrument
-		output.send([0xC0 + channel, program]);
-	};
-
-	MIDI.setVolume = function (channel, volume) { // set channel volume
-		output.send([0xB0 + channel, 0x07, volume]);
-	};
-
-	MIDI.noteOn = function (channel, note, velocity, delay) {
-		output.send([0x90 + channel, note, velocity], delay * 1000);
-	};
-
-	MIDI.noteOff = function (channel, note, delay) {
-		output.send([0x80 + channel, note], delay * 1000);
-	};
-
-	MIDI.chordOn = function (channel, chord, velocity, delay) {
-		for (var n = 0; n < chord.length; n ++) {
-			var note = chord[n];
-			output.send([0x90 + channel, note, velocity], delay * 1000);
-		}
-	};
-	
-	MIDI.chordOff = function (channel, chord, delay) {
-		for (var n = 0; n < chord.length; n ++) {
-			var note = chord[n];
-			output.send([0x80, channel, note, velocity], delay * 1000);
-		}
-	};
-	
-	MIDI.stopAllNotes = function () {
-		for (var channel = 0; channel < 16; channel ++) {
-			output.send([0xB0 + channel, 0x7B, 0]);
-		}
-	};
-
-	MIDI.getInput = function () {
-		return plugin.getInputs();
-	};
-	
-	MIDI.getOutputs = function () {
-		return plugin.getOutputs();
 	};
 })();
 
@@ -164,14 +175,6 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		return source;
 	};
 
-	root.chordOn = function (channel, chord, velocity, delay) {
-		var ret = {}, note;
-		for (var n = 0, length = chord.length; n < length; n++) {
-			ret[note = chord[n]] = root.noteOn(channel, note, velocity, delay);
-		}
-		return ret;
-	};
-
 	// FIX: needs some way to fade out smoothly..
 	// POSSIBLE FIX: fade out smoothly using gain and ramping to value
 	root.noteOff = function (channel, note, delay) {
@@ -182,6 +185,14 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.gain.linearRampToValueAtTime(0, delay + 0.75);
 		source.noteOff(delay + 0.75);
 		return source;
+	};
+
+	root.chordOn = function (channel, chord, velocity, delay) {
+		var ret = {}, note;
+		for (var n = 0, length = chord.length; n < length; n++) {
+			ret[note = chord[n]] = root.noteOn(channel, note, velocity, delay);
+		}
+		return ret;
 	};
 
 	root.chordOff = function (channel, chord, delay) {
