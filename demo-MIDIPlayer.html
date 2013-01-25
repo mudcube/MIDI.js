@@ -217,7 +217,8 @@ Event.add(window, "load", function(event) {
 			var pianoKey = data.note - MIDI.pianoKeyOffset;
 			var d = colorElements[pianoKey];
 			if (data.message === 144) {
-				d.style.background = colorMap[data.note-27].hex;
+				var map = colorMap[data.note - 27];
+				if (map) d.style.background = map.hex;
 				d.style.color = "#fff";
 			} else {
 				d.style.background = "";

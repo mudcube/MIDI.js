@@ -100,7 +100,7 @@ connect.audiotag = function(filetype, instruments, callback) {
 			} else {
 				DOMLoader.script.add({
 					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: instrumentId,
+					verify: "MIDI.Soundfont." + instrumentId,
 					callback: function() {
 						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
 						queue.getNext();

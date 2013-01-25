@@ -282,10 +282,9 @@ if (window.Audio) (function () {
 		var id = note2id[note];
 		if (!notes[id]) return;
 		if (delay) {
-			var interval = window.setTimeout(function () {
+			return window.setTimeout(function () {
 				playChannel(channel, id);
 			}, delay * 1000);
-			return interval;
 		} else {
 			playChannel(channel, id);
 		}
@@ -362,10 +361,9 @@ if (window.Audio) (function () {
 		note = id + "" + noteReverse[note];
 		if (!notes[note]) return;
 		if (delay) {
-			var interval = window.setTimeout(function() { 
+			return window.setTimeout(function() { 
 				notes[note].play({ volume: velocity * 2 });
 			}, delay * 1000);
-			return interval;
 		} else {
 			notes[note].play({ volume: velocity * 2 });
 		}
