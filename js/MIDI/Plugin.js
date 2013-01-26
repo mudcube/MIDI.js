@@ -29,6 +29,7 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	Web MIDI API - Native Soundbank
 	--------------------------------------------
 	https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
+	--------------------------------------------
 */
 
 (function () {
@@ -238,9 +239,11 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 })();
 
 /*
+	--------------------------------------------
 	AudioTag <audio> - OGG or MPEG Soundbank
-	--------------------------------------
+	--------------------------------------------
 	http://dev.w3.org/html5/spec/Overview.html#the-audio-element
+	--------------------------------------------
 */
 
 if (window.Audio) (function () {
@@ -291,20 +294,39 @@ if (window.Audio) (function () {
 	};
 	
 	root.noteOff = function (channel, note, delay) {
-
+		setTimeout(function() {
+			channels[channel].pause();
+		}, delay * 1000)
 	};
 	
 	root.chordOn = function (channel, chord, velocity, delay) {
-		for (var key in chord) {
-			var n = chord[key];
+		for (var idx = 0; idx < chord.length; idx ++) {
+			var n = chord[idx];
 			var id = note2id[n];
 			if (!notes[id]) continue;
-			playChannel(channel, id);
+			if (delay) {
+				return window.setTimeout(function () {
+					playChannel(channel, id);
+				}, delay * 1000);
+			} else {
+				playChannel(channel, id);
+			}
 		}
 	};
 	
 	root.chordOff = function (channel, chord, delay) {
-
+		for (var idx = 0; idx < chord.length; idx ++) {
+			var n = chord[idx];
+			var id = note2id[n];
+			if (!notes[id]) continue;
+			if (delay) {
+				return window.setTimeout(function () {
+					channels[channel].pause();
+				}, delay * 1000);
+			} else {
+				channels[channel].pause();
+			}
+		}
 	};
 	
 	root.stopAllNotes = function () {
@@ -312,6 +334,7 @@ if (window.Audio) (function () {
 			channels[nid].pause();
 		}
 	};
+	
 	root.connect = function (callback) {
 		var loading = {};
 		for (var key in MIDI.keyToNote) {
@@ -320,7 +343,7 @@ if (window.Audio) (function () {
 				id: key
 			};
 		}
-		MIDI.technology = "HTML Audio Tag";
+		MIDI.technology = "Audio Tag";
 		MIDI.setVolume = root.setVolume;
 		MIDI.programChange = root.programChange;
 		MIDI.noteOn = root.noteOn;
