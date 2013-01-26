@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns = "http://www.w3.org/1999/xhtml">
 <head>
- <!-- midi-js -->
+ <!-- midi.js package -->
  <script src="./js/MIDI/AudioDetect.js" type="text/javascript"></script>
  <script src="./js/MIDI/LoadPlugin.js" type="text/javascript"></script>
  <script src="./js/MIDI/Plugin.js" type="text/javascript"></script>
@@ -9,8 +9,8 @@
  <script src="./js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
  <script src="./js/Window/DOMLoader.script.js" type="text/javascript"></script>
  <!-- extras -->
- <script src="./inc/Polyfill/Base64.js" type="text/javascript"></script>
  <script src="./inc/WebMIDIAPI.js" type="text/javascript"></script>
+ <script src="./inc/Base64.js" type="text/javascript"></script>
  <script src="./inc/base64binary.js" type="text/javascript"></script>
 </head>
 <body>
@@ -26,6 +26,7 @@ window.onload = function () {
 			var velocity = 127; // how hard the note hits
 			// play the note
 			MIDI.noteOn(0, note, velocity, delay);
+			MIDI.noteOff(0, note, delay+0.01);
 		}
 	});
 };
