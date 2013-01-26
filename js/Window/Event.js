@@ -181,7 +181,7 @@
 	});
 	// "Swipe" :: fingers, minFingers, maxFingers, snap, threshold.
 	Event.add(window, "swipe", function(event, self) {
-		console.log(self.gesture, self.fingers, self.velocity, self.angle);
+		console.log(self.gesture, self.fingers, self.velocity, self.angle, self.start, self.x, self.y);
 	});
 	// "Tap" :: fingers, minFingers, maxFingers, timeout.
 	Event.add(window, "tap", function(event, self) {
@@ -315,10 +315,11 @@ var eventManager = function(target, type, listener, configure, trigger, fromOver
 			target = target[0];
 		}
 	}
+
 	/// Handle multiple targets.
 	var event;
 	var events = {};
-	if (target.length > 0) { 
+	if (target.length > 0 && target !== window) { 
 		for (var n0 = 0, length0 = target.length; n0 < length0; n0 ++) {
 			event = eventManager(target[n0], type, listener, clone(configure), trigger);
 			if (event) events[n0] = event;
@@ -491,12 +492,15 @@ root.createPointerEvent = function (event, self, preventRecord) {
 	var newEvent = document.createEvent("Event");
 	newEvent.initEvent(eventName, true, true);
 	newEvent.originalEvent = event;
-	for (var k in self) newEvent[k] = self[k];
+	for (var k in self) {
+		if (k === "target") continue;
+		newEvent[k] = self[k];
+	}
 	target.dispatchEvent(newEvent);
 };
 
 /// Allows *EventListener to use custom event proxies.
-if (root.modifyEventListener) (function() {
+if (root.modifyEventListener && window.HTMLElement) (function() {
 	var augmentEventListener = function(proto) {
 		var recall = function(trigger) { // overwrite native *EventListener's
 			var handle = trigger + "EventListener";
@@ -594,6 +598,7 @@ root.pointerSetup = function(conf, self) {
 	conf.minFingers = conf.minFingers || conf.fingers || 1; // Minimum required fingers.
 	conf.maxFingers = conf.maxFingers || conf.fingers || Infinity; // Maximum allowed fingers.
 	conf.position = conf.position || "relative"; // Determines what coordinate system points are returned.
+	delete conf.fingers; //- 
 	/// Convenience data.
 	self = self || {};
 	self.gesture = conf.gesture;
@@ -604,25 +609,36 @@ root.pointerSetup = function(conf, self) {
 	/// Convenience commands.
 	var fingers = 0;
 	var type = self.gesture.indexOf("pointer") === 0 && Event.modifyEventListener ? "pointer" : "mouse";
+	self.listener = conf.listener;
 	self.proxy = function(listener) {
 		self.defaultListener = conf.listener;
 		conf.listener = listener;
 		listener(conf.event, self);
 	};
+	self.attach = function() {
+		if (conf.onPointerDown) Event.add(conf.target, type + "down", conf.onPointerDown);
+		if (conf.onPointerMove) Event.add(conf.doc, type + "move", conf.onPointerMove);
+		if (conf.onPointerUp) Event.add(conf.doc, type + "up", conf.onPointerUp);
+	};
 	self.remove = function() {
 		if (conf.onPointerDown) Event.remove(conf.target, type + "down", conf.onPointerDown);
 		if (conf.onPointerMove) Event.remove(conf.doc, type + "move", conf.onPointerMove);
 		if (conf.onPointerUp) Event.remove(conf.doc, type + "up", conf.onPointerUp);
+		self.reset();
+	};
+	self.pause = function(opt) {
+		if (conf.onPointerMove && (!opt || opt.move)) Event.remove(conf.doc, type + "move", conf.onPointerMove);
+		if (conf.onPointerUp && (!opt || opt.up)) Event.remove(conf.doc, type + "up", conf.onPointerUp);
+		fingers = conf.fingers;
+		conf.fingers = 0;
 	};
 	self.resume = function(opt) {
 		if (conf.onPointerMove && (!opt || opt.move)) Event.add(conf.doc, type + "move", conf.onPointerMove);
-		if (conf.onPointerUp && (!opt || opt.move)) Event.add(conf.doc, type + "up", conf.onPointerUp);
+		if (conf.onPointerUp && (!opt || opt.up)) Event.add(conf.doc, type + "up", conf.onPointerUp);
 		conf.fingers = fingers;
 	};
-	self.pause = function(opt) {
-		fingers = conf.fingers;
-		if (conf.onPointerMove && (!opt || opt.move)) Event.remove(conf.doc, type + "move", conf.onPointerMove);
-		if (conf.onPointerUp && (!opt || opt.up)) Event.remove(conf.doc, type + "up", conf.onPointerUp);
+	self.reset = function() {
+		delete conf.tracker;
 		conf.fingers = 0;
 	};
 	///
@@ -737,37 +753,48 @@ root.pointerEnd = function(event, self, conf, onPointerUp) {
 	var exists = {};
 	for (var i = 0; i < length; i ++) {
 		var touch = touches[i];
-		exists[touch.identifier || Infinity] = true;
+		var sid = touch.identifier;
+		exists[sid || Infinity] = true;
 	}
-	for (var key in conf.tracker) {
-		var track = conf.tracker[key];
-		if (!exists[key] && !track.up) {
-			if (onPointerUp) { // add changedTouches to mouse.
-				event.changedTouches = [{
+	for (var sid in conf.tracker) {
+		var track = conf.tracker[sid];
+		if (exists[sid] || track.up) continue;
+		if (onPointerUp) { // add changedTouches to mouse.
+			onPointerUp({
+				pageX: track.pageX,
+				pageY: track.pageY,
+				changedTouches: [{
 					pageX: track.pageX,
 					pageY: track.pageY,
-					identifier: key === "Infinity" ? Infinity : key 
-				}];
-				onPointerUp(event, "up");
-			}
-			conf.tracker[key].up = true;
-			conf.fingers --;
+					identifier: sid === "Infinity" ? Infinity : sid 
+				}]
+			}, "up");
 		}
+		track.up = true;
+		conf.fingers --;
 	}
-/*
-	// This should work but fails in Safari on iOS4 so not using it.
+/*	// This should work but fails in Safari on iOS4 so not using it.
 	var touches = event.changedTouches || root.getCoords(event);
 	var length = touches.length;
 	// Record changed touches have ended (this should work).
 	for (var i = 0; i < length; i ++) {
 		var touch = touches[i];
 		var sid = touch.identifier || Infinity;
-		if (conf.tracker[sid]) {
-			conf.tracker[sid].up = true;
+		var track = conf.tracker[sid];
+		if (track && !track.up) {
+			if (onPointerUp) { // add changedTouches to mouse.
+				onPointerUp({
+					changedTouches: [{
+						pageX: track.pageX,
+						pageY: track.pageY,
+						identifier: sid === "Infinity" ? Infinity : sid 
+					}]
+				}, "up");
+			}
+			track.up = true;
 			conf.fingers --;
 		}
-	}
-*/
+	} */
 	// Wait for all fingers to be released.
 	if (conf.fingers !== 0) return false;
 	// Record total number of fingers gesture used.
@@ -1116,6 +1143,7 @@ root.dragElement = function(that, event) {
 		listener: function(event, self) {
 			that.style.left = self.x + "px";
 			that.style.top = self.y + "px";
+			Event.prevent(event);
 		}
 	});
 };
@@ -1124,13 +1152,16 @@ root.drag = function(conf) {
 	conf.gesture = "drag";
 	conf.onPointerDown = function (event) {
 		if (root.pointerStart(event, self, conf)) {
-			Event.add(conf.doc, "mousemove", conf.onPointerMove);
-			Event.add(conf.doc, "mouseup", conf.onPointerUp);
+			if (!conf.monitor) {
+				Event.add(conf.doc, "mousemove", conf.onPointerMove);
+				Event.add(conf.doc, "mouseup", conf.onPointerUp);
+			}
 		}
 		// Process event listener.
 		conf.onPointerMove(event, "down");
 	};
 	conf.onPointerMove = function (event, state) {
+		if (!conf.tracker) return conf.onPointerDown(event);
 		var bbox = conf.bbox;
 		var touches = event.changedTouches || root.getCoords(event);
 		var length = touches.length;
@@ -1146,7 +1177,7 @@ root.drag = function(conf) {
 			self.state = state || "move";
 			self.identifier = identifier;
 			self.start = pt.start;
-			self.fingers = 1; // TODO(mud): option to track as single set, or individually.
+			self.fingers = conf.fingers;
 			if (conf.position === "relative") {
 				self.x = (pt.pageX + bbox.scrollLeft - pt.offsetX) * bbox.scaleX;
 				self.y = (pt.pageY + bbox.scrollTop - pt.offsetY) * bbox.scaleY;
@@ -1161,8 +1192,10 @@ root.drag = function(conf) {
 	conf.onPointerUp = function(event) {
 		// Remove tracking for touch.
 		if (root.pointerEnd(event, self, conf, conf.onPointerMove)) {
-			Event.remove(conf.doc, "mousemove", conf.onPointerMove);
-			Event.remove(conf.doc, "mouseup", conf.onPointerUp);
+			if (!conf.monitor) {
+				Event.remove(conf.doc, "mousemove", conf.onPointerMove);
+				Event.remove(conf.doc, "mouseup", conf.onPointerUp);
+			}
 		}
 	};
 	// Generate maintenance commands, and other configurations.
@@ -1170,8 +1203,12 @@ root.drag = function(conf) {
 	// Attach events.
 	if (conf.event) {
 		conf.onPointerDown(conf.event);
-	} else {
+	} else { //
 		Event.add(conf.target, "mousedown", conf.onPointerDown);
+		if (conf.monitor) {
+			Event.add(conf.doc, "mousemove", conf.onPointerMove);
+			Event.add(conf.doc, "mouseup", conf.onPointerUp);
+		}
 	}
 	// Return this object.
 	return self;
