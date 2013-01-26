@@ -34,13 +34,10 @@ MIDI.loadPlugin = function(conf) {
 	MIDI.audioDetect(function(types) {
 		var type = "";
 		// use the most appropriate plugin if not specified
-		if (typeof(type) === 'undefined') {
-			if (plugins[window.location.hash]) {
-				type = window.location.hash.substr(1);
-			} else { //
-				type = "";
-			}
+		if (plugins[window.location.hash]) {
+			type = window.location.hash.substr(1);
 		}
+		///
 		if (type === "") {
 			if (navigator.requestMIDIAccess) {
 				type = "webmidi";
