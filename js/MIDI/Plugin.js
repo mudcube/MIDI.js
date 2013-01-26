@@ -24,6 +24,19 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 
 (function() { "use strict";
 
+var setPlugin = function(root) {
+	MIDI.technology = root.technology;
+	MIDI.setVolume = root.setVolume;
+	MIDI.programChange = root.programChange;
+	MIDI.noteOn = root.noteOn;
+	MIDI.noteOff = root.noteOff;
+	MIDI.chordOn = root.chordOn;
+	MIDI.chordOff = root.chordOff;
+	MIDI.stopAllNotes = root.stopAllNotes;
+	MIDI.getInput = root.getInput;
+	MIDI.getOutputs = root.getOutputs;
+};
+
 /*
 	--------------------------------------------
 	Web MIDI API - Native Soundbank
@@ -36,8 +49,9 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	var plugin = null;
 	var output = null;
 	var channels = [];
-	var root = MIDI.WebMIDI = {};
-
+	var root = MIDI.WebMIDI = {
+		technology: "Web MIDI API"
+	};
 	root.setVolume = function (channel, volume) { // set channel volume
 		output.send([0xB0 + channel, 0x07, volume]);
 	};
@@ -51,7 +65,7 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	};
 
 	root.noteOff = function (channel, note, delay) {
-		output.send([0x80 + channel, note], delay * 1000);
+		output.send([0x80 + channel, note, 0], delay * 1000);
 	};
 
 	root.chordOn = function (channel, chord, velocity, delay) {
@@ -64,7 +78,7 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	root.chordOff = function (channel, chord, delay) {
 		for (var n = 0; n < chord.length; n ++) {
 			var note = chord[n];
-			output.send([0x80, channel, note, velocity], delay * 1000);
+			output.send([0x80 + channel, note, 0], delay * 1000);
 		}
 	};
 	
@@ -83,17 +97,7 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	};
 
 	root.connect = function (callback) {
-		MIDI.technology = "Web MIDI API";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
-		MIDI.stopAllNotes = root.stopAllNotes;
-		MIDI.getInput = root.getInput;
-		MIDI.getOutputs = root.getOutputs;
-
+		setPlugin(root);
 		navigator.requestMIDIAccess(function (access) {
 			plugin = access;
 			output = plugin.getOutput(0);
@@ -112,15 +116,15 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 	--------------------------------------------
 */
 
-if (typeof (MIDI.WebAudioAPI) === "undefined") MIDI.WebAudioAPI = {};
-
 if (window.AudioContext || window.webkitAudioContext) (function () {
 
 	var AudioContext = window.AudioContext || window.webkitAudioContext;
-	var root = MIDI.WebAudioAPI;
+	var root = MIDI.WebAudioAPI = {
+		technology: "Web Audio API"
+	};
 	var ctx;
 	var sources = {};
-	var masterVolume = 1;
+	var masterVolume = 127;
 	var audioBuffers = {};
 	var audioLoader = function (instrument, urlList, index, bufferList, callback) {
 		var synth = MIDI.GeneralMIDI.byName[instrument];
@@ -149,8 +153,8 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		});
 	};
 
-	root.setVolume = function (n) {
-		masterVolume = n;
+	root.setVolume = function (channel, volume) {
+		masterVolume = volume;
 	};
 
 	root.programChange = function (channel, program) {
@@ -171,7 +175,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.connect(ctx.destination);
 		///
 		var gainNode = ctx.createGainNode();
-		var value = (velocity / 100) * masterVolume * 2 - 1;
+		var value = (velocity / 127) * (masterVolume / 127) * 2 - 1;
 		gainNode.connect(ctx.destination);
 		gainNode.gain.value = Math.max(-1, value);
 		source.connect(gainNode);
@@ -186,6 +190,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		if (!source) return;
 		// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
 		// a 'release' parameter for ADSR like time settings."
+		// add { "metadata": { release: 0.3 } } to soundfont files
 		source.gain.linearRampToValueAtTime(1, delay);
 		source.gain.linearRampToValueAtTime(0, delay + 0.2);
 		source.noteOff(delay + 0.3);
@@ -209,13 +214,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	};
 
 	root.connect = function (callback) {
-		MIDI.technology = "Web Audio API";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
+		setPlugin(root);
 		//
 		MIDI.Player.ctx = ctx = new AudioContext();
 		///
@@ -248,7 +247,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 
 if (window.Audio) (function () {
 
-	var root = MIDI.AudioTag = {};
+	var root = MIDI.AudioTag = {
+		technology: "Audio Tag"
+	};
 	var note2id = {};
 	var volume = 1; // floating point 
 	var channel_nid = -1; // current channel
@@ -277,8 +278,8 @@ if (window.Audio) (function () {
 		MIDI.channels[channel].instrument = program;
 	};
 
-	root.setVolume = function (n) {
-		volume = n;
+	root.setVolume = function (channel, n) {
+		volume = n; //- should be channel specific volume
 	};
 
 	root.noteOn = function (channel, note, velocity, delay) {
@@ -343,13 +344,7 @@ if (window.Audio) (function () {
 				id: key
 			};
 		}
-		MIDI.technology = "Audio Tag";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
+		setPlugin(root);
 		///
 		if (callback) callback();
 	};
@@ -365,7 +360,9 @@ if (window.Audio) (function () {
 	
 (function () {
 
-	var root = MIDI.Flash = {};
+	var root = MIDI.Flash = {
+		technology: "Flash"
+	};
 	var noteReverse = {};
 	var notes = {};
 
@@ -450,13 +447,7 @@ if (window.Audio) (function () {
 				}
 			}
 			///
-			MIDI.technology = "Flash";
-			MIDI.setVolume = root.setVolume;
-			MIDI.programChange = root.programChange;
-			MIDI.noteOn = root.noteOn;
-			MIDI.noteOff = root.noteOff;
-			MIDI.chordOn = root.chordOn;
-			MIDI.chordOff = root.chordOff;
+			setPlugin(root);
 			//
 			var interval = window.setInterval(function () {
 				if (loaded.length !== 88) return;
