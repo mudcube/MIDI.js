@@ -140,7 +140,7 @@ connect.webaudio = function(filetype, instruments, conf) {
 			}
 		},
 		onComplete: function() {
-			MIDI.WebAudioAPI.connect(conf);
+			MIDI.WebAudio.connect(conf);
 		}
 	});
 };
