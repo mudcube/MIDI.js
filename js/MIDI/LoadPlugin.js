@@ -39,7 +39,7 @@ MIDI.loadPlugin = function(conf) {
 		}
 		///
 		if (type === "") {
-			if (navigator.requestMIDIAccess) {
+			if (false && navigator.requestMIDIAccess) {
 				type = "webmidi";
 			} else if (window.webkitAudioContext) { // Chrome
 				type = "webaudio";
