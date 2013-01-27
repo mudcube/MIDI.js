@@ -1,6 +1,6 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3.2 : 2013/01/24
+	MIDI.Plugin : 0.3.2 : 2013/01/26
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
@@ -8,10 +8,10 @@
 		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
 	--------------------------------------------
 	Technologies:
-		MIDI.WebMIDIAPI
-		MIDI.WebAudioAPI
+		MIDI.WebMIDI
+		MIDI.WebAudio
 		MIDI.Flash
-		MIDI.HTML5
+		MIDI.AudioTag
 	--------------------------------------------
 	Helpers:
 		MIDI.GeneralMIDI
@@ -126,7 +126,7 @@ var setPlugin = function(root) {
 if (window.AudioContext || window.webkitAudioContext) (function () {
 
 	var AudioContext = window.AudioContext || window.webkitAudioContext;
-	var root = MIDI.WebAudioAPI = {
+	var root = MIDI.WebAudio = {
 		api: "webaudio"
 	};
 	var ctx;

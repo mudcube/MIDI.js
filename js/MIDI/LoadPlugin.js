@@ -38,7 +38,7 @@ MIDI.loadPlugin = function(conf) {
 		// use the most appropriate plugin if not specified
 		if (apis[conf.api]) {
 			api = conf.api;
-		} else if (apis[window.location.hash]) {
+		} else if (apis[window.location.hash.substr(1)]) {
 			api = window.location.hash.substr(1);
 		} else if (navigator.requestMIDIAccess) {
 			api = "webmidi";
@@ -148,10 +148,10 @@ connect.webaudio = function(filetype, instruments, conf) {
 /// Helpers
 
 var apis = {
-	"#webmidi": true, 
-	"#webaudio": true, 
-	"#audiotag": true, 
-	"#flash": true 
+	"webmidi": true, 
+	"webaudio": true, 
+	"audiotag": true, 
+	"flash": true 
 };
 
 var getPercent = function(event) {
