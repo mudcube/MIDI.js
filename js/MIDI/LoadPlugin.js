@@ -18,6 +18,7 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 
 // Turn on to get "onprogress" event. XHR will not work from file://
 var USE_XHR = false; 
+var USE_JAZZMIDI = false;
 
 MIDI.loadPlugin = function(conf) {
 	if (typeof(conf) === "function") conf = {
@@ -40,7 +41,7 @@ MIDI.loadPlugin = function(conf) {
 			api = conf.api;
 		} else if (apis[window.location.hash.substr(1)]) {
 			api = window.location.hash.substr(1);
-		} else if (navigator.requestMIDIAccess) {
+		} else if (USE_JAZZMIDI && navigator.requestMIDIAccess) {
 			api = "webmidi";
 		} else if (window.webkitAudioContext) { // Chrome
 			api = "webaudio";

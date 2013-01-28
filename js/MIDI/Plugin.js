@@ -258,7 +258,7 @@ if (window.Audio) (function () {
 		api: "audiotag"
 	};
 	var note2id = {};
-	var volume = 1; // floating point 
+	var volume = 127; // floating point 
 	var channel_nid = -1; // current channel
 	var channels = []; // the audio channels
 	var notes = {}; // the piano keys
@@ -276,7 +276,7 @@ if (window.Audio) (function () {
 		var time = (new Date()).getTime();
 		var audio = channels[nid];
 		audio.src = MIDI.Soundfont[id][note.id];
-		audio.volume = volume;
+		audio.volume = volume / 127;
 		audio.play();
 		channel_nid = nid;
 	};
