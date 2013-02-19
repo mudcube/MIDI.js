@@ -68,15 +68,15 @@ function Replayer(midiFile, timeWarp, eventProcessor) {
 	var midiEvent;
 	var temporal = [];
 	//
- 	function processEvents() {
- 		function processNext() {
-			// respect Tempo Event - Mani
-			if (midiEvent.event.type == "meta" && midiEvent.event.subtype == "setTempo" ) {
+	function processEvents() {
+		function processNext() {
+			if ( midiEvent.event.type == "meta" && midiEvent.event.subtype == "setTempo" ) {
+				// tempo change events can occur anywhere in the middle and affect events that follow
 				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
-			}
- 			if (midiEvent.ticksToEvent > 0) {
- 				var beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
- 				var secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
+			} 
+			if (midiEvent.ticksToEvent > 0) {
+				var beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
+				var secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
 			}
 			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
 			temporal.push([ midiEvent, time]);
