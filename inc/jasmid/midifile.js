@@ -12,9 +12,9 @@ function MidiFile(data) {
 			'data': stream.read(length)
 		};
 	}
-
+	
 	var lastEventTypeByte;
-
+	
 	function readEvent(stream) {
 		var event = {};
 		event.deltaTime = stream.readVarInt();
@@ -102,7 +102,7 @@ function MidiFile(data) {
 					case 0x59:
 						event.subtype = 'keySignature';
 						if (length != 2) throw "Expected length for keySignature event is 2, got " + length;
-						event.key = stream.readInt8();
+						event.key = stream.readInt8(true);
 						event.scale = stream.readInt8();
 						return event;
 					case 0x7f:
@@ -194,7 +194,7 @@ function MidiFile(data) {
 			}
 		}
 	}
-
+	
 	stream = Stream(data);
 	var headerChunk = readChunk(stream);
 	if (headerChunk.id != 'MThd' || headerChunk.length != 6) {
@@ -204,13 +204,13 @@ function MidiFile(data) {
 	var formatType = headerStream.readInt16();
 	var trackCount = headerStream.readInt16();
 	var timeDivision = headerStream.readInt16();
-
+	
 	if (timeDivision & 0x8000) {
 		throw "Expressing time division in SMTPE frames is not supported yet"
 	} else {
 		ticksPerBeat = timeDivision;
 	}
-
+	
 	var header = {
 		'formatType': formatType,
 		'trackCount': trackCount,
@@ -230,7 +230,7 @@ function MidiFile(data) {
 			//console.log(event);
 		}
 	}
-
+	
 	return {
 		'header': header,
 		'tracks': tracks

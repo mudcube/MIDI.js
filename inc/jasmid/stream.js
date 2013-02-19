@@ -29,8 +29,9 @@ function Stream(str) {
 	}
 	
 	/* read an 8-bit integer */
-	function readInt8() {
+	function readInt8(signed) {
 		var result = str.charCodeAt(position);
+		if (signed && result > 127) result -= 256;
 		position += 1;
 		return result;
 	}
