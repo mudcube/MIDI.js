@@ -137,6 +137,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		var synth = MIDI.GeneralMIDI.byName[instrument];
 		var instrumentId = synth.number;
 		var url = urlList[index];
+		if (!MIDI.Soundfont[instrument][url]) { // missing soundfont
+			return callback(instrument);
+		}
 		var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
 		var buffer = Base64Binary.decodeArrayBuffer(base64);
 		ctx.decodeAudioData(buffer, function (buffer) {
