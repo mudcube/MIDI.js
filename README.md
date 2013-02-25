@@ -9,12 +9,14 @@ CODE EXAMPLES (from the repo)
 
 DEMOS
 
-* <a href="http://my.vexflow.com/articles/53">VexFlow</a>
-* <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a>
-* <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a>
-* <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a>
-* <a href="http://mudcu.be/piano/">Color Piano</a>
-
+* <a href="http://mudcu.be/piano/">Color Piano</a> by Michael Deal
+* <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a> by Daniel Christopher
+* <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a> by Daniel Christopher
+* <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a> by Xueqiao Xu
+* <a href="http://my.vexflow.com/articles/53">VexFlow</a> by Mohit Muthanna
+* <a href="http://spiral.qet.me/">Spiral Keyboard</a> by Patrick Snels
+* <a href="http://online-compute.rhcloud.com/ragamroll/">Ragamroll</a> by Mani Balasubramanian
+* <a href="http://www.earbuilder.com/">Ear Builder</a> by Antti Kaihola
 -------------
 
 * <a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
