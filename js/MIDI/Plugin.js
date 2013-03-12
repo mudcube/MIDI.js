@@ -280,7 +280,7 @@ if (window.Audio) (function () {
 		var audio = channels[nid];
 		audio.src = MIDI.Soundfont[id][note.id];
 		audio.volume = volume / 127;
-		audio.play();
+		setTimeout( function(){ audio.play(); }, 1); // this is pretty gross, but it resolves the quirks where some notes were getting skipped or cut off right after they started to play
 		channel_nid = nid;
 	};
 
