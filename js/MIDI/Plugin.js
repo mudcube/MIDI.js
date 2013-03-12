@@ -264,6 +264,7 @@ if (window.Audio) (function () {
 	var volume = 127; // floating point 
 	var channel_nid = -1; // current channel
 	var channels = []; // the audio channels
+ 	var channelInstrumentNoteIds = []; // instrumentId + noteId that is currently playing in each 'channel', for routing noteOff/chordOff calls
 	var notes = {}; // the piano keys
 	for (var nid = 0; nid < 12; nid++) {
 		channels[nid] = new Audio();
@@ -272,16 +273,32 @@ if (window.Audio) (function () {
 	var playChannel = function (channel, note) {
 		if (!MIDI.channels[channel]) return;
 		var instrument = MIDI.channels[channel].instrument;
-		var id = MIDI.GeneralMIDI.byId[instrument].id;
+		var instrumentId = MIDI.GeneralMIDI.byId[instrument].id;
 		var note = notes[note];
 		if (!note) return;
 		var nid = (channel_nid + 1) % channels.length;
-		var time = (new Date()).getTime();
 		var audio = channels[nid];
-		audio.src = MIDI.Soundfont[id][note.id];
+		channelInstrumentNoteIds[ nid ] = instrumentId + "" + note.id;
+		audio.src = MIDI.Soundfont[instrumentId][note.id];
 		audio.volume = volume / 127;
 		audio.play();
 		channel_nid = nid;
+	};
+
+	var stopChannel = function (channel, note) {
+		if (!MIDI.channels[channel]) return;
+		var instrument = MIDI.channels[channel].instrument;
+		var instrumentId = MIDI.GeneralMIDI.byId[instrument].id;
+		var note = notes[note];
+		if (!note) return;
+		var instrumentNoteId = instrumentId + "" + note.id;
+
+		for(var i=0;i<channelInstrumentNoteIds.length;i++){
+			var cId = channelInstrumentNoteIds[i];
+			if(cId && cId == instrumentNoteId){
+				channels[i].pause();
+			}
+		}
 	};
 
 	root.programChange = function (channel, program) {
@@ -305,9 +322,15 @@ if (window.Audio) (function () {
 	};
 	
 	root.noteOff = function (channel, note, delay) {
-		setTimeout(function() {
-			channels[channel].pause();
-		}, delay * 1000)
+		var id = note2id[note];
+		if (!notes[id]) return;
+		if (delay) {
+			return setTimeout(function() {
+				stopChannel(channel, id);
+			}, delay * 1000)
+		} else {
+			stopChannel(channel, id);
+		}
 	};
 	
 	root.chordOn = function (channel, chord, velocity, delay) {
@@ -332,10 +355,10 @@ if (window.Audio) (function () {
 			if (!notes[id]) continue;
 			if (delay) {
 				return window.setTimeout(function () {
-					channels[channel].pause();
+					stopChannel(channel, id);
 				}, delay * 1000);
 			} else {
-				channels[channel].pause();
+				stopChannel(channel, id);
 			}
 		}
 	};
@@ -347,7 +370,6 @@ if (window.Audio) (function () {
 	};
 	
 	root.connect = function (conf) {
-		var loading = {};
 		for (var key in MIDI.keyToNote) {
 			note2id[MIDI.keyToNote[key]] = key;
 			notes[key] = {
@@ -424,10 +446,10 @@ if (window.Audio) (function () {
 
 	};
 
-	root.connect = function (conf) {
+	root.connect = function (instruments, conf) {
 		soundManager.flashVersion = 9;
 		soundManager.useHTML5Audio = true;
-		soundManager.url = '../inc/SoundManager2/swf/';
+		soundManager.url = conf.soundManagerSwfUrl || '../inc/SoundManager2/swf/';
 		soundManager.useHighPerformance = true;
 		soundManager.wmode = 'transparent';
 		soundManager.flashPollingInterval = 1;
@@ -444,15 +466,19 @@ if (window.Audio) (function () {
 					onload: onload
 				});			
 			};
-			for (var instrument in MIDI.Soundfont) {
-				var loaded = [];
+      var loaded = []
+        , samplesPerInstrument = 88
+        , samplesToLoad = instruments.length * samplesPerInstrument;
+
+      for(var i=0;i<instruments.length;i++){
+        var instrument = instruments[i];
 				var onload = function () {
 					loaded.push(this.sID);
 					if (typeof (MIDI.loader) === "undefined") return;
 					MIDI.loader.update(null, "Processing: " + this.sID);
 				};
-				for (var i = 0; i < 88; i++) {
-					var id = noteReverse[i + 21];
+				for (var j = 0; j < samplesPerInstrument; j++) {
+					var id = noteReverse[j + 21];
 					createBuffer(instrument, id, onload);
 				}
 			}
@@ -460,7 +486,7 @@ if (window.Audio) (function () {
 			setPlugin(root);
 			//
 			var interval = window.setInterval(function () {
-				if (loaded.length !== 88) return;
+				if (loaded.length < samplesToLoad) return;
 				window.clearInterval(interval);
 				if (conf.callback) conf.callback();
 			}, 25);
