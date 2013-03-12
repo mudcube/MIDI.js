@@ -264,6 +264,7 @@ if (window.Audio) (function () {
 	var volume = 127; // floating point 
 	var channel_nid = -1; // current channel
 	var channels = []; // the audio channels
+	var channelInstrumentNoteIds = []; // instrumentId + noteId that is currently playing in each 'channel', for routing noteOff/chordOff calls
 	var notes = {}; // the piano keys
 	for (var nid = 0; nid < 12; nid++) {
 		channels[nid] = new Audio();
@@ -272,16 +273,33 @@ if (window.Audio) (function () {
 	var playChannel = function (channel, note) {
 		if (!MIDI.channels[channel]) return;
 		var instrument = MIDI.channels[channel].instrument;
-		var id = MIDI.GeneralMIDI.byId[instrument].id;
+		var instrumentId = MIDI.GeneralMIDI.byId[instrument].id;
 		var note = notes[note];
 		if (!note) return;
+		var instrumentNoteId = instrumentId + "" + note.id;
 		var nid = (channel_nid + 1) % channels.length;
-		var time = (new Date()).getTime();
 		var audio = channels[nid];
-		audio.src = MIDI.Soundfont[id][note.id];
+		channelInstrumentNoteIds[ nid ] = instrumentNoteId;
+		audio.src = MIDI.Soundfont[instrumentId][note.id];
 		audio.volume = volume / 127;
 		audio.play();
 		channel_nid = nid;
+	};
+
+	var stopChannel = function (channel, note) {
+		if (!MIDI.channels[channel]) return;
+		var instrument = MIDI.channels[channel].instrument;
+		var instrumentId = MIDI.GeneralMIDI.byId[instrument].id;
+		var note = notes[note];
+		if (!note) return;
+		var instrumentNoteId = instrumentId + "" + note.id;
+
+		for(var i=0;i<channelInstrumentNoteIds.length;i++){
+			var cId = channelInstrumentNoteIds[i];
+			if(cId && cId == instrumentNoteId){
+				channels[i].pause();
+			}
+		}
 	};
 
 	root.programChange = function (channel, program) {
@@ -305,9 +323,15 @@ if (window.Audio) (function () {
 	};
 	
 	root.noteOff = function (channel, note, delay) {
-		setTimeout(function() {
-			channels[channel].pause();
-		}, delay * 1000)
+		var id = note2id[note];
+		if (!notes[id]) return;
+		if (delay) {
+			return setTimeout(function() {
+				stopChannel(channel, id);
+			}, delay * 1000)
+		} else {
+			stopChannel(channel, id);
+		}
 	};
 	
 	root.chordOn = function (channel, chord, velocity, delay) {
@@ -332,10 +356,10 @@ if (window.Audio) (function () {
 			if (!notes[id]) continue;
 			if (delay) {
 				return window.setTimeout(function () {
-					channels[channel].pause();
+					stopChannel(channel, id);
 				}, delay * 1000);
 			} else {
-				channels[channel].pause();
+				stopChannel(channel, id);
 			}
 		}
 	};
@@ -347,7 +371,6 @@ if (window.Audio) (function () {
 	};
 	
 	root.connect = function (conf) {
-		var loading = {};
 		for (var key in MIDI.keyToNote) {
 			note2id[MIDI.keyToNote[key]] = key;
 			notes[key] = {
