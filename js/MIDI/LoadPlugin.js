@@ -75,7 +75,7 @@ connect.flash = function(filetype, instruments, conf) {
 		src: "./inc/SoundManager2/script/soundmanager2.js",
 		verify: "SoundManager",
 		callback: function () {
-			MIDI.Flash.connect(conf);
+			MIDI.Flash.connect(instruments, conf);
 		}
 	});
 };
