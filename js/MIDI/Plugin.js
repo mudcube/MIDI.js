@@ -294,14 +294,14 @@ if (window.Audio) (function () {
 		if (!note) return;
 		var instrumentNoteId = instrumentId + "" + note.id;
 
-		for(var i=0;i<channelInstrumentNoteIds.length;i++){
-			var nid = (channel_nid + 1) % channels.length;
-      var cId = channelInstrumentNoteIds[nid];
+		for(var i=0;i<channels.length;i++){
+			var nid = (i + channel_nid + 1) % channels.length;
+			var cId = channelInstrumentNoteIds[nid];
 
 			if(cId && cId == instrumentNoteId){
-				channels[i].pause();
-        channelInstrumentNoteIds[nid] = null;
-        return;
+				channels[nid].pause();
+				channelInstrumentNoteIds[nid] = null;
+				return;
 			}
 		}
 	};
