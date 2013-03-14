@@ -295,9 +295,13 @@ if (window.Audio) (function () {
 		var instrumentNoteId = instrumentId + "" + note.id;
 
 		for(var i=0;i<channelInstrumentNoteIds.length;i++){
-			var cId = channelInstrumentNoteIds[i];
+			var nid = (channel_nid + 1) % channels.length;
+      var cId = channelInstrumentNoteIds[nid];
+
 			if(cId && cId == instrumentNoteId){
 				channels[i].pause();
+        channelInstrumentNoteIds[nid] = null;
+        return;
 			}
 		}
 	};
