@@ -27,10 +27,13 @@ MIDI.loadPlugin = function(conf) {
 	/// Get the instrument name.
 	var instruments = conf.instruments || conf.instrument || "acoustic_grand_piano";
 	if (typeof(instruments) !== "object") instruments = [ instruments ];
-	instruments.map(function(data) {
-		if (typeof(data) === "number") data = MIDI.GeneralMIDI.byId[data];
-		return data;
-	});
+	///
+	for (var n = 0; n < instruments.length; n ++) {
+		var instrument = instruments[n];
+		if (typeof(instrument) === "number") {
+			instruments[n] = MIDI.GeneralMIDI.byId[instrument];
+		}
+	};
 	///
 	MIDI.soundfontUrl = conf.soundfontUrl || MIDI.soundfontUrl || "./soundfont/";
 	/// Detect the best type of audio to use.
