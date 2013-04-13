@@ -16,7 +16,6 @@ DEMOS
 * <a href="http://my.vexflow.com/articles/53">VexFlow</a> by Mohit Muthanna
 * <a href="http://spiral.qet.me/">Spiral Keyboard</a> by Patrick Snels
 * <a href="http://online-compute.rhcloud.com/ragamroll/">Ragamroll</a> by Mani Balasubramanian
-* <a href="http://www.earbuilder.com/">Ear Builder</a> by Antti Kaihola
 
 -------------
 
