@@ -8,6 +8,7 @@
 		instrument: "acoustic_grand_piano", // or 1 (default)
 		instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
 		callback: function() { }
+		limitedNetwork: True|False // In case of mobile usage
 	});
 */
 
@@ -56,7 +57,11 @@ MIDI.loadPlugin = function(conf) {
 		///
 		if (!connect[api]) return;
 		// use audio/ogg when supported
-		var filetype = types["audio/ogg"] ? "ogg" : "mp3";
+		if (typeof (conf.limitedNetwork) !== "undefined" && conf.limitedNetwork === true) {
+			var filetype = "mp3"
+		}
+		else
+			var filetype = types["audio/ogg"] ? "ogg" : "mp3";
 		// load the specified plugin
 		connect[api](filetype, instruments, conf);
 	});
