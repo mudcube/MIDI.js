@@ -8,9 +8,10 @@
 #   FluidSynth
 #   Lame
 #   OggEnc (from vorbis-tools)
+#   SOX
 #   Ruby Gem: midilib
 #
-#   $ brew install fluidsynth vorbis-tools lame (on OSX)
+#   $ brew install fluidsynth vorbis-tools lame sox (on OSX)
 #   $ gem install midilib
 #
 # You'll need to download a GM soundbank to generate audio.
@@ -54,6 +55,7 @@ INSTRUMENTS = [
 OGGENC = `which oggenc`.chomp
 LAME = `which lame`.chomp
 FLUIDSYNTH = `which fluidsynth`.chomp
+SOX = `which sox`.chomp
 
 puts "Building the following instruments using font: " + SOUNDFONT
 
@@ -66,6 +68,7 @@ puts
 puts "Using OGG encoder: " + OGGENC
 puts "Using MP3 encoder: " + LAME
 puts "Using FluidSynth encoder: " + FLUIDSYNTH
+puts "Using SOX encoder: " + SOX
 puts
 puts "Sending output to: " + BUILD_DIR
 puts
@@ -98,6 +101,7 @@ MIDI_C0 = 12
 VELOCITY = 85
 DURATION = Integer(3200 * 0.75)
 TEMP_FILE = "#{BUILD_DIR}/temp.midi"
+FLUIDSYNTH_RAW = "fluidsynth.raw"
 
 def note_to_int(note, octave)
   value = NOTES[note]
@@ -140,7 +144,8 @@ def run_command(cmd)
 end
 
 def midi_to_audio(source, target)
-  run_command "#{FLUIDSYNTH} -C 1 -R 1 -g 0.5 -F #{target} #{SOUNDFONT} #{source}"
+  run_command "#{FLUIDSYNTH} -C 1 -R 1 -g 0.5 -F fluidsynth.raw #{SOUNDFONT} #{source}"
+  run_command "#{SOX} -b 16 -c 2 -s -r 44100 fluidsynth.raw #{target}"
   run_command "#{OGGENC} -m 32 -M 64 #{target}"
   run_command "#{LAME} -v -b 8 -B 32 #{target}"
   rm target
@@ -163,7 +168,7 @@ def close_js_file(file)
 end
 
 def base64js(note, file, type)
-  output = '"' + note + '": ' 
+  output = '"' + note + '": '
   output += '"' + "data:audio/#{type};base64,"
   output += Base64.strict_encode64(File.read(file)) + '"'
   return output
@@ -196,6 +201,7 @@ def generate_audio(program)
     mv output_path_prefix + ".mp3", "#{BUILD_DIR}/#{program_key}-mp3"
     rm output_path_prefix + ".ogg"
     rm TEMP_FILE
+    rm FLUIDSYNTH_RAW
   end
 
   close_js_file(ogg_js_file)
