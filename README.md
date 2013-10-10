@@ -9,11 +9,12 @@ CODE EXAMPLES (from the repo)
 
 DEMOS
 
-* <a href="http://mudcu.be/piano/">Color Piano</a> by Michael Deal
-* <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a> by Daniel Christopher
-* <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a> by Daniel Christopher
-* <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a> by Xueqiao Xu
-* <a href="http://my.vexflow.com/articles/53">VexFlow</a> by Mohit Muthanna
+* <a href="http://mudcu.be/piano/">Color Piano</a> by Michael Deal @mudcube
+* <a href="http://www.rgba.org/r3d/3d-piano-player/">3D Piano Player w/ Three.js</a> by Borja Morales @reality3d
+* <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a> by Daniel Christopher @uxmonk
+* <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a> by Daniel Christopher @uxmonk
+* <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a> by Xueqiao Xu @qiao
+* <a href="http://my.vexflow.com/articles/53">VexFlow</a> by Mohit Muthanna @11111110b
 * <a href="http://spiral.qet.me/">Spiral Keyboard</a> by Patrick Snels
 * <a href="http://online-compute.rhcloud.com/ragamroll/">Ragamroll</a> by Mani Balasubramanian
 
