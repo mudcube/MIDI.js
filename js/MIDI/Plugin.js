@@ -98,9 +98,9 @@ var setPlugin = function(root) {
 
 	root.connect = function (conf) {
 		setPlugin(root);
-		navigator.requestMIDIAccess(function (access) {
+        navigator.requestMIDIAccess().then(function (access) {
 			plugin = access;
-			output = plugin.getOutput(0);
+			output = plugin.outputs()[0];
 			if (conf.callback) conf.callback();
 		}, function (err) { // well at least we tried!
 			if (window.webkitAudioContext) { // Chrome
