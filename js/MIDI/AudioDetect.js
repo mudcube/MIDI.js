@@ -15,14 +15,21 @@ if (typeof(MIDI) === "undefined") var MIDI = {};
 (function() { "use strict";
 
 var supports = {};	
+var pending = 0;
 var canPlayThrough = function (src) {
+	pending ++;
 	var audio = new Audio();
 	var mime = src.split(";")[0];
 	audio.id = "audio";
 	audio.setAttribute("preload", "auto");
 	audio.setAttribute("audiobuffer", true);
+	audio.addEventListener("error", function() {
+		supports[mime] = false;
+		pending --;
+	}, false);
 	audio.addEventListener("canplaythrough", function() {
 		supports[mime] = true;
+		pending --;
 	}, false);
 	audio.src = "data:" + src;
 	document.body.appendChild(audio);
@@ -50,10 +57,9 @@ MIDI.audioDetect = function(callback) {
 	// lets find out!
 	var time = (new Date()).getTime(); 
 	var interval = window.setInterval(function() {
-		for (var key in supports) {}
 		var now = (new Date()).getTime();
 		var maxExecution = now - time > 5000;
-		if (key || maxExecution) {
+		if (!pending || maxExecution) {
 			window.clearInterval(interval);
 			callback(supports);
 		}
