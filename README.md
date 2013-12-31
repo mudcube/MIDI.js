@@ -7,6 +7,11 @@ CODE EXAMPLES (from the repo)
 
 -------------
 
+SOUND FONTS
+
+* <a href="https://github.com/SHMEDIALIMITED/SoundFontJS">NodeJS CLI for MIDI.js sound font creation</a>
+* <a href="https://github.com/gleitz/midi-js-soundfonts">Pre-rendered sound fonts</a>
+
 DEMOS
 
 * <a href="http://mudcu.be/piano/">Color Piano</a> by Michael Deal @mudcube
