@@ -25,7 +25,7 @@ DEMOS
 
 -------------
 
-* <a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
+* <a href="./js/MIDI/LoadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
 
 <pre>
 // interface to download soundfont, then execute callback;
@@ -38,8 +38,7 @@ MIDI.loadPlugin({
 });
 </pre>
 
-* <a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: Customizable base64 Soundfont.
-* <a href="./js/MIDI.Plugin.js">MIDI.Plugin.js</a>: Ties together the following frameworks;
+* <a href="./js/MIDI/Plugin.js">MIDI.Plugin.js</a>: Ties together the following frameworks;
 
 <pre>
 MIDI.noteOn(channel, note, velocity, delay);
@@ -50,7 +49,7 @@ MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 </pre>
 
-* <a href="./js/MIDI.Player.js">MIDI.Player.js</a>: Streams the MIDI to the browser.
+* <a href="./js/MIDI/Player.js">MIDI.Player.js</a>: Streams the MIDI to the browser.
 
 <pre>
 MIDI.Player.currentTime = integer; // time we are at now within the song.
@@ -83,13 +82,13 @@ MIDI.Player.setAnimation(function(data) {
     // then do what you want with the information!
 });</pre>
 
-* <a href="./js/Color.js">Color.js</a>: Color conversions, music isn&rsquo;t complete without!
+* <a href="./js/Color/SpaceW3.js">Color.js</a>: Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
-* <a href="./js/DOMLoader.script.js">DOMLoader.script.js</a>: Loads scripts in synchronously, or asynchronously.
+* <a href="./js/Window/DOMLoader.script.js">DOMLoader.script.js</a>: Loads scripts in synchronously, or asynchronously.
 <pre>DOMLoader.script.add(src, callback);</pre>
-* <a href="./js/DOMLoader.XMLHttp.js">DOMLoader.XMLHttp.js</a>: Cross-browser XMLHttpd request.
+* <a href="./js/Window/DOMLoader.XMLHttp.js">DOMLoader.XMLHttp.js</a>: Cross-browser XMLHttpd request.
 <pre>DOMLoader.sendRequest(src, callback);</pre>
-* <a href="./js/MusicTheory.Synesthesia.js">MusicTheory.Synesthesia.js</a>: Note-to-color mappings (from Isaac Newton onwards).
+* <a href="./js/MusicTheory/Synesthesia.js">MusicTheory.Synesthesia.js</a>: Note-to-color mappings (from Isaac Newton onwards).
  <h3>Many thanks to the authors of these libraries;</h3>
 * <a href="http://webaudio.github.io/web-midi-api/">Web MIDI API</a>: W3C proposal by Jussi Kalliokoski & Chris Wilson
 * <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">Web Audio API</a>: W3C proposal by Chris Rogers
