@@ -39,8 +39,8 @@ MIDI.loadPlugin({
 <pre>
 MIDI.noteOn(channel, note, velocity, delay);
 MIDI.noteOff(channel, note, delay);
-MIDI.chordOn(channel, chord, velocity, delay);
-MIDI.chordOff(channel, chord, delay);
+MIDI.chordOn(channel, [note, note, note], velocity, delay);
+MIDI.chordOff(channel, [note, note, note], delay);
 MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 </pre>
