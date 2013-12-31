@@ -211,7 +211,7 @@ Event.add(window, "load", function(event) {
 	MIDI.loadPlugin(function () {
 		// this is the language we are running in
 		var title = document.getElementById("title");
-		title.innerHTML = "Sound being generated with " + MIDI.lang + ".";
+		title.innerHTML = "Sound being generated with " + MIDI.lang + " " + JSON.stringify(MIDI.supports);
 		// this sets up the MIDI.Player and gets things going...
 		player = MIDI.Player;
 		player.timeWarp = 1; // speed the song is played back

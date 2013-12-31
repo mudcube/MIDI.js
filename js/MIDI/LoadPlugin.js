@@ -63,6 +63,8 @@ MIDI.loadPlugin = function(conf) {
 			var filetype = types["audio/ogg"] ? "ogg" : "mp3";
 		}
 		// load the specified plugin
+		MIDI.lang = api;
+		MIDI.supports = types;
 		connect[api](filetype, instruments, conf);
 	});
 };
