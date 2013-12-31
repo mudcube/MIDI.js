@@ -193,10 +193,10 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		gainNode.connect(ctx.destination);
 		gainNode.gain.value = Math.max(-1, value);
 		source.connect(gainNode);
-		if (source.start) {
-			source.start(delay || 0);
-		} else {
+		if (source.noteOn) { // old api
 			source.noteOn(delay || 0);
+		} else { // new api
+			source.start(delay || 0);
 		}
 		return source;
 	};
@@ -212,6 +212,8 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 			// add { "metadata": { release: 0.3 } } to soundfont files
 			source.gain.linearRampToValueAtTime(1, delay);
 			source.gain.linearRampToValueAtTime(0, delay + 0.2);
+		}
+		if (source.noteOff) { // old api
 			source.noteOff(delay + 0.3);
 		} else {
 			source.stop(delay + 0.3);
