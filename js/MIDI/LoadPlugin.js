@@ -46,7 +46,7 @@ MIDI.loadPlugin = function(conf) {
 			api = window.location.hash.substr(1);
 		} else if (USE_JAZZMIDI && navigator.requestMIDIAccess) {
 			api = "webmidi";
-		} else if (window.webkitAudioContext) { // Chrome
+		} else if (window.webkitAudioContext || window.AudioContext) { // Chrome
 			api = "webaudio";
 		} else if (window.Audio) { // Firefox
 			api = "audiotag";

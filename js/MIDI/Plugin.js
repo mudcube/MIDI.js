@@ -103,7 +103,7 @@ var setPlugin = function(root) {
 			output = plugin.getOutput(0);
 			if (conf.callback) conf.callback();
 		}, function (err) { // well at least we tried!
-			if (window.webkitAudioContext) { // Chrome
+			if (window.AudioContext || window.webkitAudioContext) { // Chrome
 				conf.api = "webaudio";
 			} else if (window.Audio) { // Firefox
 				conf.api = "audiotag";
@@ -184,12 +184,20 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.buffer = audioBuffers[instrument + "" + note];
 		source.connect(ctx.destination);
 		///
-		var gainNode = ctx.createGainNode();
+		if (ctx.createGain) { // firefox
+			var gainNode = ctx.createGain();
+		} else { // chrome
+			var gainNode = ctx.createGainNode();
+		}
 		var value = (velocity / 127) * (masterVolume / 127) * 2 - 1;
 		gainNode.connect(ctx.destination);
 		gainNode.gain.value = Math.max(-1, value);
 		source.connect(gainNode);
-		source.noteOn(delay || 0);
+		if (source.start) {
+			source.start(delay || 0);
+		} else {
+			source.noteOn(delay || 0);
+		}
 		return source;
 	};
 
@@ -198,12 +206,16 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		if (delay < ctx.currentTime) delay += ctx.currentTime;
 		var source = sources[channel + "" + note];
 		if (!source) return;
-		// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
-		// a 'release' parameter for ADSR like time settings."
-		// add { "metadata": { release: 0.3 } } to soundfont files
-		source.gain.linearRampToValueAtTime(1, delay);
-		source.gain.linearRampToValueAtTime(0, delay + 0.2);
-		source.noteOff(delay + 0.3);
+		if (source.gain) {
+			// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
+			// a 'release' parameter for ADSR like time settings."
+			// add { "metadata": { release: 0.3 } } to soundfont files
+			source.gain.linearRampToValueAtTime(1, delay);
+			source.gain.linearRampToValueAtTime(0, delay + 0.2);
+			source.noteOff(delay + 0.3);
+		} else {
+			source.stop(delay + 0.3);
+		}
 		return source;
 	};
 
