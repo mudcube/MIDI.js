@@ -218,7 +218,8 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		} else {
 			source.stop(delay + 0.3);
 		}
-		return source;
+		///
+		delete sources[channel + "" + note];
 	};
 
 	root.chordOn = function (channel, chord, velocity, delay) {
