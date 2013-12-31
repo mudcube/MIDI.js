@@ -86,7 +86,7 @@ MIDI.Player.setAnimation(function(data) {
 <pre>DOMLoader.sendRequest(src, callback);</pre>
 * <a href="./js/MusicTheory.Synesthesia.js">MusicTheory.Synesthesia.js</a>: Note-to-color mappings (from Isaac Newton onwards).
  <h3>Many thanks to the authors of these libraries;</h3>
-* <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html">Web MIDI API</a>: W3C proposal by Jussi Kalliokoski & Chris Wilson
+* <a href="http://webaudio.github.io/web-midi-api/">Web MIDI API</a>: W3C proposal by Jussi Kalliokoski & Chris Wilson
 * <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">Web Audio API</a>: W3C proposal by Chris Rogers
 * <a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: HTML5 specs
 * Flash package: <a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a>
