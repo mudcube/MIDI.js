@@ -98,9 +98,9 @@ var setPlugin = function(root) {
 
 	root.connect = function (conf) {
 		setPlugin(root);
-		navigator.requestMIDIAccess(function (access) {
+        navigator.requestMIDIAccess().then(function (access) {
 			plugin = access;
-			output = plugin.getOutput(0);
+			output = plugin.outputs()[0];
 			if (conf.callback) conf.callback();
 		}, function (err) { // well at least we tried!
 			if (window.AudioContext || window.webkitAudioContext) { // Chrome
@@ -234,6 +234,19 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		}
 		return ret;
 	};
+
+    root.stopAllNotes = function () {
+        for(var source in sources) {
+            var delay = 0;
+            if (delay < ctx.currentTime) delay += ctx.currentTime;
+            // @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as
+            // a 'release' parameter for ADSR like time settings."
+            // add { "metadata": { release: 0.3 } } to soundfont files
+            sources[source].gain.linearRampToValueAtTime(1, delay);
+            sources[source].gain.linearRampToValueAtTime(0, delay + 0.2);
+            sources[source].noteOff(delay + 0.3);
+        }
+    };
 
 	root.connect = function (conf) {
 		setPlugin(root);
