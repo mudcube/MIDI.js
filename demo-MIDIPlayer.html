@@ -237,7 +237,7 @@ eventjs.add(window, "load", function(event) {
 	});
 });
 
-///////  ///////
+///
 
 var MIDIPlayerPercentage = function(player) {
 	// update the timestamp
@@ -332,7 +332,7 @@ var ColorSphereBackground = function() {
 		ctx.putImageData(imageData, 0, 0);
 	};
 	eventjs.add(d, "mousemove", onMouseMove);
-	//
+	///
 	function sphere(top) { // create Sphere image, and apply to <canvas>
 		var canvas1 = document.createElement("canvas");
 		var ctx = canvas1.getContext("2d");
@@ -367,17 +367,6 @@ var ColorSphereBackground = function() {
 	ctx.drawImage(theSphere = sphere(percent), 0, 0)
 };
 
-
-</script>
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-420768-7']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
 </script>
 </body>
 </html>
