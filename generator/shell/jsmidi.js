@@ -10,7 +10,7 @@
 	conditions can be waived if you get permission from the copyright holder. For any reuse or distribution, 
 	you must make clear to others the license terms of this work. The best way to do this is with a link to the 
 	Creative Commons Attribution-Share Alike 3.0.
- */
+*/
 
 (function (window) {
 
