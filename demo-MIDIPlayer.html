@@ -15,7 +15,6 @@
  <script src="./js/Widgets/Loader.js" type="text/javascript"></script>
  <script src="./js/Window/Event.js" type="text/javascript"></script>
  <script src="./js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
- <script src="./js/Window/DOMLoader.script.js" type="text/javascript"></script>
  <!-- jasmid package -->
  <script src="./inc/jasmid/stream.js"></script>
  <script src="./inc/jasmid/midifile.js"></script>
@@ -186,7 +185,7 @@ var pausePlayStop = function(stop) {
 	}
 };
 
-Event.add(window, "load", function(event) {
+eventjs.add(window, "load", function(event) {
 	var link = document.createElement('link');
 	link.href = 'http://fonts.googleapis.com/css?family=Oswald';
 	link.ref = "stylesheet";
@@ -247,8 +246,8 @@ var MIDIPlayerPercentage = function(player) {
 	var capsule = document.getElementById("capsule");
 	var timeCursor = document.getElementById("cursor");
 	//
-	Event.add(capsule, "drag", function (event, self) {
-		Event.cancel(event);
+	eventjs.add(capsule, "drag", function (event, self) {
+		eventjs.cancel(event);
 		player.currentTime = (self.x) / 420 * player.endTime;
 		if (player.currentTime < 0) player.currentTime = 0;
 		if (player.currentTime > player.endTime) player.currentTime = player.endTime;
@@ -295,12 +294,12 @@ var ColorSphereBackground = function() {
 	canvas.style.height = window.innerHeight + "px";
 	document.body.appendChild(canvas);
 	//
-	Event.add(window, "resize", function() {
+	eventjs.add(window, "resize", function() {
 		canvas.style.width = window.innerWidth + "px";
 		canvas.style.height = window.innerHeight + "px";
 		ctx.drawImage(theSphere = sphere(percent), 0, 0)
 	});
-	Event.add(d, "scroll", function(e) {
+	eventjs.add(d, "scroll", function(e) {
 		var percent = 1 - document.body.scrollTop / document.body.scrollHeight;
 		ctx.drawImage(theSphere = sphere(percent), 0, 0);
 		onMouseMove();
@@ -312,7 +311,7 @@ var ColorSphereBackground = function() {
 	var onMouseMove = function(event) {
 		ctx.drawImage(theSphere, 0, 0);
 		if (event) {
-			var coords = Event.proxy.getCoord(event);
+			var coords = eventjs.proxy.getCoord(event);
 			coords.x -= document.body.scrollLeft;
 			coords.y -= document.body.scrollTop;
 			px = coords.x;
@@ -332,7 +331,7 @@ var ColorSphereBackground = function() {
 		}
 		ctx.putImageData(imageData, 0, 0);
 	};
-	Event.add(d, "mousemove", onMouseMove);
+	eventjs.add(d, "mousemove", onMouseMove);
 	//
 	function sphere(top) { // create Sphere image, and apply to <canvas>
 		var canvas1 = document.createElement("canvas");
