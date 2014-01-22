@@ -240,7 +240,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	};
 
     root.stopAllNotes = function () {
-        for(var source in sources) {
+        for (var source in sources) {
             var delay = 0;
             if (delay < ctx.currentTime) delay += ctx.currentTime;
             // @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as
@@ -249,6 +249,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
             sources[source].gain.linearRampToValueAtTime(1, delay);
             sources[source].gain.linearRampToValueAtTime(0, delay + 0.2);
             sources[source].noteOff(delay + 0.3);
+            delete sources[source];
         }
     };
 
