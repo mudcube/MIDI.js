@@ -23,7 +23,7 @@ DEMOS
 * <a href="http://spiral.qet.me/">Spiral Keyboard</a> by Patrick Snels
 * <a href="http://online-compute.rhcloud.com/ragamroll/">Ragamroll</a> by Mani Balasubramanian
 * <a href="http://gbloink.com/alpha/">Gbloink!</a> by Phil Jones
-* 
+
 -------------
 
 * <a href="./js/MIDI/LoadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
