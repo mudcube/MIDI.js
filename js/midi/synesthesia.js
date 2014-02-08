@@ -289,10 +289,9 @@ if (typeof(MusicTheory.Synesthesia) === "undefined") MusicTheory.Synesthesia = {
 				if (H == S && S == L) clr = blend(parray, colors[(note + 10) % 12]);
 				var amount = L / 10;
 				var octave = note / 12 >> 0;
-				var octaveLum = L + amount * octave - 3 * amount; // map luminance to octave		
+				var octaveLum = L + amount * octave - 3 * amount; // map luminance to octave	
+//				L = octaveLum;
 				data[note] = {
-///					hsl: 'hsla(' + H + ',' + S + '%,' + octaveLum + '%, 1)',
-//					hex: Color.Space({H:H, S:S, L:octaveLum}, "HSL>RGB>HEX>W3")
 					hsl: 'hsla(' + H + ',' + S + '%,' + L + '%, 1)',
 					hex: Color.Space({H:H, S:S, L:L}, "HSL>RGB>HEX>W3")
 				};
