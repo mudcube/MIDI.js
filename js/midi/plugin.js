@@ -125,7 +125,45 @@ var setPlugin = function(root) {
 
 if (window.AudioContext || window.webkitAudioContext) (function () {
 
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var createAudioContext = function () {
+		if (window.AudioContext) return new AudioContext();
+		if (window.webkitAudioContext) return new webkitAudioContext();
+		return false;
+	};
+
+	var loadAudioFile = function (url, onload, onerror) {
+		if (streaming) { // Streaming buffer.
+			var audio = new Audio();
+			audio.src = url;
+			audio.controls = false;
+			audio.autoplay = false;
+			audio.preload = false;
+			audio.addEventListener("canplay", function() {
+				callback(audio);
+			});
+			audio.addEventListener("error", function(err) {
+				console.log(err)
+			});
+			document.body.appendChild(audio)
+		} else if (url.indexOf("data:audio") === 0) { // Base64 string.
+			var base64 = url.split(",")[1];
+			var buffer = Base64Binary.decodeArrayBuffer(base64);
+			var ctx = MIDI.Player.ctx;
+			ctx.decodeAudioData(buffer, onload, onerror);
+		} else { // XMLHTTP buffer.
+			var request = new XMLHttpRequest();
+			request.open('GET', url, true);
+			request.responseType = 'arraybuffer';
+			request.onload = function () {
+				var ctx = MIDI.Player.ctx;
+				ctx.decodeAudioData(request.response, onload, onerror);
+			};
+			request.send();
+		}
+	};
+
+	var AudioContext = createAudioContext();
+	var streaming = false; //!!AudioContext.createMediaElementSource;
 	var root = MIDI.WebAudio = {
 		api: "webaudio"
 	};
@@ -133,16 +171,18 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	var sources = {};
 	var masterVolume = 127;
 	var audioBuffers = {};
-	var audioLoader = function (instrument, urlList, index, bufferList, callback) {
+	var audioLoader = function (ctx, instrument, urlList, index, bufferList, callback) {
 		var synth = MIDI.GeneralMIDI.byName[instrument];
 		var instrumentId = synth.number;
 		var url = urlList[index];
-		if (!MIDI.Soundfont[instrument][url]) { // missing soundfont
+		var audioSrc = MIDI.Soundfont[instrument][url];
+		if (!audioSrc) { // missing soundfont
 			return callback(instrument);
 		}
-		var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
-		var buffer = Base64Binary.decodeArrayBuffer(base64);
-		ctx.decodeAudioData(buffer, function (buffer) {
+		var onAudioError = function(err) {
+			console.log(err);
+		};
+		var onAudioLoad = function (buffer) {
 			var msg = url;
 			while (msg.length < 3) msg += "&nbsp;";
 			if (typeof (MIDI.loader) !== "undefined") {
@@ -160,7 +200,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 				}
 				callback(instrument);
 			}
-		});
+		};
+		///
+		loadAudioFile(MIDI.Soundfont[instrument][url], onAudioLoad, onAudioError);
 	};
 
 	root.setVolume = function (channel, volume) {
@@ -171,17 +213,26 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		MIDI.channels[channel].instrument = program;
 	};
 
-	root.noteOn = function (channel, note, velocity, delay) {
+	root.noteOn = function (channelId, noteId, velocity, delay) {
 		/// check whether the note exists
-		if (!MIDI.channels[channel]) return;
-		var instrument = MIDI.channels[channel].instrument;
-		if (!audioBuffers[instrument + "" + note]) return;
+		var channel = MIDI.getChannel(channelId);
+		if (!channel) return;
+		var instrument = channel.instrument;
+		var bufferId = instrument + "" + noteId;
+		var buffer = audioBuffers[bufferId];
+		if (!buffer) return;
+
 		/// convert relative delay to absolute delay
 		if (delay < ctx.currentTime) delay += ctx.currentTime;
+		
 		/// crate audio buffer
-		var source = ctx.createBufferSource();
-		sources[channel + "" + note] = source;
-		source.buffer = audioBuffers[instrument + "" + note];
+		if (streaming) { // Streaming buffer
+			var source = ctx.createMediaElementSource(buffer);
+		} else { // XMLHTTP buffer
+			var source = ctx.createBufferSource();
+			source.buffer = buffer;
+		}
+		sources[channelId + "" + noteId] = source;
 		source.connect(ctx.destination);
 		///
 		if (ctx.createGain) { // firefox
@@ -193,7 +244,13 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		source.gainNode.connect(ctx.destination);
 		source.gainNode.gain.value = Math.max(-1, value);
 		source.connect(source.gainNode);
-		if (source.noteOn) { // old api
+		///
+		if (streaming) {
+			setTimeout(function() {
+				buffer.currentTime = 0;
+				buffer.play()
+			}, (delay || 0) * 1000);
+		} else if (source.noteOn) { // old api
 			source.noteOn(delay || 0);
 		} else { // new api
 			source.start(delay || 0);
@@ -201,10 +258,18 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		return source;
 	};
 
-	root.noteOff = function (channel, note, delay) {
+	root.noteOff = function (channelId, noteId, delay) {
+		var channel = MIDI.getChannel(channelId);
+		if (!channel) return;
+		var instrument = channel.instrument;
+		var bufferId = instrument + "" + noteId;
+		var buffer = audioBuffers[bufferId];
+		if (!buffer) return;
+		///
 		delay = delay || 0;
 		if (delay < ctx.currentTime) delay += ctx.currentTime;
-		var source = sources[channel + "" + note];
+		///
+		var source = sources[channelId + "" + noteId];
 		if (!source) return;
 		if (source.gainNode) {
 			// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
@@ -214,13 +279,18 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 			gain.linearRampToValueAtTime(gain.value, delay);
 			gain.linearRampToValueAtTime(-1, delay + 0.2);
 		}
-		if (source.noteOff) { // old api
+		///
+		if (streaming) {
+			setTimeout(function() {
+				buffer.pause();
+			}, delay * 1000);
+		} else if (source.noteOff) { // old api
 			source.noteOff(delay + 0.3);
 		} else {
 			source.stop(delay + 0.3);
 		}
 		///
-		delete sources[channel + "" + note];
+		delete sources[channelId + "" + noteId];
 	};
 
 	root.chordOn = function (channel, chord, velocity, delay) {
@@ -256,7 +326,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	root.connect = function (conf) {
 		setPlugin(root);
 		//
-		MIDI.Player.ctx = ctx = new AudioContext();
+		MIDI.Player.ctx = ctx = createAudioContext();
 		///
 		var urlList = [];
 		var keyToNote = MIDI.keyToNote;
@@ -271,7 +341,7 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 		for (var instrument in MIDI.Soundfont) {
 			pending[instrument] = true;
 			for (var i = 0; i < urlList.length; i++) {
-				audioLoader(instrument, urlList, i, bufferList, oncomplete);
+				audioLoader(ctx, instrument, urlList, i, bufferList, oncomplete);
 			}
 		}
 	};
@@ -587,12 +657,31 @@ MIDI.GeneralMIDI = (function (arr) {
 });
 
 // channel-tracker
+MIDI.getChannel = function(ch) {
+	return MIDI.channels[ch];
+};
+MIDI.getInstrument = function(ch) {
+	var channel = MIDI.getChannel(ch);
+	return channel && channel.instrument;
+};
+MIDI.getMono = function(channel) {
+	var channel = MIDI.getChannel(ch);
+	return channel && channel.mono;
+};
+MIDI.getOmni = function(channel) {
+	var channel = MIDI.getChannel(ch);
+	return channel && channel.omni;
+};
+MIDI.getSolo = function(channel) {
+	var channel = MIDI.getChannel(ch);
+	return channel && channel.solo;
+};
+
 MIDI.channels = (function () { // 0 - 15 channels
 	var channels = {};
 	for (var n = 0; n < 16; n++) {
 		channels[n] = { // default values
 			instrument: 0,
-			// Acoustic Grand Piano
 			mute: false,
 			mono: false,
 			omni: false,
