@@ -517,7 +517,94 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	root.connect = function (conf) {
 		setPlugin(root);
 		//
-		MIDI.Player.ctx = ctx = createAudioContext();
+		MIDI.Player.ctx = ctx = new AudioContext();
+
+		/// https://developer.mozilla.org/en-US/docs/Web_Audio_API/Porting_webkitAudioContext_code_to_standards_based_AudioContext
+        if (!ctx.createScriptProcessor) ctx.createScriptProcessor = ctx.createJavaScriptNode;
+        if (!ctx.createDelay) ctx.createDelay = ctx.createDelayNode;
+        if (!ctx.createGain) ctx.createGain = ctx.createGainNode;
+
+		///
+		if (true) {
+			var tuna = new Tuna(ctx); // https://github.com/Dinahmoe/tuna
+			root.phaser = new tuna.Phaser({
+			     rate: 1.2,                     //0.01 to 8 is a decent range, but higher values are possible
+			     depth: 0.3,                    //0 to 1
+			     feedback: 0.2,                 //0 to 1+
+			     stereoPhase: 30,               //0 to 180
+			     baseModulationFrequency: 700,  //500 to 1500
+			     bypass: 0
+			 });
+			root.chorus = new tuna.Chorus({
+			     rate: 1.5,
+			     feedback: 0.2,
+			     delay: 0.0045,
+			     bypass: 0
+			 });
+			root.delay = new tuna.Delay({
+			    feedback: 0.45,    //0 to 1+
+			    delayTime: 150,    //how many milliseconds should the wet signal be delayed? 
+			    wetLevel: 0.25,    //0 to 1+
+			    dryLevel: 1,       //0 to 1+
+			    cutoff: 20,        //cutoff frequency of the built in highpass-filter. 20 to 22050
+			    bypass: 0
+			});
+			root.overdrive = new tuna.Overdrive({
+			    outputGain: 0.5,         //0 to 1+
+			    drive: 0.7,              //0 to 1
+			    curveAmount: 1,          //0 to 1
+			    algorithmIndex: 0,       //0 to 5, selects one of our drive algorithms
+			    bypass: 0
+			});
+			root.compressor = new tuna.Compressor({
+			     threshold: 0.5,    //-100 to 0
+			     makeupGain: 1,     //0 and up
+			     attack: 1,         //0 to 1000
+			     release: 0,        //0 to 3000
+			     ratio: 4,          //1 to 20
+			     knee: 5,           //0 to 40
+			     automakeup: true,  //true/false
+			     bypass: 0
+			 });
+			root.convolver = new tuna.Convolver({
+			    highCut: 22050,                         //20 to 22050
+			    lowCut: 20,                             //20 to 22050
+			    dryLevel: 1,                            //0 to 1+
+			    wetLevel: 1,                            //0 to 1+
+			    level: 1,                               //0 to 1+, adjusts total output of both wet and dry
+			    impulse: "./inc/tuna/impulses/impulse_rev.wav",    //the path to your impulse response
+			    bypass: 0
+			});
+			root.filter = new tuna.Filter({
+				frequency: 20,         //20 to 22050
+				Q: 1,                  //0.001 to 100
+				gain: 0,               //-40 to 40
+				bypass: 1,             //0 to 1+
+				filterType: 0         //0 to 7, corresponds to the filter types in the native filter node: lowpass, highpass, bandpass, lowshelf, highshelf, peaking, notch, allpass in that order
+			});
+			root.cabinet = new tuna.Cabinet({
+				makeupGain: 1,                                 //0 to 20
+				impulsePath: "./inc/tuna/impulses/impulse_guitar.wav",    //path to your speaker impulse
+				bypass: 0
+			});
+			root.tremolo = new tuna.Tremolo({
+				intensity: 0.3,    //0 to 1
+				rate: 0.1,         //0.001 to 8
+				stereoPhase: 0,    //0 to 180
+				bypass: 0
+			});
+			root.wahwah = new tuna.WahWah({
+				automode: true,                //true/false
+				baseFrequency: 0.5,            //0 to 1
+				excursionOctaves: 2,           //1 to 6
+				sweep: 0.2,                    //0 to 1
+				resonance: 10,                 //1 to 100
+				sensitivity: 0.5,              //-1 to 1
+				bypass: 0
+			});
+			root.ff = root.compressor;
+			root.ff.connect(ctx.destination);
+		}
 		///
 		var urlList = [];
 		var keyToNote = MIDI.keyToNote;
