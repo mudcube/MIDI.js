@@ -404,7 +404,7 @@ if (window.AudioContext) (function () {
 
 	};
 
-	root.setVolume = function (channel, volume) {
+	root.setVolume = function (channel, volume, delay) {
 		setTimeout(function() {
 			masterVolume = volume;
 		}, delay);
