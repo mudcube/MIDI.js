@@ -126,11 +126,38 @@ root.loadFile = function (file, callback) {
 			}
 			var data = ff.join("");
 			root.currentData = data;
-			root.loadMidiFile();
-			if (callback) callback(data);
+			root.loadMidiFile(callback);
 		}
 	};
 	fetch.send();
+};
+
+root.getFileInstruments = function() {
+	var instruments = {};
+	var programs = {};
+	for (var n = 0; n < root.data.length; n ++) {
+		var event = root.data[n][0].event;
+		if (event.type !== "channel") continue;
+		var channel = event.channel;
+		switch(event.subtype) {
+			case "controller":
+//				console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
+				break;
+			case "programChange":
+				programs[channel] = event.programNumber;
+				break;
+			case "noteOn":
+				var program = programs[channel];
+				var gm = MIDI.GM.byId[isFinite(program) ? program : channel];
+				instruments[gm.id] = true;
+				break;
+		}
+	}
+	var ret = [];
+	for (var key in instruments) {
+		ret.push(key);
+	}
+	return ret;
 };
 
 // Playing the audio
