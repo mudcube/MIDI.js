@@ -1,17 +1,17 @@
 /* Copyright 2013 Chris Wilson
 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
- http://www.apache.org/licenses/LICENSE-2.0
+       http://www.apache.org/licenses/LICENSE-2.0
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 
 // Initialize the MIDI library.
 (function (global) {
@@ -23,7 +23,7 @@
     }
 
     Promise.prototype.then = function(accept, reject) {
-        this.accept = accept;
+        this.accept = accept; 
         this.reject = reject;
     }
 
@@ -123,7 +123,7 @@
 
     MIDIAccess.prototype.inputs = function(  ) {
         if (!this._Jazz)
-            return null;
+              return null;
         var list=this._Jazz.MidiInList();
         var inputs = new Array( list.length );
 
@@ -337,8 +337,17 @@
     };
 
     function _sendLater() {
+        delete timeouts[this.data.timeout];
         this.jazz.MidiOutLong( this.data );    // handle send as sysex
     }
+
+    var timeouts = {};
+    MIDIOutput.prototype.cancel = function() {
+        for (var key in timeouts) {
+            window.clearTimeout(key);
+            delete timeouts[key];
+        }
+    };
 
     MIDIOutput.prototype.send = function( data, timestamp ) {
         var delayBeforeSend = 0;
@@ -352,8 +361,8 @@
             var sendObj = new Object();
             sendObj.jazz = this._jazzInstance;
             sendObj.data = data;
-
-            window.setTimeout( _sendLater.bind(sendObj), delayBeforeSend );
+            sendObj.timeout = window.setTimeout( _sendLater.bind(sendObj), delayBeforeSend );
+            timeouts[sendObj.timeout] = true;
         } else {
             this._jazzInstance.MidiOutLong( data );
         }
@@ -372,8 +381,8 @@
 
     function findAlt() {
         var prefix = ['moz', 'webkit', 'o', 'ms'],
-            i = prefix.length,
-        //worst case, we use Date.now()
+        i = prefix.length,
+            //worst case, we use Date.now()
             props = {
                 value: (function (start) {
                     return function () {
@@ -414,7 +423,7 @@
             get: function () {
                 return perf;
             }});
-    //otherwise, performance is there, but not "now()"
+        //otherwise, performance is there, but not "now()"
 
     props = findAlt();
     Object.defineProperty(exports.performance, "now", props);
