@@ -1,11 +1,9 @@
 /*
-	-------------------------------------
-	MIDI.Player : 0.3
-	-------------------------------------
+	--------------------------------------------
+	MIDI.Player : 0.3.1 : 2014/02/10
+	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
-	-------------------------------------
-	#jasmid
-	-------------------------------------
+	--------------------------------------------
 */
 
 if (typeof (MIDI) === "undefined") var MIDI = {};
@@ -20,7 +18,6 @@ root.endTime = 0;
 root.restart = 0; 
 root.playing = false;
 root.timeWarp = 1;
-
 //
 root.start =
 root.resume = function () {
@@ -62,7 +59,7 @@ root.setAnimation = function(config) {
 	var tTheirTime = 0;
 	//
 	root.clearAnimation();
-	root.interval = window.setInterval(function () {
+	root.interval = setInterval(function () {
 		if (root.endTime === 0) return;
 		if (root.playing) {
 			currentTime = (tTheirTime === root.currentTime) ? tOurTime - (new Date).getTime() : 0;
@@ -96,10 +93,15 @@ root.setAnimation = function(config) {
 
 // helpers
 
-root.loadMidiFile = function() { // reads midi into javascript array of events
+root.loadMidiFile = function(callback) { // reads midi into javascript array of events
 	root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp);
 	root.data = root.replayer.getData();
 	root.endTime = getLength();
+	///
+	MIDI.loadPlugin({
+		instruments: root.getFileInstruments(),
+		callback: callback
+	});
 };
 
 root.loadFile = function (file, callback) {
@@ -107,8 +109,7 @@ root.loadFile = function (file, callback) {
 	if (file.indexOf("base64,") !== -1) {
 		var data = window.atob(file.split(",")[1]);
 		root.currentData = data;
-		root.loadMidiFile();
-		if (callback) callback(data);
+		root.loadMidiFile(callback);
 		return;
 	}
 	///
@@ -167,8 +168,8 @@ var queuedTime; //
 var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener callback
-var scheduleTracking = function (channel, note, currentTime, offset, message, velocity) {
-	var interval = window.setTimeout(function () {
+var scheduleTracking = function (channel, note, currentTime, offset, message, velocity, time) {
+	return setTimeout(function () {
 		var data = {
 			channel: channel,
 			note: note,
@@ -187,11 +188,15 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 			onMidiEvent(data);
 		}
 		root.currentTime = currentTime;
-		if (root.currentTime === queuedTime && queuedTime < root.endTime) { // grab next sequence
+		///
+		eventQueue.shift();
+		///
+		if (eventQueue.length < 1000) {
+			startAudio(queuedTime, true);
+		} else if (root.currentTime === queuedTime && queuedTime < root.endTime) { // grab next sequence
 			startAudio(queuedTime, true);
 		}
 	}, currentTime - offset);
-	return interval;
 };
 
 var getContext = function() {
@@ -213,6 +218,7 @@ var getLength = function() {
 	return totalTime;
 };
 
+var ff;
 var startAudio = function (currentTime, fromCache) {
 	if (!root.replayer) return;
 	if (!fromCache) {
@@ -225,41 +231,63 @@ var startAudio = function (currentTime, fromCache) {
 	var note;
 	var offset = 0;
 	var messages = 0;
-	var data = root.data;	
+	var data = root.data;
 	var ctx = getContext();
 	var length = data.length;
 	//
 	queuedTime = 0.5;
+	///
+	var now = window.performance.now();
+	ff = ff || now;
+	var interval = eventQueue[0] && eventQueue[0].interval || 0;
+	if (MIDI.api !== "webaudio") ctx.currentTime = (now - ff) / 1000;
+	var fff = currentTime - root.currentTime;
+	///
 	startTime = ctx.currentTime;
-	//
+	///
 	for (var n = 0; n < length && messages < 100; n++) {
-		queuedTime += data[n][1];
-		if (queuedTime < currentTime) {
+		var time = data[n][1];
+		if ((queuedTime += time) <= currentTime) {
 			offset = queuedTime;
 			continue;
 		}
 		currentTime = queuedTime - offset;
+		///
 		var event = data[n][0].event;
-		if (event.type !== "channel") continue;
-		var channel = event.channel;
+		if (event.type !== "channel") {
+			//console.log(event);
+			continue;
+		}
+		var channelId = event.channel;
+		var channel = MIDI.channels[channelId];
+		var delay =  ctx.currentTime + ((currentTime + fff) / 1000);
 		switch (event.subtype) {
+			case 'controller':
+				MIDI.setController(channelId, event.controllerType, event.value, delay);
+				break;
+			case 'programChange':
+				MIDI.programChange(channelId, event.programNumber, delay);
+				break;
+			case 'pitchBend':
+				MIDI.pitchBend(channelId, event.value, delay);
+				break;
 			case 'noteOn':
-				if (MIDI.channels[channel].mute) break;
+				if (channel.mute) break;
 				note = event.noteNumber - (root.MIDIOffset || 0);
 				eventQueue.push({
 					event: event,
-					source: MIDI.noteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity)
+					source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
+					interval: scheduleTracking(channelId, note, queuedTime, offset - fff, 144, event.velocity)
 				});
 				messages ++;
 				break;
 			case 'noteOff':
-				if (MIDI.channels[channel].mute) break;
+				if (channel.mute) break;
 				note = event.noteNumber - (root.MIDIOffset || 0);
 				eventQueue.push({
 					event: event,
-					source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
+					source: MIDI.noteOff(channelId, event.noteNumber, delay),
+					interval: scheduleTracking(channelId, note, queuedTime, offset - fff, 128, 0)
 				});
 				break;
 			default:
