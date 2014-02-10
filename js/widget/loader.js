@@ -43,7 +43,7 @@
 	loader.stop(); 
 */
 
-if (typeof (widgets) === "undefined") var widgets = {};
+if (typeof (widget) === "undefined") var widget = {};
 
 (function() { "use strict";
 
@@ -60,7 +60,7 @@ var defaultConfig = {
 	display: true
 };
 
-widgets.Loader = function (configure) {
+widget.Loader = function (configure) {
 	if (noCanvas) return;
 	var that = this;
 	if (typeof (configure) === "string") configure = { message: configure };
