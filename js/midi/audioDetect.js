@@ -36,6 +36,20 @@ var canPlayThrough = function (src) {
 };
 
 MIDI.audioDetect = function(callback) {
+	// detect jazz-midi plugin
+	if (navigator.requestMIDIAccess) {
+		var isNative = Function.prototype.toString.call(navigator.requestMIDIAccess).indexOf('[native code]');
+		if (isNative) { // has native midiapi support
+			supports["webmidi"] = true;
+		} else { // check for jazz plugin midiapi support
+			for (var n = 0; navigator.plugins.length > n; n ++) {
+				var plugin = navigator.plugins[n];
+				if (plugin.name.indexOf("Jazz-Plugin") >= 0) {
+					supports["webmidi"] = true;
+				}
+			}
+		}
+	}
 	// check whether <audio> tag is supported
 	if (typeof(Audio) === "undefined") return callback({});
 	// check whether canPlayType is supported
