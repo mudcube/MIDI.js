@@ -1,6 +1,6 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3.3 : 2014/02/10
+	MIDI.Plugin : 0.3.3 : 2014/02/11
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
@@ -47,7 +47,6 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 ///
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 ///
-root.USE_JAZZMIDI = false; // Turn on to support JazzMIDI Plugin
 root.DEBUG = false;
 ///
 root.soundfontUrl = "./soundfont/";
@@ -61,11 +60,11 @@ root.loadPlugin = function(conf) {
 		var hash = window.location.hash;
 		var api = "";
 		// use the most appropriate plugin if not specified
-		if (apis[conf.api]) {
+		if (types[conf.api]) {
 			api = conf.api;
-		} else if (apis[hash.substr(1)]) {
+		} else if (types[hash.substr(1)]) {
 			api = hash.substr(1);
-		} else if (root.USE_JAZZMIDI && navigator.requestMIDIAccess) {
+		} else if (types["webmidi"]) {
 			api = "webmidi";
 		} else if (window.AudioContext) { // Chrome
 			api = "webaudio";
@@ -151,7 +150,7 @@ connect.audiotag = function(filetype, instruments, conf) {
 				onload: function (response) {
 					addScript(response.responseText);
 					if (root.loader) root.loader.update(null, "Downloading", 100);
-					self.getNext();
+					self.next();
 				}
 			});
 		},
@@ -454,9 +453,10 @@ if (window.AudioContext) (function () {
 		source.gainNode = ctx.createGain();
 //		source.playbackRate.value = 2; // pitch shift
 		///
-		var value = (velocity / 127) * (masterVolume / 127) * 2 - 1;
+		var value = Math.max(-1.0, (velocity / 127) * (masterVolume / 127) * 2 - 1);
 		source.gainNode.connect(ctx.destination);
-		source.gainNode.gain.value = Math.max(-1.0, value);
+		source.gainNode.gain.value = value;
+	//	source.gainNode.gain.linearRampToValueAtTime(value, delay);
 		source.connect(source.gainNode);
 		///
 		if (streaming) {
@@ -491,7 +491,7 @@ if (window.AudioContext) (function () {
 			// add { "metadata": { release: 0.3 } } to soundfont files
 			var gain = source.gainNode.gain;
 			gain.linearRampToValueAtTime(gain.value, delay);
-			gain.linearRampToValueAtTime(-1.0, delay + 0.25);
+			gain.linearRampToValueAtTime(-1.0, delay + .4);
 		}
 		///
 		if (streaming) {
@@ -499,9 +499,9 @@ if (window.AudioContext) (function () {
 				buffer.pause();
 			}, delay * 1000);
 		} else if (source.noteOff) { // old api
-			source.noteOff(delay + 0.4);
+			source.noteOff(delay + 0.5);
 		} else {
-			source.stop(delay + 0.4);
+			source.stop(delay + 0.5);
 		}
 		///
 		delete sources[channelId + "" + noteId];
