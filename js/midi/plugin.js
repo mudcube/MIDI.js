@@ -740,6 +740,7 @@ if (window.Audio) (function () {
 	};
 	
 	root.noteOff = function (channel, note, delay) {
+/*
 		var id = note2id[note];
 		if (!notes[id]) return;
 		if (delay) {
@@ -749,6 +750,7 @@ if (window.Audio) (function () {
 		} else {
 			stopChannel(channel, id);
 		}
+*/
 	};
 	
 	root.chordOn = function (channel, chord, velocity, delay) {

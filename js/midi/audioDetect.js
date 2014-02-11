@@ -51,10 +51,20 @@ MIDI.audioDetect = function(callback) {
 		}
 	}
 	// check whether <audio> tag is supported
-	if (typeof(Audio) === "undefined") return callback({});
+	if (typeof(Audio) === "undefined") {
+		return callback({});
+	} else {
+		supports["audiotag"] = true;
+	}
+	// check for webaudio api support
+	if (window.AudioContext || window.webkitAudioContext) {
+		supports["webaudio"] = true;
+	}
 	// check whether canPlayType is supported
 	var audio = new Audio();
-	if (typeof(audio.canPlayType) === "undefined") return callback(supports);
+	if (typeof(audio.canPlayType) === "undefined") {
+		return callback(supports);
+	}
 	// see what we can learn from the browser
 	var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
 	vorbis = (vorbis === "probably" || vorbis === "maybe");
