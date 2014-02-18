@@ -1,8 +1,8 @@
 /*
 	-----------------------------------------------------------
-	dom.loadScript.js : 0.1.4 : 2012/12/12 : http://mudcu.be
+	dom.loadScript.js : 0.1.4 : 2014/02/12 : http://mudcu.be
 	-----------------------------------------------------------
-	Copyright 2011-2013 Mudcube. All rights reserved.
+	Copyright 2011-2014 Mudcube. All rights reserved.
 	-----------------------------------------------------------
 	/// No verification
 	dom.loadScript.add("../js/jszip/jszip.js");
@@ -39,8 +39,6 @@
 	});
 */
 
-/// sketch.util.script()
-
 if (typeof(dom) === "undefined") var dom = {};
 
 (function() { "use strict";
@@ -68,7 +66,7 @@ dom.loadScript.prototype.add = function(config) {
 	/// 
 	var testElement = function(element, test) {
 		if (that.loaded[element.url]) return;
-		if (test && typeof(window[test]) === "undefined") return;
+		if (test && globalExists(test) === false) return;
 		that.loaded[element.url] = true;
 		//
 		if (that.loading[element.url]) that.loading[element.url]();
@@ -87,7 +85,7 @@ dom.loadScript.prototype.add = function(config) {
 				verify: config.verify
 			};
 		}
-		if (/([\w\d.])$/.test(element.verify)) { // check whether its a variable reference
+		if (/([\w\d.\[\]\'\"])$/.test(element.verify)) { // check whether its a variable reference
 			var verify = element.test = element.verify;
 			if (typeof(verify) === "object") {
 				for (var n = 0; n < verify.length; n ++) {
@@ -141,24 +139,8 @@ dom.loadScript.prototype.add = function(config) {
 		}
 		var istrue = true;
 		for (var n = 0; n < batchTest.length; n ++) {
-			var test = batchTest[n];
-			if (test && test.indexOf(".") !== -1) {
-				test = test.split(".");
-				var level0 = window[test[0]];
-				if (typeof(level0) === "undefined") continue;
-				if (test.length === 2) { //- this is a bit messy and could handle more cases
-					if (typeof(level0[test[1]]) === "undefined") {
-						istrue = false;
-					}
-				} else if (test.length === 3) {
-					if (typeof(level0[test[1]][test[2]]) === "undefined") {
-						istrue = false;
-					}
-				}
-			} else {
-				if (typeof(window[test]) === "undefined") {
-					istrue = false;
-				}
+			if (globalExists(batchTest[n]) === false) {
+				istrue = false;
 			}
 		}
 		if (!config.strictOrder && istrue) { // finished loading all the requested scripts
@@ -214,6 +196,26 @@ dom.loadScript.prototype.add = function(config) {
 };
 
 dom.loadScript = new dom.loadScript();
+
+var globalExists = function(path, root) {
+	try {
+		path = path.split('"').join('').split("'").join('').split(']').join('').split('[').join('.');
+		var parts = path.split(".");
+		var length = parts.length;
+		var object = root || window;
+		for (var n = 0; n < length; n ++) {
+			var key = parts[n];
+			if (object[key] == null) {
+				return false;
+			} else { //
+				object = object[key];
+			}
+		}
+		return true;
+	} catch(e) {
+		return false;
+	}
+};
 
 })();
 

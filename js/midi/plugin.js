@@ -48,7 +48,7 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 ///
 root.DEBUG = false;
-///
+root.USE_XHR = true;
 root.soundfontUrl = "./soundfont/";
 ///
 root.loadPlugin = function(conf) {
@@ -138,25 +138,12 @@ connect.audiotag = function(filetype, instruments, conf) {
 	var queue = new Queue({
 		items: instruments,
 		progress: function(percent) {
-			if (root.loader) {
+			if (root.loader && instruments.length) {
 				root.loader.update(null, "Downloading...", percent * 100 >> 0);
 			}
 		},
 		next: function(instrumentId) {
-			var self = this;
-			if (MIDI.Soundfont[instrumentId]) {
-				self.next();
-			} else {
-				DOMLoader.sendRequest({
-					url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function (response) {
-						addScript(response.responseText);
-						if (root.loader) root.loader.update(null, "Downloading", 100);
-						self.next();
-					}
-				});
-			}
+			sendRequest(this, instrumentId, filetype);
 		},
 		callback: function() {
 			root.AudioTag.connect(conf);
@@ -170,24 +157,12 @@ connect.webaudio = function(filetype, instruments, conf) {
 	var queue = new Queue({
 		items: instruments,
 		progress: function(percent) {
-			if (root.loader) {
+			if (root.loader && instruments.length) {
 				root.loader.update(null, "Downloading...", percent * 100 >> 0);
 			}
 		},
-		next: function(instrumentId, key, index,total) {
-			var self = this;
-			if (MIDI.Soundfont[instrumentId]) {
-				self.next();
-			} else {
-				DOMLoader.sendRequest({
-					url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function(response) {
-						addScript(response.responseText);
-						self.next();
-					}
-				});
-			}
+		next: function(instrumentId, key, index, total) {
+			sendRequest(this, instrumentId, filetype);
 		},
 		callback: function() {
 			root.WebAudio.connect(conf);
@@ -204,11 +179,39 @@ var apis = {
 	"flash": true 
 };
 
-var addScript = function(text) {
+var sendRequest = function(queue, instrumentId, filetype) {
+	var soundfontPath = root.soundfontUrl + instrumentId + "-" + filetype + ".js";
+	if (MIDI.Soundfont[instrumentId]) {
+		queue.next();
+	} else if (root.USE_XHR) {
+		dom.request({
+			url: soundfontPath,
+			onprogress: getPercent,
+			onload: function(response) {
+				addScript({
+					text: response.responseText
+				});
+				queue.next();
+			}
+		});
+	} else {
+		dom.loadScript.add({
+			url: soundfontPath,
+			verify: "MIDI.Soundfont['"+instrumentId+"']",
+			callback: function() {
+			console.log(MIDI.Soundfont)
+				queue.next();
+			}
+		});
+	}
+};
+
+var addScript = function(conf) {
 	var script = document.createElement("script");
 	script.language = "javascript";
 	script.type = "text/javascript";
-	script.text = text;
+	if (conf.text) script.text = conf.text;
+	if (conf.src) script.src = conf.src;
 	document.body.appendChild(script);
 };
 
