@@ -561,7 +561,7 @@ if (window.AudioContext) (function () {
         if (!ctx.createDelay) ctx.createDelay = ctx.createDelayNode;
         if (!ctx.createGain) ctx.createGain = ctx.createGainNode;
 
-		///
+/*		/// testing tuna integration, think of better way to implement...
 		if (window.Tuna) {
 			var tuna = new Tuna(ctx); // https://github.com/Dinahmoe/tuna
 			root.phaser = new tuna.Phaser({
@@ -641,7 +641,7 @@ if (window.AudioContext) (function () {
 			});
 			root.ff = root.compressor;
 			root.ff.connect(ctx.destination);
-		}
+		} */
 		///
 		var urlList = [];
 		var keyToNote = MIDI.keyToNote;
