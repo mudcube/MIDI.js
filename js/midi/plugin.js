@@ -562,7 +562,7 @@ if (window.AudioContext) (function () {
         if (!ctx.createGain) ctx.createGain = ctx.createGainNode;
 
 		///
-		if (true) {
+		if (window.Tuna) {
 			var tuna = new Tuna(ctx); // https://github.com/Dinahmoe/tuna
 			root.phaser = new tuna.Phaser({
 			     rate: 1.2,                     //0.01 to 8 is a decent range, but higher values are possible
