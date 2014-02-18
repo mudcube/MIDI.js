@@ -1,6 +1,6 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3.3 : 2014/02/11
+	MIDI.Plugin : 0.3.3 : 2014/02/18
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
@@ -470,9 +470,9 @@ if (window.AudioContext) (function () {
 		source.gainNode = ctx.createGain();
 //		source.playbackRate.value = 2; // pitch shift
 		///
-		var value = Math.min(1.0, Math.max(-1.0, (velocity / 127) * (masterVolume / 127) * 2 - 1));
+		var value = (velocity / 127) * (masterVolume / 127) * 2 - 1;
 		source.gainNode.connect(ctx.destination);
-		source.gainNode.gain.value = value;
+		source.gainNode.gain.value = Math.min(1.0, Math.max(-1.0, value));
 	//	source.gainNode.gain.linearRampToValueAtTime(value, delay);
 		source.connect(source.gainNode);
 		///
