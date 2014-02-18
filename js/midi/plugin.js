@@ -144,15 +144,19 @@ connect.audiotag = function(filetype, instruments, conf) {
 		},
 		next: function(instrumentId) {
 			var self = this;
-			DOMLoader.sendRequest({
-				url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function (response) {
-					addScript(response.responseText);
-					if (root.loader) root.loader.update(null, "Downloading", 100);
-					self.next();
-				}
-			});
+			if (MIDI.Soundfont[instrumentId]) {
+				self.next();
+			} else {
+				DOMLoader.sendRequest({
+					url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function (response) {
+						addScript(response.responseText);
+						if (root.loader) root.loader.update(null, "Downloading", 100);
+						self.next();
+					}
+				});
+			}
 		},
 		callback: function() {
 			root.AudioTag.connect(conf);
@@ -172,14 +176,18 @@ connect.webaudio = function(filetype, instruments, conf) {
 		},
 		next: function(instrumentId, key, index,total) {
 			var self = this;
-			DOMLoader.sendRequest({
-				url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: getPercent,
-				onload: function(response) {
-					addScript(response.responseText);
-					self.next();
-				}
-			});
+			if (MIDI.Soundfont[instrumentId]) {
+				self.next();
+			} else {
+				DOMLoader.sendRequest({
+					url: root.soundfontUrl + instrumentId + "-" + filetype + ".js",
+					onprogress: getPercent,
+					onload: function(response) {
+						addScript(response.responseText);
+						self.next();
+					}
+				});
+			}
 		},
 		callback: function() {
 			root.WebAudio.connect(conf);
@@ -362,10 +370,14 @@ if (window.AudioContext) (function () {
 	var masterVolume = 127;
 	var audioBuffers = {};
 	var audioLoader = function (ctx, instrument, urlList, index, bufferList, callback) {
+		var soundfont = MIDI.Soundfont[instrument];
+		if (soundfont.isLoaded) {
+			return callback(instrument);
+		}
 		var synth = MIDI.GM.byName[instrument];
 		var instrumentId = synth.number;
-		var url = urlList[index];
-		var audioSrc = MIDI.Soundfont[instrument][url];
+		var key = urlList[index];
+		var audioSrc = MIDI.Soundfont[instrument][key];
 		if (!audioSrc) { // missing soundfont
 			return callback(instrument);
 		}
@@ -373,12 +385,12 @@ if (window.AudioContext) (function () {
 			console.log(err);
 		};
 		var onAudioLoad = function (buffer) {
-			var msg = url;
+			var msg = key;
 			while (msg.length < 3) msg += "&nbsp;";
 			if (typeof (MIDI.loader) !== "undefined") {
 				MIDI.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
 			}
-			buffer.id = url;
+			buffer.id = key;
 			bufferList[index] = buffer;
 			//
 			if (bufferList.length === urlList.length) {
@@ -388,11 +400,13 @@ if (window.AudioContext) (function () {
 					var nodeId = MIDI.keyToNote[buffer.id];
 					audioBuffers[instrumentId + "" + nodeId] = buffer;
 				}
+				soundfont.isLoaded = true;
 				callback(instrument);
 			}
 		};
 		///
-		loadAudioFile(MIDI.Soundfont[instrument][url], onAudioLoad, onAudioError);
+		var url = soundfont[key];
+		loadAudioFile(url, onAudioLoad, onAudioError);
 	};
 
 	root.send = function(data, delay) {
