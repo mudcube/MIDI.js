@@ -23,10 +23,9 @@
 	<script src="./js/widget/loader.js" type="text/javascript"></script>
 	<!-- utils -->
 	<script src="./js/util/dom_request_xhr.js" type="text/javascript"></script>
+	<script src="./js/util/dom_request_script.js" type="text/javascript"></script>
 	<script src="./js/util/event.js" type="text/javascript"></script>
 	<script src="./js/util/queue.js" type="text/javascript"></script>
-	<!-- piano soundfont -->
-	<script src="./soundfont/acoustic_grand_piano-ogg.js"></script>
 </head>
 <body>
 	<img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
@@ -210,8 +209,6 @@ MIDI.Player.setAnimation(function(data) {
 			//
 			ColorSphereBackground();
 			MIDIPlayerPercentage(player);
-			//
-			MIDI.loader.stop();
 		});
 	});
 	///
