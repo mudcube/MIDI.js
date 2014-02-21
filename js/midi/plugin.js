@@ -557,7 +557,10 @@ if (window.AudioContext) (function () {
 	root.connect = function (conf) {
 		setPlugin(root);
 		//
-		MIDI.Player.ctx = ctx = new AudioContext();
+		if (MIDI.Player.ctx == null)
+		    MIDI.Player.ctx = ctx = new AudioContext();
+		else
+		    ctx = MIDI.Player.ctx;
 
 		/// https://developer.mozilla.org/en-US/docs/Web_Audio_API/Porting_webkitAudioContext_code_to_standards_based_AudioContext
         if (!ctx.createScriptProcessor) ctx.createScriptProcessor = ctx.createJavaScriptNode;
