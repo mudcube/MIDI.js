@@ -135,10 +135,10 @@ connect.webaudio = function(filetype, instruments, conf) {
 /// Helpers
 
 var apis = {
-	"webmidi": true, 
-	"webaudio": true, 
-	"audiotag": true, 
-	"flash": true 
+	"webmidi": true,
+	"webaudio": true,
+	"audiotag": true,
+	"flash": true
 };
 
 var addSoundfont = function(text) {
