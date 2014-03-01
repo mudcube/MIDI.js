@@ -166,7 +166,9 @@ var createQueue = function(conf) {
 	var self = {};
 	self.queue = [];
 	for (var key in conf.items) {
-		self.queue.push(conf.items[key]);
+		if (conf.items.hasOwnProperty(key)) {
+			self.queue.push(conf.items[key]);
+		}
 	}
 	self.getNext = function() {
 		if (!self.queue.length) return conf.onComplete();
