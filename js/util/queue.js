@@ -92,10 +92,12 @@ var Queue = function(conf) {
 
 		/// Flatten multi-dimensional objects.
 		for (var key in items) {
+			if (!items.hasOwnProperty(key)) continue; // work when Array is prototyped
 			if (String(items[key]) === "[object Object]" && !flatten) {
 				var sub = [];
 				this.queue.push(sub);
 				for (var key1 in items[key]) {
+					if (!items[key].hasOwnProperty(key1)) continue; // work when Array is prototyped
 					sub.push(items[key][key1]);
 					this.keys.push(key1);
 					this.length ++;
