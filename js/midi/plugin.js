@@ -423,21 +423,21 @@ if (window.AudioContext) (function () {
 	root.setVolume = function (channel, volume, delay) {
 		setTimeout(function() {
 			masterVolume = volume;
-		}, delay);
+		}, delay || 0);
 	};
 
 	root.programChange = function (channelId, program, delay) {
 		setTimeout(function() {
 			var channel = MIDI.channels[channelId];
 			channel.instrument = program;
-		}, delay);
+		}, delay || 0);
 	};
 
 	root.pitchBend = function(channelId, program, delay) {
 		setTimeout(function() {
 			var channel = MIDI.channels[channelId];
 			channel.pitchBend = program;
-		}, delay);
+		}, delay || 0);
 	};
 
 	root.noteOn = function (channelId, noteId, velocity, delay) {

@@ -218,7 +218,7 @@ var getLength = function() {
 	return totalTime;
 };
 
-var ff;
+var fnow;
 var startAudio = function (currentTime, fromCache) {
 	if (!root.replayer) return;
 	if (!fromCache) {
@@ -238,10 +238,10 @@ var startAudio = function (currentTime, fromCache) {
 	queuedTime = 0.5;
 	///
 	var now = window.performance.now();
-	ff = ff || now;
+	fnow = fnow || now;
 	var interval = eventQueue[0] && eventQueue[0].interval || 0;
-	if (MIDI.api !== "webaudio") ctx.currentTime = (now - ff) / 1000;
-	var fff = currentTime - root.currentTime;
+	if (MIDI.api !== "webaudio") ctx.currentTime = (now - fnow) / 1000;
+	var foffset = currentTime - root.currentTime;
 	///
 	startTime = ctx.currentTime;
 	///
@@ -260,7 +260,7 @@ var startAudio = function (currentTime, fromCache) {
 		}
 		var channelId = event.channel;
 		var channel = MIDI.channels[channelId];
-		var delay =  ctx.currentTime + ((currentTime + fff) / 1000);
+		var delay =  ctx.currentTime + ((currentTime + foffset) / 1000);
 		switch (event.subtype) {
 			case 'controller':
 				MIDI.setController(channelId, event.controllerType, event.value, delay);
@@ -277,7 +277,7 @@ var startAudio = function (currentTime, fromCache) {
 				eventQueue.push({
 					event: event,
 					source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
-					interval: scheduleTracking(channelId, note, queuedTime, offset - fff, 144, event.velocity)
+					interval: scheduleTracking(channelId, note, queuedTime, offset - foffset, 144, event.velocity)
 				});
 				messages ++;
 				break;
@@ -287,7 +287,7 @@ var startAudio = function (currentTime, fromCache) {
 				eventQueue.push({
 					event: event,
 					source: MIDI.noteOff(channelId, event.noteNumber, delay),
-					interval: scheduleTracking(channelId, note, queuedTime, offset - fff, 128, 0)
+					interval: scheduleTracking(channelId, note, queuedTime, offset - foffset, 128, 0)
 				});
 				break;
 			default:
