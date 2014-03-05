@@ -135,10 +135,10 @@ connect.webaudio = function(filetype, instruments, conf) {
 /// Helpers
 
 var apis = {
-	"webmidi": true, 
-	"webaudio": true, 
-	"audiotag": true, 
-	"flash": true 
+	"webmidi": true,
+	"webaudio": true,
+	"audiotag": true,
+	"flash": true
 };
 
 var addSoundfont = function(text) {
@@ -166,7 +166,9 @@ var createQueue = function(conf) {
 	var self = {};
 	self.queue = [];
 	for (var key in conf.items) {
-		self.queue.push(conf.items[key]);
+		if (conf.items.hasOwnProperty(key)) {
+			self.queue.push(conf.items[key]);
+		}
 	}
 	self.getNext = function() {
 		if (!self.queue.length) return conf.onComplete();
