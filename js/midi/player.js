@@ -19,6 +19,7 @@ root.restart = 0;
 root.playing = false;
 root.timeWarp = 1;
 root.startDelay = 0;
+root.BPM = 120;
 //
 root.start =
 root.resume = function (callback) {
@@ -95,7 +96,7 @@ root.setAnimation = function(config) {
 // helpers
 
 root.loadMidiFile = function(callback) { // reads midi into javascript array of events
-    root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp, null, MIDI.BPM);
+    root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp, null, root.BPM);
     root.data = root.replayer.getData();
 	root.endTime = getLength();
 	///
