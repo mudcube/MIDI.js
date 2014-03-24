@@ -13,16 +13,18 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		concat: {
 			'build/MIDI.js': [
-				'js/MIDI/AudioDetect.js',
-				'js/MIDI/LoadPlugin.js',
-				'js/MIDI/Plugin.js',
-				'js/MIDI/Player.js',
-				'js/Window/DOMLoader.XMLHttp.js', // req when using XHR
-				'js/Window/DOMLoader.script.js', // req otherwise
-//				'js/Color/SpaceW3.js', // optional
-//				'js/MusicTheory/Synesthesia.js', // optional
-//				'js/Widgets/Loader.js', // optional
-//				'js/Window/Event.js' // optional
+//				'js/color/spaceW3.js', // optional
+				'js/midi/audioDetect.js',
+				'js/midi/player.js',
+				'js/midi/plugin.js',
+//				'js/midi/synesthesia.js', // optional
+				'js/util/dom_request_xhr.js', // req when using XHR
+				'js/util/dom_request_script.js', // req otherwise
+//				'js/util/event.js', // optional
+				'js/util/queue.js', // req otherwise
+//				'js/widget/loader.js', // optional
+				'inc/polyfill/Base64.js',
+				'inc/polyfill/base64binary.js'
 			]
 		},
 		uglify: {
