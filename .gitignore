@@ -4,5 +4,3 @@ node_modules*
 soundfont/*
 soundfont/accoustic_grand_piano
 *.gz
-oggenc
-oggdec

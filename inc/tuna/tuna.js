@@ -18,17 +18,13 @@
 (function (window) {
     var userContext, userInstance, Tuna = function (context) {
             if (! window.AudioContext) {
-                window.AudioContext = window.webkitAudioContext;
-       	    }
+		window.AudioContext = window.webkitAudioContext;
+   	    }
+
             if(!context) {
                 console.log("tuna.js: Missing audio context! Creating a new context for you.");
                 context = window.AudioContext && (new window.AudioContext());
             }
-            /// https://developer.mozilla.org/en-US/docs/Web_Audio_API/Porting_webkitAudioContext_code_to_standards_based_AudioContext
-            if (!context.createScriptProcessor) context.createScriptProcessor = context.createJavaScriptNode;
-            if (!context.createDelay) context.createDelay = context.createDelayNode;
-            if (!context.createGain) context.createGain = context.createGainNode;
-            ///
             userContext = context;
             userInstance = this;
         },
@@ -186,10 +182,10 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
         this.filter = userContext.createBiquadFilter();
-        this.output = userContext.createGain();
+        this.output = userContext.createGainNode();
 
         this.activateNode.connect(this.filter);
         this.filter.connect(this.output);
@@ -279,15 +275,102 @@
             }
         }
     });
+    Tuna.prototype.Bitcrusher = function (properties) {
+        if(!properties) {
+            properties = this.getDefaults();
+        }
+        this.bufferSize = properties.bufferSize || this.defaults.bufferSize.value;
+
+        this.input = userContext.createGain();
+        this.activateNode = userContext.createGain();
+        this.processor = userContext.createScriptProcessor(this.bufferSize, 1, 1);
+        this.output = userContext.createGain();
+
+        this.activateNode.connect(this.processor);
+        this.processor.connect(this.output);
+
+        var phaser = 0, last = 0;
+        this.processor.onaudioprocess = function (e) {
+            var input = e.inputBuffer.getChannelData(0),
+                output = e.outputBuffer.getChannelData(0),
+                step = Math.pow(1/2, this.bits);
+            for(var i = 0; i < input.length; i++) {
+                phaser += this.normfreq;
+                if(phaser >= 1.0) {
+                    phaser -= 1.0;
+                    last = step * Math.floor(input[i] / step + 0.5);
+                }
+                output[i] = last;
+            }
+        };
+
+        this.bits = properties.bits || this.defaults.bits.value;
+        this.normfreq = properties.normfreq || this.defaults.normfreq.value;
+        this.bypass = properties.bypass || false;
+    };
+    Tuna.prototype.Bitcrusher.prototype = Object.create(Super, {
+        name: {
+            value: "Bitcrusher"
+        },
+        defaults: {
+            writable: true,
+            value: {
+                bits: {
+                    value: 4,
+                    min: 1,
+                    max: 16,
+                    automatable: false,
+                    type: INT
+                },
+                bufferSize: {
+                    value: 4096,
+                    min: 256,
+                    max: 16384,
+                    automatable: false,
+                    type: INT
+                },
+                bypass: {
+                    value: false,
+                    automatable: false,
+                    type: BOOLEAN
+                },
+                normfreq: {
+                    value: 0.1,
+                    min: 0.0001,
+                    max: 1.0,
+                    automatable: false,
+                    type: FLOAT
+                }
+            }
+        },
+        bits: {
+            enumerable: true,
+            get: function () {
+                return this.processor.bits;
+            },
+            set: function (value) {
+                this.processor.bits = value;
+            }
+        },
+        normfreq: {
+            enumerable: true,
+            get: function () {
+                return this.processor.normfreq;
+            },
+            set: function (value) {
+                this.processor.normfreq = value;
+            }
+        }
+    });
     Tuna.prototype.Cabinet = function (properties) {
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
         this.convolver = this.newConvolver(properties.impulsePath || "../impulses/impulse_guitar.wav");
-        this.makeupNode = userContext.createGain();
-        this.output = userContext.createGain();
+        this.makeupNode = userContext.createGainNode();
+        this.output = userContext.createGainNode();
 
         this.activateNode.connect(this.convolver.input);
         this.convolver.output.connect(this.makeupNode);
@@ -340,15 +423,15 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.attenuator = this.activateNode = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.attenuator = this.activateNode = userContext.createGainNode();
         this.splitter = userContext.createChannelSplitter(2);
-        this.delayL = userContext.createDelay();
-        this.delayR = userContext.createDelay();
-        this.feedbackGainNodeLR = userContext.createGain();
-        this.feedbackGainNodeRL = userContext.createGain();
+        this.delayL = userContext.createDelayNode();
+        this.delayR = userContext.createDelayNode();
+        this.feedbackGainNodeLR = userContext.createGainNode();
+        this.feedbackGainNodeRL = userContext.createGainNode();
         this.merger = userContext.createChannelMerger(2);
-        this.output = userContext.createGain();
+        this.output = userContext.createGainNode();
 
         this.lfoL = new userInstance.LFO({
             target: this.delayL.delayTime,
@@ -474,10 +557,10 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
+        this.input = userContext.createGainNode();
         this.compNode = this.activateNode = userContext.createDynamicsCompressor();
-        this.makeupNode = userContext.createGain();
-        this.output = userContext.createGain();
+        this.makeupNode = userContext.createGainNode();
+        this.output = userContext.createGainNode();
 
         this.compNode.connect(this.makeupNode);
         this.makeupNode.connect(this.output);
@@ -632,14 +715,14 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
         this.convolver = userContext.createConvolver();
-        this.dry = userContext.createGain();
+        this.dry = userContext.createGainNode();
         this.filterLow = userContext.createBiquadFilter();
         this.filterHigh = userContext.createBiquadFilter();
-        this.wet = userContext.createGain();
-        this.output = userContext.createGain();
+        this.wet = userContext.createGainNode();
+        this.output = userContext.createGainNode();
 
         this.activateNode.connect(this.filterLow);
         this.activateNode.connect(this.dry);
@@ -776,14 +859,14 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
-        this.dry = userContext.createGain();
-        this.wet = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
+        this.dry = userContext.createGainNode();
+        this.wet = userContext.createGainNode();
         this.filter = userContext.createBiquadFilter();
-        this.delay = userContext.createDelay();
-        this.feedbackNode = userContext.createGain();
-        this.output = userContext.createGain();
+        this.delay = userContext.createDelayNode();
+        this.feedbackNode = userContext.createGainNode();
+        this.output = userContext.createGainNode();
 
         this.activateNode.connect(this.delay);
         this.activateNode.connect(this.dry);
@@ -892,16 +975,110 @@
             }
         }
     });
+    Tuna.prototype.MoogFilter = function (properties) {
+        if(!properties) {
+            properties = this.getDefaults();
+        }
+        this.bufferSize = properties.bufferSize || this.defaults.bufferSize.value;
+
+        this.input = userContext.createGain();
+        this.activateNode = userContext.createGain();
+        this.processor = userContext.createScriptProcessor(this.bufferSize, 1, 1);
+        this.output = userContext.createGain();
+
+        this.activateNode.connect(this.processor);
+        this.processor.connect(this.output);
+
+        var in1, in2, in3, in4, out1, out2, out3, out4;
+        in1 = in2 = in3 = in4 = out1 = out2 = out3 = out4 = 0.0;
+        this.processor.onaudioprocess = function (e) {
+            var input = e.inputBuffer.getChannelData(0),
+                output = e.outputBuffer.getChannelData(0),
+                f = this.cutoff * 1.16,
+                fb = this.resonance * (1.0 - 0.15 * f * f);
+            for(var i = 0; i < input.length; i++) {
+                input[i] -= out4 * fb;
+                input[i] *= 0.35013 * (f*f)*(f*f);
+                out1 = input[i] + 0.3 * in1 + (1 - f) * out1; // Pole 1
+                in1 = input[i];
+                out2 = out1 + 0.3 * in2 + (1 - f) * out2; // Pole 2
+                in2 = out1;
+                out3 = out2 + 0.3 * in3 + (1 - f) * out3; // Pole 3
+                in3 = out2;
+                out4 = out3 + 0.3 * in4 + (1 - f) * out4; // Pole 4
+                in4 = out3;
+                output[i] = out4;
+            }
+        };
+
+        this.cutoff = properties.cutoff || this.defaults.cutoff.value;
+        this.resonance = properties.resonance || this.defaults.resonance.value;
+        this.bypass = properties.bypass || false;
+    };
+    Tuna.prototype.MoogFilter.prototype = Object.create(Super, {
+        name: {
+            value: "MoogFilter"
+        },
+        defaults: {
+            writable: true,
+            value: {
+                bufferSize: {
+                    value: 4096,
+                    min: 256,
+                    max: 16384,
+                    automatable: false,
+                    type: INT
+                },
+                bypass: {
+                    value: false,
+                    automatable: false,
+                    type: BOOLEAN
+                },
+                cutoff: {
+                    value: 0.065,
+                    min: 0.0001,
+                    max: 1.0,
+                    automatable: false,
+                    type: FLOAT
+                },
+                resonance: {
+                    value: 3.5,
+                    min: 0.0,
+                    max: 4.0,
+                    automatable: false,
+                    type: FLOAT
+                }
+            }
+        },
+        cutoff: {
+            enumerable: true,
+            get: function () {
+                return this.processor.cutoff;
+            },
+            set: function (value) {
+                this.processor.cutoff = value;
+            }
+        },
+        resonance: {
+            enumerable: true,
+            get: function () {
+                return this.processor.resonance;
+            },
+            set: function (value) {
+                this.processor.resonance = value;
+            }
+        }
+    });
     Tuna.prototype.Overdrive = function (properties) {
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
-        this.inputDrive = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
+        this.inputDrive = userContext.createGainNode();
         this.waveshaper = userContext.createWaveShaper();
-        this.outputDrive = userContext.createGain();
-        this.output = userContext.createGain();
+        this.outputDrive = userContext.createGainNode();
+        this.output = userContext.createGainNode();
 
         this.activateNode.connect(this.inputDrive);
         this.inputDrive.connect(this.waveshaper);
@@ -1059,15 +1236,15 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
+        this.input = userContext.createGainNode();
         this.splitter = this.activateNode = userContext.createChannelSplitter(2);
         this.filtersL = [];
         this.filtersR = [];
-        this.feedbackGainNodeL = userContext.createGain();
-        this.feedbackGainNodeR = userContext.createGain();
+        this.feedbackGainNodeL = userContext.createGainNode();
+        this.feedbackGainNodeR = userContext.createGainNode();
         this.merger = userContext.createChannelMerger(2);
-        this.filteredSignal = userContext.createGain();
-        this.output = userContext.createGain();
+        this.filteredSignal = userContext.createGainNode();
+        this.output = userContext.createGainNode();
         this.lfoL = new userInstance.LFO({
             target: this.filtersL,
             callback: this.callback
@@ -1220,8 +1397,8 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.splitter = this.activateNode = userContext.createChannelSplitter(2), this.amplitudeL = userContext.createGain(), this.amplitudeR = userContext.createGain(), this.merger = userContext.createChannelMerger(2), this.output = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.splitter = this.activateNode = userContext.createChannelSplitter(2), this.amplitudeL = userContext.createGainNode(), this.amplitudeR = userContext.createGainNode(), this.merger = userContext.createChannelMerger(2), this.output = userContext.createGainNode();
         this.lfoL = new userInstance.LFO({
             target: this.amplitudeL.gain,
             callback: pipe
@@ -1321,8 +1498,8 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.activateNode = userContext.createGain();
+        this.input = userContext.createGainNode();
+        this.activateNode = userContext.createGainNode();
         this.envelopeFollower = new userInstance.EnvelopeFollower({
             target: this,
             callback: function (context, value) {
@@ -1331,7 +1508,7 @@
         });
         this.filterBp = userContext.createBiquadFilter();
         this.filterPeaking = userContext.createBiquadFilter();
-        this.output = userContext.createGain();
+        this.output = userContext.createGainNode();
 
         //Connect AudioNodes
         this.activateNode.connect(this.filterBp);
@@ -1439,7 +1616,6 @@
             },
             set: function (value) {
                 this._baseFrequency = 50 * Math.pow(10, value * 2);
-                if (typeof(this._excursionOctaves) === "undefined") return;
                 this._excursionFrequency = Math.min(this.sampleRate / 2, this.baseFrequency * Math.pow(2, this._excursionOctaves));
                 this.filterBp.frequency.value = this._baseFrequency + this._excursionFrequency * this._sweep;
                 this.filterPeaking.frequency.value = this._baseFrequency + this._excursionFrequency * this._sweep;
@@ -1453,7 +1629,6 @@
             set: function (value) {
                 this._excursionOctaves = value;
                 this._excursionFrequency = Math.min(this.sampleRate / 2, this.baseFrequency * Math.pow(2, this._excursionOctaves));
-                if (typeof(this._sweep) === "undefined") return;
                 this.filterBp.frequency.value = this._baseFrequency + this._excursionFrequency * this._sweep;
                 this.filterPeaking.frequency.value = this._baseFrequency + this._excursionFrequency * this._sweep;
             }
@@ -1495,8 +1670,8 @@
         if(!properties) {
             properties = this.getDefaults();
         }
-        this.input = userContext.createGain();
-        this.jsNode = this.output = userContext.createScriptProcessor(this.buffersize, 1, 1);
+        this.input = userContext.createGainNode();
+        this.jsNode = this.output = userContext.createJavaScriptNode(this.buffersize, 1, 1);
 
         this.input.connect(this.output);
 
@@ -1630,7 +1805,7 @@
     });
     Tuna.prototype.LFO = function (properties) {
         //Instantiate AudioNode
-        this.output = userContext.createScriptProcessor(256, 1, 1);
+        this.output = userContext.createJavaScriptNode(256, 1, 1);
         this.activateNode = userContext.destination;
 
         //Set Properties

@@ -28,7 +28,7 @@ require 'zlib'
 include FileUtils
 
 BUILD_DIR = "./soundfont" # Output path
-SOUNDFONT = "../sf2/FluidR3_GM.sf2" # Soundfont file path
+SOUNDFONT = "../sf2/redco/TR-808-Drums.SF2" # Soundfont file path
 
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
