@@ -146,7 +146,7 @@ dom.request = function(conf) {
 				if (req.readyState === 4) { // The request is complete
 					if (req.status === 200 || // Response OK
 						req.status === 304 || // Not Modified
-						req.status === 0 && root.userAgent.cordova // Cordova quirk
+						req.status === 0 && root.userAgent && root.userAgent.cordova // Cordova quirk
 					) {
 						if (conf.onload) {
 							conf.onload(req);

@@ -95,23 +95,25 @@ midi.setAnimation = function(config) {
 
 // helpers
 
-midi.loadMidiFile = function(callback) { // reads midi into javascript array of events
+midi.loadMidiFile = function(onload, onprogress, onerror) { // reads midi into javascript array of events
     midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
     midi.data = midi.replayer.getData();
 	midi.endTime = getLength();
 	///
 	MIDI.loadPlugin({
 		instruments: midi.getFileInstruments(),
-		callback: callback
+		callback: onload,
+		onprogress: onprogress, 
+		onerror: onerror
 	});
 };
 
-midi.loadFile = function (file, callback) {
+midi.loadFile = function (file, onload, onprogress, onerror) {
 	midi.stop();
 	if (file.indexOf("base64,") !== -1) {
 		var data = window.atob(file.split(",")[1]);
 		midi.currentData = data;
-		midi.loadMidiFile(callback);
+		midi.loadMidiFile(onload, onprogress, onerror);
 		return;
 	}
 	///
@@ -129,7 +131,7 @@ midi.loadFile = function (file, callback) {
 			}
 			var data = ff.join("");
 			midi.currentData = data;
-			midi.loadMidiFile(callback);
+			midi.loadMidiFile(onload, onprogress, onerror);
 		}
 	};
 	fetch.send();

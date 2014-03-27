@@ -1,6 +1,6 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2014/03/26
+	MIDI.Plugin : 0.3.4 : 2014/03/23
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
@@ -8,14 +8,13 @@
 		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
 	--------------------------------------------
 	Technologies:
-		Web MIDI API - no native support yet (jazzmidi plugin)
+		Web MIDI API - no native support yet
 		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
 		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
 		Adobe Flash - fallback
-	--------------------------------------------
 */
 
-if (typeof (MIDI) === "undefined") MIDI = {};
+if (typeof(MIDI) === "undefined") MIDI = {};
 
 MIDI.Soundfont = MIDI.Soundfont || {};
 MIDI.Player = MIDI.Player || {};
@@ -53,7 +52,7 @@ midi.loadPlugin = function(conf) {
 			api = conf.api;
 		} else if (supports[hash.substr(1)]) {
 			api = hash.substr(1);
-		} else if (supports["webmidi"]) {
+		} else if (supports.webmidi) {
 			api = "webmidi";
 		} else if (window.AudioContext) { // Chrome
 			api = "webaudio";
@@ -128,40 +127,38 @@ var connect = {
 	audiotag: function(format, instruments, conf) {
 		// works ok, kinda like a drunken tuna fish, across the board.
 		// http://caniuse.com/audio
-		new Queue({
-			items: instruments,
-			next: function(instrumentId, key, index, total) {
-				var total = index / length;
-				sendRequest(this, instrumentId, format, function(percent) {
-					if (conf.onprogress) {
-						conf.onprogress("load", Math.round(total + percent * (1 / length)));
-					}
-				});
-			},
-			callback: function() {
-				midi.AudioTag.connect(conf);
-			}
-		});
+		requestQueue(format, instruments, conf, "AudioTag");
 	},
 	webaudio: function(format, instruments, conf) {
 		// works awesome! safari, chrome and firefox support.
 		// http://caniuse.com/web-audio
-		var length = instruments.length;
-		new Queue({
-			items: instruments,
-			next: function(instrumentId, key, index, total) {
-				var total = index / length;
-				sendRequest(this, instrumentId, format, function(percent) {
-					if (conf.onprogress) {
-						conf.onprogress("load", Math.round(total + percent * (1 / length)));
-					}
-				});
-			},
-			callback: function() {
-				midi.WebAudio.connect(conf);
-			}
-		});
+		requestQueue(format, instruments, conf, "WebAudio");
 	}
+};
+
+var requestQueue = function(format, instruments, conf, context) {
+	var length = instruments.length;
+	new Queue({
+		items: instruments,
+		next: function(instrumentId, key, index, total) {
+			var total = index / length;
+			if (conf.onprogress) {
+				conf.onprogress("load", total, instrumentId);
+			}
+
+			sendRequest(this, instrumentId, format, function(n) {
+				if (conf.onprogress) {
+					conf.onprogress("load", total + n * (1 / length), instrumentId);
+				}
+			});
+		},
+		callback: function() {
+			if (conf.onprogress) {
+				conf.onprogress("load", 1.0);
+			}
+			midi[context].connect(conf);
+		}
+	});
 };
 
 var sendRequest = function(queue, instrumentId, format, onprogress) {
@@ -176,8 +173,9 @@ var sendRequest = function(queue, instrumentId, format, onprogress) {
 			},
 			onprogress: function(event) {
 				if (!this.totalSize) { // requires server to send Content-Length-Raw (actual bytes non-gzipped)
-					if (this.getResponseHeader("Content-Length-Raw")) {
-						this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
+					var header = "Content-Length-Raw";
+					if (event.getResponseHeader(header)) {
+						this.totalSize = parseInt(event.getResponseHeader(header));
 					} else {
 						this.totalSize = event.total;
 					}
@@ -325,23 +323,31 @@ if (window.AudioContext) (function () {
 	midi.send = function(data, delay) {};
 	midi.setController = function(channel, type, value, delay) {};
 	midi.setVolume = function (channel, volume, delay) {
-		setTimeout(function() {
+		if (delay) setTimeout(function() {
 			masterVolume = volume;
-		}, delay || 0);
+		}, delay);
+		///
+		masterVolume = volume;
 	};
 
 	midi.programChange = function (channelId, program, delay) {
-		setTimeout(function() {
-			var channel = root.channels[channelId];
-			channel.instrument = program;
-		}, delay || 0);
+//		if (delay) return setTimeout(function() {
+//			var channel = root.channels[channelId];
+//			channel.instrument = program;
+//		}, delay);
+		///
+		var channel = root.channels[channelId];
+		channel.instrument = program;
 	};
 
 	midi.pitchBend = function(channelId, program, delay) {
-		setTimeout(function() {
-			var channel = root.channels[channelId];
-			channel.pitchBend = program;
-		}, delay || 0);
+//		if (delay) setTimeout(function() {
+//			var channel = root.channels[channelId];
+//			channel.pitchBend = program;
+//		}, delay);
+		///
+		var channel = root.channels[channelId];
+		channel.pitchBend = program;
 	};
 
 	midi.noteOn = function (channelId, noteId, velocity, delay) {
@@ -352,7 +358,10 @@ if (window.AudioContext) (function () {
 		var instrument = channel.instrument;
 		var bufferId = instrument + "" + noteId;
 		var buffer = audioBuffers[bufferId];
-		if (!buffer) return;
+		if (!buffer) {
+			console.log(MIDI.GM.byId[instrument].id, instrument, channelId);
+			return;
+		}
 
 		/// convert relative delay to absolute delay
 		if (delay < ctx.currentTime) {
@@ -410,13 +419,14 @@ if (window.AudioContext) (function () {
 		var instrument = channel.instrument;
 		var bufferId = instrument + "" + noteId;
 		var buffer = audioBuffers[bufferId];
-		if (!buffer) return;
+		if (!buffer) {
+			return;
+		}
 
 		///
 		if (delay < ctx.currentTime) {
 			delay += ctx.currentTime;
 		}
-
 		///
 		var source = sources[channelId + "" + noteId];
 		if (!source) return;
@@ -493,7 +503,7 @@ if (window.AudioContext) (function () {
 		return ctx;
 	};
 	
-	midi.setContext = function(newCtx, callback) {
+	midi.setContext = function(newCtx, onload, onprogress, onerror) {
 		ctx = newCtx;
 
 		/// tuna.js effects module - https://github.com/Dinahmoe/tuna
@@ -504,72 +514,61 @@ if (window.AudioContext) (function () {
 		var notes = root.keyToNote;
 		for (var key in notes) urls.push(key);
 		///
-		var pending = {};
 		var waitForEnd = function(instrument) {
-			delete pending[instrument];
-			for (var key in pending) break;
-			if (key) return; // has pending items
-			if (callback) callback();
+			for (var key in bufferPending) { // has pending items
+				if (bufferPending[key]) return;
+			}
+			///
+			if (onload) { // run onload once
+				onload();
+				onload = null;
+			}
 		};
 		///
-		bufferPending = urls.length;
-		var bufferList = [];
-		for (var instrument in root.Soundfont) {
-			pending[instrument] = true;
-			for (var index = 0; index < urls.length; index++) {
-				audioLoader(ctx, instrument, urls, index, bufferList, waitForEnd);
-			}
-		}
-		///
-		if (!bufferList.length) {
-			setTimeout(waitForEnd, 1);
-		}
-	};
-
-	/* 
-	---------------------------------------------------------------------- */
-	var bufferPending = 0;
-	var audioLoader = function (ctx, instrument, urls, index, bufferList, callback) {
-		var soundfont = root.Soundfont[instrument];
-		if (soundfont.isLoaded) {
-			return callback(instrument);
-		}
-		///
-		var synth = root.GM.byName[instrument];
-		var instrumentId = synth.number;
-		var key = urls[index];
-		var audioSrc = root.Soundfont[instrument][key];
-		if (!audioSrc) {
-			bufferPending--;
-			return;
-		}
-		///
-		loadAudioFile(soundfont[key], function (buffer) {
-			var msg = key;
-			while (msg.length < 3) msg += "&nbsp;";
-//			root.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
-			buffer.id = key;
-			bufferList[index] = buffer;
-			bufferPending--;
-			///
-			if (bufferPending === 0) {
-				while (bufferList.length) {
-					buffer = bufferList.pop();
-					if (!buffer) continue;
-					var nodeId = root.keyToNote[buffer.id];
-					audioBuffers[instrumentId + "" + nodeId] = buffer;
+		var requestAudio = function(soundfont, instrumentId, index, key) {
+			var url = soundfont[key];
+			if (!url) return;
+			bufferPending[instrumentId] ++;
+			loadAudio(url, function (buffer) {
+				buffer.id = key;
+				var noteId = root.keyToNote[key];
+				audioBuffers[instrumentId + "" + noteId] = buffer;
+				///
+				if (-- bufferPending[instrumentId] === 0) {
+					var percent = index / 87;
+					console.log(MIDI.GM.byId[instrumentId], "processing: ", percent);
+					soundfont.isLoaded = true;
+					waitForEnd(instrument);
 				}
-				soundfont.isLoaded = true;
-				callback(instrument);
+			}, function(err) {
+				console.log(err);
+			});
+		};
+		///
+		var bufferPending = {};
+		for (var instrument in root.Soundfont) {
+			var soundfont = root.Soundfont[instrument];
+			if (soundfont.isLoaded) {
+				continue;
 			}
-		}, function(err) {
-			console.log(err);
-		});
+			///
+			var synth = root.GM.byName[instrument];
+			var instrumentId = synth.number;
+			///
+			bufferPending[instrumentId] = 0;
+			///
+			for (var index = 0; index < urls.length; index++) {
+				var key = urls[index];
+				requestAudio(soundfont, instrumentId, index, key);
+			}
+		}
+		///
+		setTimeout(waitForEnd, 1);
 	};
 
 	/* Load audio file: streaming | base64 | arraybuffer
 	---------------------------------------------------------------------- */
-	var loadAudioFile = function (url, onload, onerror) {
+	var loadAudio = function (url, onload, onerror) {
 		if (streaming) { // Streaming buffer.
 			var audio = new Audio();
 			audio.src = url;
@@ -577,10 +576,10 @@ if (window.AudioContext) (function () {
 			audio.autoplay = false;
 			audio.preload = false;
 			audio.addEventListener("canplay", function() {
-				callback(audio);
+				if (onload) onload(audio);
 			});
 			audio.addEventListener("error", function(err) {
-				console.log(err)
+				if (onerror) onerror(err);
 			});
 			document.body.appendChild(audio)
 		} else if (url.indexOf("data:audio") === 0) { // Base64 string.
