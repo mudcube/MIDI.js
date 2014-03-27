@@ -9,7 +9,7 @@
 	--------------------------------------------
 	Technologies:
 	--------------------------------------------
-		Web MIDI API - no native support yet
+		Web MIDI API - no native support yet (jazzplugin)
 		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
 		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
 	--------------------------------------------
