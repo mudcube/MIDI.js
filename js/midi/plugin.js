@@ -8,10 +8,11 @@
 		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
 	--------------------------------------------
 	Technologies:
+	--------------------------------------------
 		Web MIDI API - no native support yet
 		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
 		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
-		Adobe Flash - fallback
+	--------------------------------------------
 */
 
 if (typeof(MIDI) === "undefined") MIDI = {};
@@ -58,8 +59,6 @@ midi.loadPlugin = function(conf) {
 			api = "webaudio";
 		} else if (window.Audio) { // Firefox
 			api = "audiotag";
-		} else { // Internet Explorer
-			api = "flash";
 		}
 
 		if (!connect[api]) return;
@@ -114,16 +113,6 @@ var connect = {
 		// cant wait for this to be standardized!
 		midi.WebMIDI.connect(conf);
 	},
-	flash: function(format, instruments, conf) {
-		// fairly quick, but requires loading of individual MP3s (more http requests).
-		dom.loadScript.add({
-			url: conf.soundManagerUrl || "./inc/SoundManager2/script/soundmanager2.js",
-			verify: "SoundManager",
-			callback: function () {
-				midi.Flash.connect(instruments, conf);
-			}
-		});
-	},
 	audiotag: function(format, instruments, conf) {
 		// works ok, kinda like a drunken tuna fish, across the board.
 		// http://caniuse.com/audio
@@ -145,7 +134,6 @@ var requestQueue = function(format, instruments, conf, context) {
 			if (conf.onprogress) {
 				conf.onprogress("load", total, instrumentId);
 			}
-
 			sendRequest(this, instrumentId, format, function(n) {
 				if (conf.onprogress) {
 					conf.onprogress("load", total + n * (1 / length), instrumentId);
@@ -293,8 +281,8 @@ var addScript = function(conf) {
 				conf.api = "webaudio";
 			} else if (window.Audio) { // Firefox
 				conf.api = "audiotag";
-			} else { // Internet Explorer
-				conf.api = "flash";
+			} else { // no support
+				return;
 			}
 			root.loadPlugin(conf);
 		});
@@ -742,111 +730,6 @@ if (window.Audio) (function () {
 		}
 		///
 		if (conf.callback) conf.callback();
-	};
-})();
-
-/*
-	----------------------------------------------------------------------
-	Flash - MP3 Soundbank
-	----------------------------------------------------------------------
-	http://www.schillmania.com/projects/soundmanager2/
-	----------------------------------------------------------------------
-*/
-	
-(function () {
-	var midi = root.Flash = { api: "flash" };
-	var noteReverse = {};
-	var audioBuffers = {};
-	///
-	midi.audioBuffers = audioBuffers;
-	midi.send = function(data, delay) {};
-	midi.setController = function(channel, type, value, delay) {};
-	midi.setVolume = function (channel, note) {};
-	midi.programChange = function (channel, program) {
-		root.channels[channel].instrument = program;
-	};
-
-	midi.pitchBend = function (channel, program, delay) {};
-	midi.noteOn = function (channel, note, velocity, delay) {
-		if (!root.channels[channel]) return;
-		var instrument = root.channels[channel].instrument;
-		var id = root.GM.byId[instrument].number;
-		note = id + "" + noteReverse[note];
-		if (!audioBuffers[note]) return;
-		if (delay) {
-			return setTimeout(function() { 
-				audioBuffers[note].play({ volume: velocity * 2 });
-			}, delay * 1000);
-		} else {
-			audioBuffers[note].play({ volume: velocity * 2 });
-		}
-	};
-
-	midi.noteOff = function (channel, note, delay) {};
-	midi.chordOn = function (channel, chord, velocity, delay) {
-		if (!root.channels[channel]) return;
-		var instrument = root.channels[channel].instrument;
-		var id = root.GM.byId[instrument].number;
-		for (var key in chord) {
-			var n = chord[key];
-			var note = id + "" + noteReverse[n];
-			if (audioBuffers[note]) {
-				audioBuffers[note].play({ volume: velocity * 2 });
-			}
-		}
-	};
-
-	midi.chordOff = function (channel, chord, delay) {};
-	midi.stopAllNotes = function () {};
-	midi.connect = function (instruments, conf) {
-		soundManager.flashVersion = 9;
-		soundManager.useHTML5Audio = true;
-		soundManager.url = conf.soundManagerSwfUrl || '../inc/SoundManager2/swf/';
-		soundManager.useHighPerformance = true;
-		soundManager.wmode = 'transparent';
-		soundManager.flashPollingInterval = 1;
-		soundManager.debugMode = false;
-		soundManager.onerror = conf.onerror;
-		soundManager.onload = function () {
-			setDefaultPlugin(midi);
-			///
-			var createBuffer = function(instrument, id, onload) {
-				var synth = root.GM.byName[instrument];
-				var instrumentId = synth.number;
-				audioBuffers[instrumentId+""+id] = soundManager.createSound({
-					id: id,
-					url: root.soundfontUrl + instrument + "-mp3/" + id + ".mp3",
-					multiShot: true,
-					autoLoad: true,
-					onload: onload
-				});			
-			};
-			///
-			var loaded = [];
-			var samplesPerInstrument = 88;
-			var samplesToLoad = instruments.length * samplesPerInstrument;
-			for (var i = 0; i < instruments.length; i++) {
-				var instrument = instruments[i];
-				var onload = function () {
-					loaded.push(this.sID);
-//					root.loader.update(null, "Processing: " + this.sID);
-				};
-				for (var j = 0; j < samplesPerInstrument; j++) {
-					var id = noteReverse[j + 21];
-					createBuffer(instrument, id, onload);
-				}
-			}
-			///
-			var interval = setInterval(function () {
-				if (loaded.length < samplesToLoad) return;
-				clearInterval(interval);
-				if (conf.callback) conf.callback();
-			}, 25);
-		};
-		///
-		for (var key in root.keyToNote) {
-			noteReverse[root.keyToNote[key]] = key;
-		}
 	};
 })();
 
