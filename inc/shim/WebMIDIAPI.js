@@ -98,7 +98,7 @@
 
     // API Methods
 
-    function MIDIAccess() {
+    MIDIAccess = function() {
         this._jazzInstances = new Array();
         this._jazzInstances.push( new _JazzInstance() );
         this._promise = new Promise;
@@ -337,17 +337,8 @@
     };
 
     function _sendLater() {
-        delete timeouts[this.data.timeout];
         this.jazz.MidiOutLong( this.data );    // handle send as sysex
     }
-
-    var timeouts = {};
-    MIDIOutput.prototype.cancel = function() {
-        for (var key in timeouts) {
-            window.clearTimeout(key);
-            delete timeouts[key];
-        }
-    };
 
     MIDIOutput.prototype.send = function( data, timestamp ) {
         var delayBeforeSend = 0;
@@ -361,8 +352,8 @@
             var sendObj = new Object();
             sendObj.jazz = this._jazzInstance;
             sendObj.data = data;
-            sendObj.timeout = window.setTimeout( _sendLater.bind(sendObj), delayBeforeSend );
-            timeouts[sendObj.timeout] = true;
+
+            window.setTimeout( _sendLater.bind(sendObj), delayBeforeSend );
         } else {
             this._jazzInstance.MidiOutLong( data );
         }
