@@ -1,6 +1,6 @@
 /*
 	--------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2014/03/23
+	MIDI.Plugin : 0.3.4 : 2014/03/26
 	--------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	--------------------------------------------
@@ -8,10 +8,11 @@
 		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
 	--------------------------------------------
 	Technologies:
-		Web MIDI API - no native support yet
+		Web MIDI API - no native support yet (jazzmidi plugin)
 		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
 		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
 		Adobe Flash - fallback
+	--------------------------------------------
 */
 
 if (typeof (MIDI) === "undefined") MIDI = {};

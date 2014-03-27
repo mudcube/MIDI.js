@@ -1,5 +1,7 @@
 generator/sf2/*
 generator/ruby/soundfont*
+**/source*
+**/build*
 node_modules*
 soundfont/*
 soundfont/accoustic_grand_piano
