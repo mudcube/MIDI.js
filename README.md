@@ -1,15 +1,15 @@
 **Code examples (from the repo)**
 
-* ./demo-Basic.html - the most basic implementation.
-* ./demo-MIDIPlayer.html - how to parse MIDI files, and interact with the data stream.
-* ./demo-MultipleInstruments.html - synth drum and piano playing together
-* ./demo-WhitneyMusicBox.html - a audio/visual experiment by Jim Bumgardner
+* ./examples/Basic.html - the most basic implementation.
+* ./examples/MIDIPlayer.html - how to parse MIDI files, and interact with the data stream.
+* ./examples/MultipleInstruments.html - synth drum and piano playing together
+* ./examples/WhitneyMusicBox.html - a audio/visual experiment by Jim Bumgardner
 
 **Demos**
 
-* <a href="http://mudcu.be/piano/">Color Piano</a> by Michael Deal @mudcube
-* <a href="http://www.rgba.org/r3d/3d-piano-player/">3D Piano Player w/ Three.js</a> by Borja Morales @reality3d
-* <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a> by Daniel Christopher @uxmonk
+* [Color Piano](http://mudcu.be/piano) by Michael Deal @mudcube
+* [3D Piano Player w/ Three.js](http://www.rgba.org/r3d/3d-piano-player/) by Borja Morales @reality3d
+* [Simon Says](http://labs.uxmonk.com/simon-says/) by Daniel Christopher @uxmonk
 * <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a> by Daniel Christopher @uxmonk
 * <a href="http://qiao.github.com/euphony/">Euphony 3D Piano</a> by Xueqiao Xu @qiao
 * <a href="http://my.vexflow.com/articles/53">VexFlow</a> by Mohit Muthanna @11111110b
@@ -20,14 +20,18 @@
 
 **Generating Base64 Soundfonts**
 
-* <a href="https://github.com/SHMEDIALIMITED/SoundFontJS">NodeJS CLI for MIDI.js sound font creation</a>
-* <a href="https://github.com/gleitz/midi-js-soundfonts">Pre-rendered sound fonts</a>
+There is two generators for MIDI.js soundfonts:
+
+* NodeJS package for creating soundfonts from WAV files - by Patrick Wolleb
+* Ruby package for creating soundsfonts from SF2 files - by Mohit Muthanna
+
+To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sound fonts](https://github.com/gleitz/midi-js-soundfonts).
 
 **API**
 
-* <a href="./js/MIDI/LoadPlugin.js">MIDI.loadPlugin.js</a>: Decides which framework is best to use, and sends request.
+* [MIDI.loadPlugin.js](./js/MIDI/LoadPlugin.js): Decides which framework is best to use, and sends request.
 
-``js
+<pre>
 // interface to download soundfont, then execute callback;
 MIDI.loadPlugin(callback);
 // simple example to get started;
@@ -36,22 +40,22 @@ MIDI.loadPlugin({
     instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
     callback: function() { }
 });
-``
+</pre>
 
-* <a href="./js/MIDI/Plugin.js">MIDI.Plugin.js</a>: Ties together the following frameworks;
+* [MIDI.Plugin.js](./js/MIDI/Plugin.js): Ties together the following frameworks;
 
-``js
+<pre>
 MIDI.noteOn(channel, note, velocity, delay);
 MIDI.noteOff(channel, note, delay);
 MIDI.chordOn(channel, [note, note, note], velocity, delay);
 MIDI.chordOff(channel, [note, note, note], delay);
 MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
-``
+</pre>
 
-* <a href="./js/MIDI/Player.js">MIDI.Player.js</a>: Streams the MIDI to the browser.
+* [MIDI.Player.js](./js/MIDI/Player.js): Streams the MIDI to the browser.
 
-``js
+<pre>
 MIDI.Player.currentTime = integer; // time we are at now within the song.
 MIDI.Player.endTime = integer; // time when song ends.
 MIDI.Player.playing = boolean; // are we playing? yes or no.
@@ -60,7 +64,7 @@ MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile c
 MIDI.Player.resume(); // resume the MIDI track from pause.
 MIDI.Player.pause(); // pause the MIDI track.
 MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
-``
+</pre>
 
 **Callback whenever a note is played;**
 ``js
@@ -90,7 +94,7 @@ MIDI.Player.setAnimation(function(data) {
 **Effects available for WebAudioContext (via Tuna.js);**
 ``js
 MIDI.setEffects([
-	{
+    {
 		type: "MoogFilter",
 		bufferSize: 4096,
 		bypass: false,
