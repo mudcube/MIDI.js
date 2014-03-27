@@ -5,27 +5,29 @@
 	<title>MIDI.js - Sequencing in Javascript.</title>
 	<!-- midi.js css -->
 	<link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
-	<!-- polyfill -->
-	<script src="./inc/polyfill/Base64.js" type="text/javascript"></script>
-	<script src="./inc/polyfill/base64binary.js" type="text/javascript"></script>
+	<!-- shim -->
+	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
+	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
+	<script src="../inc/shim/WebAudioAPI.js" type="text/javascript"></script>
+	<script src="../inc/shim/WebMIDIAPI.js" type="text/javascript"></script>
 	<!-- jasmid package -->
-	<script src="./inc/jasmid/stream.js"></script>
-	<script src="./inc/jasmid/midifile.js"></script>
-	<script src="./inc/jasmid/replayer.js"></script>
+	<script src="../inc/jasmid/stream.js"></script>
+	<script src="../inc/jasmid/midifile.js"></script>
+	<script src="../inc/jasmid/replayer.js"></script>
 	<!-- midi.js package -->
-	<script src="./js/midi/audioDetect.js" type="text/javascript"></script>
-	<script src="./js/midi/plugin.js" type="text/javascript"></script>
-	<script src="./js/midi/player.js" type="text/javascript"></script>
-	<script src="./js/midi/synesthesia.js" type="text/javascript"></script>
+	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
+	<script src="../js/midi/plugin.js" type="text/javascript"></script>
+	<script src="../js/midi/player.js" type="text/javascript"></script>
+	<script src="../js/midi/synesthesia.js" type="text/javascript"></script>
 	<!-- color.js package -->
-	<script src="./js/color/spaceW3.js" type="text/javascript"></script>
+	<script src="../js/color/spaceW3.js" type="text/javascript"></script>
 	<!-- loader.js package -->
-	<script src="./js/widget/loader.js" type="text/javascript"></script>
+	<script src="../js/widget/loader.js" type="text/javascript"></script>
 	<!-- utils -->
-	<script src="./js/util/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="./js/util/dom_request_script.js" type="text/javascript"></script>
-	<script src="./js/util/event.js" type="text/javascript"></script>
-	<script src="./js/util/queue.js" type="text/javascript"></script>
+	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
+	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
+	<script src="../js/util/event.js" type="text/javascript"></script>
+	<script src="../js/util/queue.js" type="text/javascript"></script>
 </head>
 <body>
 	<img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
@@ -55,13 +57,15 @@
 			simulations, Drum machines, MIDI recording, and all kinds of certified funkitude is within your grasps!
 			<p><a href="https://www.google.com/chrome">Google Chrome</a> is recommended for best listening experience, it&rsquo;s timing perfection! Firefox and Safari can both perform a bit more like the piano has been drinking, arrr.</p>
 			<p>Carpe beerum, and <a href="https://github.com/mudcube/MIDI.js">commandeer</a> yer own copy!</p>
-			<h3>Basic Examples:</h3>
+			<p><a href="../README.md" target="_blank">Documentation</a>
+			<h3>Basic Examples</h3>
 			<ol>
-				<li><a href="./demo-Basic.html" target="_blank">Play note</a></li>
-				<li><a href="./demo-MultipleInstruments.html" target="_blank">Multiple Instruments</a></li>
-				<li><a href="./demo-MIDIPlayer.html" target="_blank">MIDIPlayer</a></li>
+				<li><a href="./Basic.html" target="_blank">Basic (play note)</a></li>
+				<li><a href="./MultipleInstruments.html" target="_blank">Multiple Instruments</a></li>
+				<li><a href="./MIDIPlayer.html" target="_blank">MIDI Player</a></li>
+				<li><a href="./WhitneyMusicBox.html" target="_blank">Whitney Music Box</a></li>
 			</ol>
-			<h3>Demos:</h3>
+			<h3>Demos</h3>
 			<ol>
 				<li><a href="http://mudcu.be/piano/" target="_blank">Color Piano</a> by Michael Deal <a href="http://mudcu.be/">mudcube</a></li>
 				<li><a href="http://www.rgba.org/r3d/3d-piano-player/" target="_blank">3D Piano Player w/ Three.js</a> by Borja Morales @reality3d</li>
@@ -73,76 +77,16 @@
 				<li><a href="http://labs.uxmonk.com/simon-says/" target="_blank">Whitney Music Box</a> by <a href="http://www.krazydad.com/">KrazyDad</a></li>
 				<li><a href="http://online-compute.rhcloud.com/ragamroll/" target="_blank">Ragamroll</a> by Mani Balasubramanian</li>
 			</ol>
-			<h3>Description of package:</h3>
-			<li><a href="./js/midi/loadPlugin.js">midi/loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
-			<li class="indent">
-<pre>
-// interface to download soundfont, then execute callback;
-MIDI.loadPlugin(callback);
-// simple example to get started;
-MIDI.loadPlugin({
-	instrument: 1, // or "Acoustic Grand Piano"
-	callback: function() {
-		MIDI.noteOn(0, 100, 127, 0); // plays note once loaded
-	}
-});
-</pre>
-			</li>
-			<li><a href="./soundfont/soundfont-ogg.js">midi/soundfont.js</a>: &nbsp;Customizable base64 Soundfont.</li>
-			<li class="indent square"><a href="http://mudcu.be/journal/2011/11/base64-soundfonts/">Encode your own soundfonts</a>, Drums, Guitars, and so on.</li>
-			<li class="indent square">You are listening to <a href="http://packages.debian.org/search?keywords=fluid-soundfont-gm">Fluid (R3) General MIDI SoundFont (GM)</a>.</li>
-			<li><a href="./js/midi/plugin.js">midi/plugin.js</a>: &nbsp;Ties together the following frameworks;</li>
-			<li class="indent">
-<pre>
-MIDI.noteOn(channel, note, velocity, delay);
-MIDI.noteOff(channel, note, delay);
-MIDI.chordOn(channel, chord, velocity, delay);
-MIDI.chordOff(channel, chord, delay);
-MIDI.keyToNote = object; // A0 => 21
-MIDI.noteToKey = object; // 21 => A0
-</pre>
-			</li>
-			<li><a href="./js/midi/player.js">midi/player.js</a>: &nbsp;Streams the MIDI to the browser.
-				<li class="indent">
-<pre>
-MIDI.Player.currentTime = integer; // time we are at now within the song.
-MIDI.Player.endTime = integer; // time when song ends.
-MIDI.Player.playing = boolean; // are we playing? yes or no.
-MIDI.Player.loadFile(file, callback); // load .MIDI from base64 or binary XML request.
-MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile callback)
-MIDI.Player.resume(); // resume the MIDI track from pause.
-MIDI.Player.pause(); // pause the MIDI track.
-MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
-<b>Callback whenever a note is played;</b>
-MIDI.Player.removeListener(); // removes current listener.
-MIDI.Player.addListener(function(data) { // set it to your own function!
-	var now = data.now; // where we are now
-	var end = data.end; // time when song ends
-	var channel = data.channel; // channel note is playing on
-	var message = data.message; // 128 is noteOff, 144 is noteOn
-	var note = data.note; // the note
-	var velocity = data.velocity; // the velocity of the note
-	// then do whatever you want with the information!
-});
-<b>Smooth animation, interpolates between onMidiEvent calls;</b>
-MIDI.Player.clearAnimation(); // clears current animation.
-MIDI.Player.setAnimation(function(data) {
-	var now = data.now; // where we are now
-	var end = data.end; // time when song ends
-	var events = data.events; // all the notes currently being processed
-	// then do what you want with the information!
-});
-</pre>
-				</li>
-			</li>
-			<li><a href="./js/midi/synesthesia.js">midi/synesthesia.js</a>: &nbsp;Note-to-color mappings (from Isaac Newton onwards).</li>
-			<h3>Many thanks to the authors of these libraries:</h3>
+			<h3>Many thanks to the authors of these libraries!</h3>
 			<li><a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: &nbsp;HTML5 specs</li>
-			<li><a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudioAPI</a>: &nbsp;W3C proposal by Google</li>
-			<li>Flash package: &nbsp;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a>
+			<li><a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudio API</a>: &nbsp;W3C proposal by Google</li>
+			<li><a href="http://www.w3.org/TR/webmidi/">WebAudio API Shim</a></li>
+			<li><a href="http://www.w3.org/TR/webmidi/">WebMIDI API</a></li>
+			<li><a href="http://www.w3.org/TR/webmidi/">WebMIDI API Shim</a></li>
+			<li><a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a> (Flash fallback)
 			</li>
-			<li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;Reads MIDI file byte-code, and translats into a Javascript array.</li>
-			<li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &nbsp;Cleans up XML base64-requests for Web Audio API.</li>
+			<li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;MIDI file byte-code reader, and translats into a Javascript array.</li>
+			<li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">Base64binary.js</a>: &nbsp;Converts base64 soundfonts to binary for Web Audio API.</li>
 	</div>
 <script type="text/javascript">
 	if (typeof (console) === "undefined") var console = {
@@ -163,13 +107,13 @@ MIDI.Player.setAnimation(function(data) {
 		}
 	};
 	eventjs.add(window, "load", function (event) {
-		var link = document.createElement('link');
-		link.href = 'http://fonts.googleapis.com/css?family=Oswald';
+		var link = document.createElement("link");
+		link.href = "http://fonts.googleapis.com/css?family=Oswald";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
-		var link = document.createElement('link');
-		link.href = 'http://fonts.googleapis.com/css?family=Andada';
+		var link = document.createElement("link");
+		link.href = "http://fonts.googleapis.com/css?family=Andada";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
@@ -184,31 +128,35 @@ MIDI.Player.setAnimation(function(data) {
 		}
 		//
 		MIDI.loader = new widget.Loader;
-		MIDI.loadPlugin(function () {
-			// this is the language we are running in
-			var title = document.getElementById("title");
-			title.innerHTML = "Sound being generated with " + MIDI.lang + " " + JSON.stringify(MIDI.supports);
-			// this sets up the MIDI.Player and gets things going...
-			player = MIDI.Player;
-			player.timeWarp = 1; // speed the song is played back
-			player.loadFile(song[songid++ % song.length], player.start);
-			// control the piano keys colors
-			var colorMap = MusicTheory.Synesthesia.map();
-			player.addListener(function (data) {
-				var pianoKey = data.note - MIDI.pianoKeyOffset;
-				var d = colorElements[pianoKey];
-				if (data.message === 144) {
-					var map = colorMap[data.note - 27];
-					if (map) d.style.background = map.hex;
-					d.style.color = "#fff";
-				} else {
-					d.style.background = "";
-					d.style.color = "";
-				}
-			});
-			//
-			ColorSphereBackground();
-			MIDIPlayerPercentage(player);
+		MIDI.loadPlugin({
+			soundfontUrl: "./soundfont/",
+			callback: function() {
+				// this is the language we are running in
+				var title = document.getElementById("title");
+				title.innerHTML = "Sound being generated with " + MIDI.api + " " + JSON.stringify(MIDI.supports);
+				// this sets up the MIDI.Player and gets things going...
+				player = MIDI.Player;
+				player.timeWarp = 1; // speed the song is played back
+				player.loadFile(song[songid++ % song.length], player.start);
+				// control the piano keys colors
+				var colorMap = MusicTheory.Synesthesia.map();
+				player.addListener(function (data) {
+					var pianoKey = data.note - 21;
+					var d = colorElements[pianoKey];
+					if (!d) return;
+					if (data.message === 144) {
+						var map = colorMap[data.note - 27];
+						if (map) d.style.background = map.hex;
+						d.style.color = "#fff";
+					} else {
+						d.style.background = "";
+						d.style.color = "";
+					}
+				});
+				//
+				ColorSphereBackground();
+				MIDIPlayerPercentage(player);
+			}
 		});
 	});
 	///
