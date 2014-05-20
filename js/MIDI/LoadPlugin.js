@@ -65,6 +65,8 @@ MIDI.loadPlugin = function(conf) {
 		MIDI.supports = types;
 		connect[api](filetype, instruments, conf);
 	});
+
+	MIDI.detectProgramChange = conf.detectProgram || false;
 };
 
 ///
