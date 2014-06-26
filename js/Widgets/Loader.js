@@ -80,10 +80,11 @@ widgets.Loader = function (configure) {
 	var canvas = document.getElementById(configure.id);
 	if (!canvas) {
 		var div = document.createElement("div");
-		var span = document.createElement("span");
+    		var span = document.createElement("span");
 		span.className = "message";
 		div.appendChild(span);
 		div.className = defaultConfig.id;
+                div.id = configure.id + "Div"
 		div.style.cssText = transitionCSS("opacity", fadeOutSpeed);
 		this.span = span;
 		this.div = div;
@@ -95,6 +96,7 @@ widgets.Loader = function (configure) {
 		configure.container.appendChild(div);
 	} else {
 		this.span = canvas.parentNode.getElementsByTagName("span")[0];
+		this.div = document.getElementById(configure.id+"Div");
 	}
 
 	/// Configure
@@ -235,7 +237,7 @@ widgets.Loader = function (configure) {
 		delete this.interval;
 		if (configure.oncomplete) configure.oncomplete();
 		if (canvas && canvas.style) {
-			div.style.cssText += "pointer-events: none;";
+			this.div.style.cssText += "pointer-events: none;";
 			window.setTimeout(function() {
 				that.div.style.opacity = 0;
 			}, 1);
