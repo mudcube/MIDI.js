@@ -16,8 +16,8 @@ if (typeof (MIDI.Player) === "undefined") MIDI.Player = {};
 var root = MIDI.Player;
 root.callback = undefined; // your custom callback goes here!
 root.currentTime = 0;
-root.endTime = 0; 
-root.restart = 0; 
+root.endTime = 0;
+root.restart = 0;
 root.playing = false;
 root.timeWarp = 1;
 
@@ -102,13 +102,17 @@ root.loadMidiFile = function() { // reads midi into javascript array of events
 	root.endTime = getLength();
 };
 
-root.loadFile = function (file, callback) {
+root.loadFile = function (file, successCallback, errorCallback) {
 	root.stop();
 	if (file.indexOf("base64,") !== -1) {
 		var data = window.atob(file.split(",")[1]);
 		root.currentData = data;
-		root.loadMidiFile();
-		if (callback) callback(data);
+		try {
+			root.loadMidiFile();
+			if (successCallback) successCallback(data);
+		} catch (error) {
+			if (errorCallback) errorCallback(error);
+		}
 		return;
 	}
 	///
@@ -116,18 +120,26 @@ root.loadFile = function (file, callback) {
 	fetch.open('GET', file);
 	fetch.overrideMimeType("text/plain; charset=x-user-defined");
 	fetch.onreadystatechange = function () {
-		if (this.readyState === 4 && this.status === 200) {
-			var t = this.responseText || "";
-			var ff = [];
-			var mx = t.length;
-			var scc = String.fromCharCode;
-			for (var z = 0; z < mx; z++) {
-				ff[z] = scc(t.charCodeAt(z) & 255);
+		if (this.readyState === 4) {
+			if (this.status === 200) {
+				var t = this.responseText || "";
+				var ff = [];
+				var mx = t.length;
+				var scc = String.fromCharCode;
+				for (var z = 0; z < mx; z++) {
+					ff[z] = scc(t.charCodeAt(z) & 255);
+				}
+				var data = ff.join("");
+				root.currentData = data;
+				try {
+					root.loadMidiFile();
+					if (successCallback) successCallback(data);
+				} catch (error) {
+					if (errorCallback) errorCallback(error);
+				}
+			} else {
+				if (errorCallback) errorCallback('Unable to load MIDI file');
 			}
-			var data = ff.join("");
-			root.currentData = data;
-			root.loadMidiFile();
-			if (callback) callback(data);
 		}
 	};
 	fetch.send();
@@ -136,7 +148,7 @@ root.loadFile = function (file, callback) {
 // Playing the audio
 
 var eventQueue = []; // hold events to be triggered
-var queuedTime; // 
+var queuedTime; //
 var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener callback
@@ -198,7 +210,7 @@ var startAudio = function (currentTime, fromCache) {
 	var note;
 	var offset = 0;
 	var messages = 0;
-	var data = root.data;	
+	var data = root.data;
 	var ctx = getContext();
 	var length = data.length;
 	//
