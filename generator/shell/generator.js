@@ -1,4 +1,4 @@
-/*
+ /*
 	Audio Generator : 0.1.4 : 2012/01/20
 	------------------------------------------------
 		  NodeJS : http://nodejs.org/
@@ -21,8 +21,9 @@ var program = require("commander")
 	.parse(process.argv);
 
 if (program.rawArgs.join("").indexOf("-") === -1) {
-	console.log(program.helpInformation())
-	return;
+        
+	console.log(program.helpInformation());
+	throw -10;
 }
 
 var fs = require("fs");
