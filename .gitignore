@@ -5,3 +5,5 @@ generator/shell/testarea*
 soundfont-*
 nbproject/
 bin/
+node_modules/
+npm-debug.log
