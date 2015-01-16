@@ -6,10 +6,10 @@
 	--------------------------------------------
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
-if (typeof (MIDI.Player) === "undefined") MIDI.Player = {};
+if (typeof (MIDI) === 'undefined') MIDI = {};
+if (typeof (MIDI.Player) === 'undefined') MIDI.Player = {};
 
-(function() { "use strict";
+(function() { 'use strict';
 
 var midi = MIDI.Player;
 midi.callback = undefined; // your custom callback goes here!
@@ -20,7 +20,7 @@ midi.playing = false;
 midi.timeWarp = 1;
 midi.startDelay = 0;
 midi.BPM = 120;
-//
+
 midi.start =
 midi.resume = function (callback) {
     if (midi.currentTime < -1) midi.currentTime = -1;
@@ -54,7 +54,7 @@ midi.clearAnimation = function() {
 };
 
 midi.setAnimation = function(config) {
-	var callback = (typeof(config) === "function") ? config : config.callback;
+	var callback = (typeof(config) === 'function') ? config : config.callback;
 	var interval = config.interval || 30;
 	var currentTime = 0;
 	var tOurTime = 0;
@@ -101,37 +101,41 @@ midi.loadMidiFile = function(onload, onprogress, onerror) { // reads midi into j
 	midi.endTime = getLength();
 	///
 	MIDI.loadPlugin({
-		instruments: midi.getFileInstruments(),
+//		instruments: midi.getFileInstruments(),
 		callback: onload,
-		onprogress: onprogress, 
+		onprogress: onprogress,
 		onerror: onerror
 	});
 };
 
 midi.loadFile = function (file, onload, onprogress, onerror) {
 	midi.stop();
-	if (file.indexOf("base64,") !== -1) {
-		var data = window.atob(file.split(",")[1]);
+	if (file.indexOf('base64,') !== -1) {
+		var data = window.atob(file.split(',')[1]);
 		midi.currentData = data;
 		midi.loadMidiFile(onload, onprogress, onerror);
 		return;
 	}
 	///
 	var fetch = new XMLHttpRequest();
-	fetch.open("GET", file);
-	fetch.overrideMimeType("text/plain; charset=x-user-defined");
+	fetch.open('GET', file);
+	fetch.overrideMimeType('text/plain; charset=x-user-defined');
 	fetch.onreadystatechange = function () {
-		if (this.readyState === 4 && this.status === 200) {
-			var t = this.responseText || "";
-			var ff = [];
-			var mx = t.length;
-			var scc = String.fromCharCode;
-			for (var z = 0; z < mx; z++) {
-				ff[z] = scc(t.charCodeAt(z) & 255);
+		if (this.readyState === 4) {
+			if (this.status === 200) {
+				var t = this.responseText || '';
+				var ff = [];
+				var mx = t.length;
+				var scc = String.fromCharCode;
+				for (var z = 0; z < mx; z++) {
+					ff[z] = scc(t.charCodeAt(z) & 255);
+				}
+				var data = ff.join('');
+				midi.currentData = data;
+				midi.loadMidiFile(onload, onprogress, onerror);
+			} else {
+				onerror && onerror('Unable to load MIDI file');
 			}
-			var data = ff.join("");
-			midi.currentData = data;
-			midi.loadMidiFile(onload, onprogress, onerror);
 		}
 	};
 	fetch.send();
@@ -142,16 +146,16 @@ midi.getFileInstruments = function() {
 	var programs = {};
 	for (var n = 0; n < midi.data.length; n ++) {
 		var event = midi.data[n][0].event;
-		if (event.type !== "channel") continue;
+		if (event.type !== 'channel') continue;
 		var channel = event.channel;
 		switch(event.subtype) {
-			case "controller":
+			case 'controller':
 //				console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
 				break;
-			case "programChange":
+			case 'programChange':
 				programs[channel] = event.programNumber;
 				break;
-			case "noteOn":
+			case 'noteOn':
 				var program = programs[channel];
 				var gm = MIDI.GM.byId[isFinite(program) ? program : channel];
 				instruments[gm.id] = true;
@@ -204,7 +208,7 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 };
 
 var getContext = function() {
-	if (MIDI.lang === "WebAudioAPI") {
+	if (MIDI.lang === 'WebAudioAPI') {
 		return MIDI.Player.ctx;
 	} else if (!midi.ctx) {
 		midi.ctx = { currentTime: 0 };
@@ -232,7 +236,9 @@ var getNow = function() {
 var startAudio = function (currentTime, fromCache, callback) {
 	if (!midi.replayer) return;
 	if (!fromCache) {
-		if (typeof (currentTime) === "undefined") currentTime = midi.restart;
+		if (typeof (currentTime) === 'undefined') {
+			currentTime = midi.restart;
+		}
 		if (midi.playing) stopAudio();
 		midi.playing = true;
 		midi.data = midi.replayer.getData();
@@ -251,7 +257,7 @@ var startAudio = function (currentTime, fromCache, callback) {
 	var interval = eventQueue[0] && eventQueue[0].interval || 0;
 	var foffset = currentTime - midi.currentTime;
 	///
-	if (MIDI.api !== "webaudio") { // set currentTime on ctx
+	if (MIDI.api !== 'webaudio') { // set currentTime on ctx
 		var now = getNow();
 		__now = __now || now;
 		ctx.currentTime = (now - __now) / 1000;
@@ -260,33 +266,34 @@ var startAudio = function (currentTime, fromCache, callback) {
 	startTime = ctx.currentTime;
 	///
 	for (var n = 0; n < length && messages < 100; n++) {
-		var time = data[n][1];
-		if ((queuedTime += time) <= currentTime) {
+		var obj = data[n];
+		if ((queuedTime += obj[1]) <= currentTime) {
 			offset = queuedTime;
 			continue;
 		}
+		///
 		currentTime = queuedTime - offset;
 		///
-		var event = data[n][0].event;
-		if (event.type !== "channel") {
-			//console.log(event);
+		var event = obj[0].event;
+		if (event.type !== 'channel') {
 			continue;
 		}
+		///
 		var channelId = event.channel;
 		var channel = MIDI.channels[channelId];
 		var delay = ctx.currentTime + ((currentTime + foffset + midi.startDelay) / 1000);
 		var queueTime = queuedTime - offset + midi.startDelay;
 		switch (event.subtype) {
-			case "controller":
+			case 'controller':
 				MIDI.setController(channelId, event.controllerType, event.value, delay);
 				break;
-			case "programChange":
+			case 'programChange':
 				MIDI.programChange(channelId, event.programNumber, delay);
 				break;
-			case "pitchBend":
+			case 'pitchBend':
 				MIDI.pitchBend(channelId, event.value, delay);
 				break;
-			case "noteOn":
+			case 'noteOn':
 				if (channel.mute) break;
 				note = event.noteNumber - (midi.MIDIOffset || 0);
 				var obj = {
@@ -298,7 +305,7 @@ var startAudio = function (currentTime, fromCache, callback) {
 				eventQueue.push(obj);
 				messages++;
 				break;
-			case "noteOff":
+			case 'noteOff':
 				if (channel.mute) break;
 				note = event.noteNumber - (midi.MIDIOffset || 0);
 				var obj = {
@@ -327,7 +334,7 @@ var stopAudio = function () {
 		var o = eventQueue.pop();
 		window.clearInterval(o.interval);
 		if (!o.source) continue; // is not webaudio
-		if (typeof(o.source) === "number") {
+		if (typeof(o.source) === 'number') {
 			window.clearTimeout(o.source);
 		} else { // webaudio
 			o.source.disconnect(0);
