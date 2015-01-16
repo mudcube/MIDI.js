@@ -1,20 +1,21 @@
 /*
-	------------------------------------------------------------
-	MusicTheory.Synesthesia : 0.3.1 : 01/06/2012
-	------------------------------------------------------------
+	----------------------------------------------------------
+	MIDI.Synesthesia : 0.3.1 : 01-06-2012
+	----------------------------------------------------------
 	Peacock:  “Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
 	Gerstner:  Karl Gerstner, The Forms of Color 1986
 	Klein:  Colour-Music: The art of light, London: Crosby Lockwood and Son, 1927.
 	Jameson:  “Visual music in a visual programming language,” IEEE Symposium on Visual Languages, 1999, 111-118. 
 	Helmholtz:  Treatise on Physiological Optics, New York: Dover Books, 1962 
 	Jones:  The art of light & color, New York: Van Nostrand Reinhold, 1972
-	------------------------------------------------------------
+	----------------------------------------------------------
 	Reference: http://rhythmiclight.com/archives/ideas/colorscales.html
-	------------------------------------------------------------
+	----------------------------------------------------------
 */
 
-if (typeof MusicTheory === 'undefined') var MusicTheory = {};
-if (typeof MusicTheory.Synesthesia === 'undefined') MusicTheory.Synesthesia = {};
+if (typeof MIDI === 'undefined') var MIDI = {};
+
+MIDI.Synesthesia = MIDI.Synesthesia || {};
 
 (function(root) {
 	root.data = {
@@ -271,33 +272,49 @@ if (typeof MusicTheory.Synesthesia === 'undefined') MusicTheory.Synesthesia = {}
 				(a[2] * 0.5 + b[2] * 0.5 + 0.5) >> 0
 			];
 		};
+		///
 		var syn = root.data;
 		var colors = syn[type] || syn['D. D. Jameson (1844)'];
-		for (var note = 0; note <= 88; note ++) { // creates mapping for 88 notes
+		for (var note = 0, pclr, H, S, L; note <= 88; note ++) { // creates mapping for 88 notes
 			if (colors.data) {
 				data[note] = {
 					hsl: colors.data[note],
 					hex: colors.data[note] 
-				}
-			} else { // array
+				};
+			} else {
 				var clr = colors[(note + 9) % 12];
-				var isRGB = colors.format === 'RGB';
-				if (isRGB) clr = Color.Space(clr, 'RGB>HSL');
-				var H = Math.round(isRGB ? clr.H : clr[0]);
-				var S = Math.round(isRGB ? clr.S : clr[1]);
-				var L = Math.round(isRGB ? clr.L : clr[2]);
-				if (H == S && S == L) clr = blend(parray, colors[(note + 10) % 12]);
-				var amount = L / 10;
-				var octave = note / 12 >> 0;
-				var octaveLum = L + amount * octave - 3 * amount; // map luminance to octave	
+				///
+				switch(colors.format) {
+					case 'RGB':
+						clr = Color.Space(clr, 'RGB>HSL');
+						H = clr.H >> 0;
+						S = clr.S >> 0;
+						L = clr.L >> 0;
+						break;
+					case 'HSL':
+						H = clr[0];
+						S = clr[1];
+						L = clr[2];
+						break;
+				}
+				///
+				if (H === S && S === L) { // note color is unset
+					clr = blend(pclr, colors[(note + 10) % 12]);
+				}
+				///
+// 				var amount = L / 10;
+// 				var octave = note / 12 >> 0;
+// 				var octaveLum = L + amount * octave - 3.0 * amount; // map luminance to octave
+				///
 				data[note] = {
 					hsl: 'hsla(' + H + ',' + S + '%,' + L + '%, 1)',
-					hex: Color.Space({H:H, S:S, L:L}, 'HSL>RGB>HEX>W3')
+					hex: Color.Space({H: H, S: S, L: L}, 'HSL>RGB>HEX>W3')
 				};
-				var parray = clr;
+				///
+				pclr = clr;
 			}
 		}
 		return data;
 	};
 
-})(MusicTheory.Synesthesia);
+})(MIDI.Synesthesia);

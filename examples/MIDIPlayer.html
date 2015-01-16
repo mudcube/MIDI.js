@@ -139,7 +139,7 @@
 				player.timeWarp = 1; // speed the song is played back
 				player.loadFile(song[songid++ % song.length], player.start);
 				// control the piano keys colors
-				var colorMap = MusicTheory.Synesthesia.map();
+				var colorMap = MIDI.Synesthesia.map();
 				player.addListener(function (data) {
 					var pianoKey = data.note - 21;
 					var d = colorElements[pianoKey];
