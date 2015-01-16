@@ -7,3 +7,6 @@ node_modules*
 !examples/soundfont/acoustic_grand_piano*
 !examples/soundfont/synth_drum*
 *.gz
+.DS_Store
+node_modules/
+npm-debug.log
