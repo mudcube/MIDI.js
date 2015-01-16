@@ -303,17 +303,8 @@ MIDI.Player = MIDI.Player || { };
 		midi.audioBuffers = audioBuffers;
 		midi.send = function(data, delay) { };
 		midi.setController = function(channelId, type, value, delay) {
-	// 	console.log('setController')
-	// 		setTimeout(function() {
-	// //			wml.synth.setController(channelId, type, value);
-	// 		}, delay * 1000); return
-		};
-		midi.setVolume = function(channelId, volume, delay) {
-	// 	console.log('setVolume')
-	// 		setTimeout(function() {
-	// 			wml.synth.volumeChange(channelId, volume);
-	// 		}, delay * 1000); return
 
+		midi.setVolume = function(channelId, volume, delay) {
 			if (delay) {
 				setTimeout(function() {
 					masterVolume = volume;
@@ -324,11 +315,6 @@ MIDI.Player = MIDI.Player || { };
 		};
 
 		midi.programChange = function(channelId, program, delay) {
-	// 	console.log('programChange', program)
-	// 		setTimeout(function() {
-	// 			wml.synth.programChange(channelId, program);
-	// 		}, delay * 1000); return
-
 	//		if (delay) return setTimeout(function() {
 	//			var channel = root.channels[channelId];
 	//			channel.instrument = program;
@@ -339,11 +325,6 @@ MIDI.Player = MIDI.Player || { };
 		};
 
 		midi.pitchBend = function(channelId, program, delay) {
-	// 	console.log('pitchBend')
-	// 		setTimeout(function() {
-	// 			wml.synth.pitchBend(channelId, program);
-	// 		}, delay * 100); return
-
 	//		if (delay) setTimeout(function() {
 	//			var channel = root.channels[channelId];
 	//			channel.pitchBend = program;
@@ -354,11 +335,6 @@ MIDI.Player = MIDI.Player || { };
 		};
 
 		midi.noteOn = function(channelId, noteId, velocity, delay) {
-	
-	// 		setTimeout(function() {
-	// 			wml.synth.noteOn(channelId, noteId, velocity);
-	// 		}, delay * 1000)
-	// return;
 			delay = delay || 0;
 
 			/// check whether the note exists
@@ -422,10 +398,6 @@ MIDI.Player = MIDI.Player || { };
 		};
 
 		midi.noteOff = function(channelId, noteId, delay) {
-	// 		setTimeout(function() {
-	// 			wml.synth.noteOff(channelId, noteId);
-	// 		}, delay * 1000)
-
 			delay = delay || 0;
 
 			/// check whether the note exists
