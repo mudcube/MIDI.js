@@ -3,3 +3,7 @@ generator/shell/build*
 generator/shell/sf2*
 generator/shell/testarea*
 soundfont-*
+nbproject/
+bin/
+node_modules/
+npm-debug.log
