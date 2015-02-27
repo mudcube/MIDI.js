@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns = "http://www.w3.org/1999/xhtml">
+<head>
+ <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+ <title>MIDI.js - Sequencing in Javascript.</title>
+ <!-- midi.js css -->
+ <link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
+ <!-- midi.js package -->
+ <script src="./js/Color/SpaceW3.js" type="text/javascript"></script>
+ <script src="./js/MIDI/AudioDetect.js" type="text/javascript"></script>
+ <script src="./js/MIDI/LoadPlugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI/Plugin.js" type="text/javascript"></script>
+ <script src="./js/MIDI/Player.js" type="text/javascript"></script>
+ <script src="./js/MusicTheory/Synesthesia.js" type="text/javascript"></script>
+ <script src="./js/Widgets/Loader.js" type="text/javascript"></script>
+ <script src="./js/Window/Event.js" type="text/javascript"></script>
+ <script src="./js/Window/DOMLoader.XMLHttp.js" type="text/javascript"></script>
+ <script src="./js/Window/DOMLoader.script.js" type="text/javascript"></script>
+ <!-- jasmid package -->
+ <script src="./inc/jasmid/stream.js"></script>
+ <script src="./inc/jasmid/midifile.js"></script>
+ <script src="./inc/jasmid/replayer.js"></script>
+ <!-- extras -->
+ <script src="./inc/Base64.js" type="text/javascript"></script>
+ <script src="./inc/base64binary.js" type="text/javascript"></script>
+</head>
+<body>
+<img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
+<img src="./images/tuna.png" onmousedown="event.preventDefault()" width="625" style="opacity: 0.95; position: fixed; top: 0; left: 765px; z-index: 2; padding: 10px; float: left; margin-right: 20px; ">
+<h1>MIDI.js - Sequencing in Javascript.</h1>
+<div style="position: fixed; top: 0; left: 0; z-index: 4; border-radius: 5px; overflow: hidden;" id="colors"></div><div style="text-align: center; border-radius: 5px; position: absolute; top: -70px; left: -40px; opacity: 0.9" id="colors"></div>
+<div style="margin-bottom: 50px; border: 1px solid #000; background: rgba(255,255,255,0.5); border-radius: 10px; float: left; width: 800px; padding-bottom: 100px; position: relative; z-index: 2;">
+ <div class="player" style="height: 42px; box-shadow: 0 -1px #000; margin-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
+  <div style="margin: 0 auto; width: 160px; float: right;">
+  <input type="image" src="./images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
+  <input type="image" src="./images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
+  <input type="image" src="./images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
+  <input type="image" src="./images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
+  </div>
+  <div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
+   <span id="time1" class="time">0:00</span>
+   <span id="capsule">
+	<span id="cursor"></span>
+   </span>
+   <span id="time2" class="time" style="text-align: left;">-0:00</span>
+  </div>
+ </div>
+ <div id="title" style="background: rgba(255,255,0,0.5); position: relative;color: #000; z-index: -1;padding: 5px 11px 5px;">Loading API...</div>
+ <h3 style="margin: 0">What&rsquo;s all this hubub?</h3>
+ <p><b><a href="https://github.com/mudcube/MIDI.js">MIDI.js</a></b> (on github) ties together, and builds upon frameworks that bring MIDI generation to the browser. 
+ Combine it with <a href="https://github.com/gasman/jasmid">jasmid</a> to create a web-radio MIDI stream similar to this demo...
+ or with <a href="https://github.com/mrdoob/three.js/">Three.js</a>, <a href="https://github.com/zz85/sparks.js/">Sparks.js</a>, or <a href="http://glsl.heroku.com/">GLSL</a> to create Audio/visual experiments. 
+ Piano/guitar simulations, Drum machines, MIDI recording, and all kinds of certified funkitude is within your grasps!
+ <p><a href="https://www.google.com/chrome">Google Chrome</a> is recommended for best listening experience, it&rsquo;s timing perfection! Firefox and Safari can both perform a bit more like the piano has been drinking, arrr.</p>
+ <p>Carpe beerum, and <a href="https://github.com/mudcube/MIDI.js">commandeer</a> yer own copy!</p>
+ <h3>Description of package;</h3>
+ <li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
+<li class="indent">
+<pre>
+// interface to download soundfont, then execute callback;
+MIDI.loadPlugin(callback);
+// simple example to get started;
+MIDI.loadPlugin({
+	instrument: 1, // or "Acoustic Grand Piano"
+	callback: function() {
+		MIDI.noteOn(0, 100, 127, 0); // plays note once loaded
+	}
+});
+</pre>
+</li>
+ <li><a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: &nbsp;Customizable base64 Soundfont.</li>
+  <li class="indent square"><a href="http://mudcu.be/journal/2011/11/base64-soundfonts/">Encode your own soundfonts</a>, Drums, Guitars, and so on.</li>
+  <li class="indent square">You are listening to <a href="http://packages.debian.org/search?keywords=fluid-soundfont-gm">Fluid (R3) General MIDI SoundFont (GM)</a>.</li>
+ <li><a href="./js/MIDI.Plugin.js">MIDI.Plugin.js</a>: &nbsp;Ties together the following frameworks;</li>
+ <li class="indent"><pre>
+MIDI.noteOn(channel, note, velocity, delay);
+MIDI.noteOff(channel, note, delay);
+MIDI.chordOn(channel, chord, velocity, delay);
+MIDI.chordOff(channel, chord, delay);
+MIDI.keyToNote = object; // A0 => 21
+MIDI.noteToKey = object; // 21 => A0
+</pre></li>
+ <li><a href="./js/MIDI.Player.js">MIDI.Player.js</a>: &nbsp;Streams the MIDI to the browser.
+<li class="indent">
+ <pre>
+MIDI.Player.currentTime = integer; // time we are at now within the song.
+MIDI.Player.endTime = integer; // time when song ends.
+MIDI.Player.playing = boolean; // are we playing? yes or no.
+MIDI.Player.loadFile(file, callback); // load .MIDI from base64 or binary XML request.
+MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile callback)
+MIDI.Player.resume(); // resume the MIDI track from pause.
+MIDI.Player.pause(); // pause the MIDI track.
+MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
+<b>Callback whenever a note is played;</b>
+MIDI.Player.removeListener(); // removes current listener.
+MIDI.Player.addListener(function(data) { // set it to your own function!
+	var now = data.now; // where we are now
+	var end = data.end; // time when song ends
+	var channel = data.channel; // channel note is playing on
+	var message = data.message; // 128 is noteOff, 144 is noteOn
+	var note = data.note; // the note
+	var velocity = data.velocity; // the velocity of the note
+	// then do whatever you want with the information!
+});
+<b>Smooth animation, interpolates between onMidiEvent calls;</b>
+MIDI.Player.clearAnimation(); // clears current animation.
+MIDI.Player.setAnimation(function(data) {
+	var now = data.now; // where we are now
+	var end = data.end; // time when song ends
+	var events = data.events; // all the notes currently being processed
+	// then do what you want with the information!
+});</pre></li>
+</li>
+ <li><a href="./js/Color.js">Color.js</a>: &nbsp;Color conversions, music isn&rsquo;t complete without!</li>
+ <li class="indent"><pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre></li>
+ <li><a href="./js/DOMLoader.script.js">DOMLoader.script.js</a>: &nbsp;Loads scripts in synchronously, or asynchronously.</li>
+ <li class="indent"><pre>DOMLoader.script.add(src, callback);</pre></li>
+ <li><a href="./js/DOMLoader.XMLHttp.js">DOMLoader.XMLHttp.js</a>: &nbsp;Cross-browser XMLHttpd request.</li>
+ <li class="indent"><pre>DOMLoader.sendRequest(src, callback);</pre></li>
+ <li><a href="./js/MusicTheory.Synesthesia.js">MusicTheory.Synesthesia.js</a>: &nbsp;Note-to-color mappings (from Isaac Newton onwards).</li>
+ <h3>Many thanks to the authors of these libraries;</h3>
+ <li><a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: &nbsp;HTML5 specs</li>
+ <li><a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudioAPI</a>: &nbsp;W3C proposal by Google</li>
+ <li>Java package: &nbsp;<a href="https://github.com/abudaan/midibridge-js">MIDIBridge</a> by <a href="http://abumarkub.net">Daniel van der Meer</a></li>
+ <li class="indent square">Use this to hook up a MIDI keyboard to your browser!</li>
+ <li class="indent square">Access to 128 General MIDI instruments.</li>
+ <li>Flash package: &nbsp;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a></li>
+ <li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;Reads MIDI file byte-code, and translats into a Javascript array.</li>
+ <li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &nbsp;Cleans up XML base64-requests for Web Audio API.</li>
+ <h3>Example(s): &nbsp;<a href="http://twitter.com/mudcube">Tweet</a> me your app to be included!</h3>
+
+ <li class="indent square">
+ <a href="http://mudcu.be/piano/">Color Piano</a><br>Learn piano songs without reading sheet music.
+ <br>Coded by <a href="http://mudcu.be/">mud</a>.</li>
+ <hr size=1 style="opacity: 0.25;">
+
+ <li class="indent square">
+ <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a><br>This app will play a simple melody, and you try to play it back.
+ <br>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
+ <hr size=1 style="opacity: 0.25;">
+
+ <li class="indent square">
+ <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a><br>Digital Lite-Brite with sound!
+ <br>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
+ <hr size=1 style="opacity: 0.25;">
+
+ <li class="indent square">
+ <a href="http://mudcu.be/midi-js/WhitneyMusicBox.html">Whitney Music Box</a><br>Beautiful HTML5 simulation of a Whitney Music Box.
+ <br>Coded by <a href="http://www.krazydad.com/">KrazyDad</a>.</li>
+</div>
+<script type="text/javascript">
+
+if (typeof(console) === "undefined") var console = { log: function() { } };
+
+// Begin loading indication.
+var player;
+
+// Test files for Player.js message-block issue
+var songid = 0;
+var song = [
+	// Test 1
+	'data:audio/mid;base64,TVRoZAAAAAYAAQABAMBNVHJrAAAARwD/WAQEAhgIAP9RAwehIAD/AwlOZXcgVHJhY2sAwHMAkDxkMoA8MIEOkDxkMoA8MIEOkDxkMoA8MIEOkDxkgT+APDAB/y8A',
+	
+	// Test 2
+	'data:audio/mid;base64,TVRoZAAAAAYAAQABAMBNVHJrAAAAVwD/WAQEAhgIAP9RAwehIAD/AwlOZXcgVHJhY2sAwAAAkDxkgRCAPDAwkDxkgRCAPDAwkDxkAJBAZACQQ2SBEIA8MACAQDAAgEMwMJA8ZIE/gDwwJv8vAA==',
+	
+	// Test 3
+	'data:audio/mid;base64,TVRoZAAAAAYAAQABAMBNVHJrAAAAXwD/WAQEAhgIAP9RAwehIAD/AwlOZXcgVHJhY2sAwAAAkDxkgRCAPDAwkDxkgRCAPDAwkDxkAJBAZACQQ2QHkEhkgQmAPDAAgEAwAIBDMACASDAwkDxkgT+APDAm/y8A'
+];
+
+
+// Toggle between Pause and Play modes.
+var pausePlayStop = function(stop) {
+	var d = document.getElementById("pausePlayStop");
+	if (stop) {
+		MIDI.Player.stop();
+		d.src = "./images/play.png";
+	} else if (MIDI.Player.playing) {
+		d.src = "./images/play.png";
+		MIDI.Player.pause(true);
+	} else {
+		d.src = "./images/pause.png";
+		MIDI.Player.resume();
+	}
+};
+
+Event.add(window, "load", function(event) {
+	var link = document.createElement('link');
+	link.href = 'http://fonts.googleapis.com/css?family=Oswald';
+	link.ref = "stylesheet";
+	link.type = "text/css";
+	document.body.appendChild(link);
+	var link = document.createElement('link');
+	link.href = 'http://fonts.googleapis.com/css?family=Andada';
+	link.ref = "stylesheet";
+	link.type = "text/css";
+	document.body.appendChild(link);
+	// load up the piano keys
+	var colors = document.getElementById("colors");
+	var colorElements = [];
+	for (var n = 0; n < 88; n ++) {
+		var d = document.createElement("div");
+		d.innerHTML = MIDI.noteToKey[n+21];
+		colorElements.push(d);
+		colors.appendChild(d);
+	}
+	//
+	MIDI.loader = new widgets.Loader;
+	MIDI.loadPlugin(function () {
+		// this is the language we are running in
+		var title = document.getElementById("title");
+		title.innerHTML = "Sound being generated with " + MIDI.lang + ".";
+		// this sets up the MIDI.Player and gets things going...
+		player = MIDI.Player;
+		player.timeWarp = 1; // speed the song is played back
+console.log("Start playing song at index: " + songid % song.length);
+		player.loadFile(song[songid % song.length], player.start);
+		// control the piano keys colors
+		var colorMap = MusicTheory.Synesthesia.map();
+		player.addListener(function(data) {
+			var pianoKey = data.note - MIDI.pianoKeyOffset;
+			var d = colorElements[pianoKey];
+			if (data.message === 144) {
+				var map = colorMap[data.note - 27];
+				if (map) d.style.background = map.hex;
+				d.style.color = "#fff";
+			} else {
+				d.style.background = "";
+				d.style.color = "";
+			}
+		});
+		//
+		ColorSphereBackground();
+		MIDIPlayerPercentage(player);
+		//
+		MIDI.loader.stop();
+	});
+});
+
+///////  ///////
+
+var MIDIPlayerPercentage = function(player) {
+	// update the timestamp
+	var time1 = document.getElementById("time1");
+	var time2 = document.getElementById("time2");
+	var capsule = document.getElementById("capsule");
+	var timeCursor = document.getElementById("cursor");
+	//
+	Event.add(capsule, "drag", function (event, self) {
+		Event.cancel(event);
+		player.currentTime = (self.x) / 420 * player.endTime;
+		if (player.currentTime < 0) player.currentTime = 0;
+		if (player.currentTime > player.endTime) player.currentTime = player.endTime;
+		if (self.state === "down") {
+			player.pause(true);
+		} else if (self.state === "up") {
+			player.resume();
+		}
+	});
+	//
+	function timeFormatting(n) {
+		var minutes = n / 60 >> 0; 
+		var seconds = String(n - (minutes * 60) >> 0);
+		if (seconds.length == 1) seconds = "0" + seconds;
+		return minutes + ":" + seconds;
+	};
+	player.getNextSong = function(n) {
+console.log("getNextSong("+n+") songid=" + songid);
+		var id = Math.abs((songid += n) % song.length);
+		player.loadFile(song[id], player.start); // load MIDI
+	};
+	player.setAnimation(function(data, element) {
+		var percent = data.now / data.end;
+		var now = data.now >> 0; // where we are now
+		var end = data.end >> 0; // end of song
+		if (now === end) { // go to next song
+			var id = ++ songid % song.length;
+console.log("Loading next song at index: " + id);
+			player.loadFile(song[id], player.start); // load MIDI
+		}
+		// display the information to the user
+		timeCursor.style.width = (percent * 100) + "%";
+		time1.innerHTML = timeFormatting(now);
+		time2.innerHTML = "-" + timeFormatting(end - now);
+	});
+};
+
+/////// SPHERE ///////
+
+var ColorSphereBackground = function() {
+	var d = document;
+	var canvas = document.createElement("canvas");
+	var ctx = canvas.getContext("2d");
+	canvas.style.cssText = "position: fixed; left: 0; top: 0; opacity: 1";
+	canvas.style.width = window.innerWidth + "px";
+	canvas.style.height = window.innerHeight + "px";
+	document.body.appendChild(canvas);
+	//
+	Event.add(window, "resize", function() {
+		canvas.style.width = window.innerWidth + "px";
+		canvas.style.height = window.innerHeight + "px";
+		ctx.drawImage(theSphere = sphere(percent), 0, 0)
+	});
+	Event.add(d, "scroll", function(e) {
+		var percent = 1 - document.body.scrollTop / document.body.scrollHeight;
+		ctx.drawImage(theSphere = sphere(percent), 0, 0);
+		onMouseMove();
+	});
+
+	var theSphere;
+	var px = window.innerWidth / 2;
+	var py = window.innerHeight / 2;
+	var onMouseMove = function(event) {
+		ctx.drawImage(theSphere, 0, 0);
+		if (event) {
+			var coords = Event.proxy.getCoord(event);
+			coords.x -= document.body.scrollLeft;
+			coords.y -= document.body.scrollTop;
+			px = coords.x;
+			py = coords.y;
+		} else { // 
+			var coords = { x: px, y: py };
+		}
+		//
+		var x = (coords.x / window.innerWidth) * 255 - 127; // grab mouse pixel coords, center at midpoint
+		var y = (coords.y / window.innerHeight) * 255 - 127;
+		var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); // get image data
+		var data = imageData.data;
+		for(var n = 0, length = data.length; n < length; n += 4) {
+			data[n] = data[n] + x - y; // red (control left)
+			data[n + 1] = data[n + 1] - x - y; // green (control right)
+			data[n + 2] = data[n + 2] + y + y; // blue (control down)
+		}
+		ctx.putImageData(imageData, 0, 0);
+	};
+	Event.add(d, "mousemove", onMouseMove);
+	//
+	function sphere(top) { // create Sphere image, and apply to <canvas>
+		var canvas1 = document.createElement("canvas");
+		var ctx = canvas1.getContext("2d");
+		var w = 75;
+		var left = -20;
+		var top = top * -50;
+		canvas.width = canvas1.width = w * window.innerWidth / window.innerHeight;
+		canvas.height = canvas1.height = w;
+		ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+		n = 360; while(n--) { // go through hues
+			var x = left + w;
+			var y = top + w;
+			var g = ctx.createLinearGradient(x, top, x, y);
+			g.addColorStop(0, "#000");
+			g.addColorStop(.5, "hsl("+((n + 60) % 360)+",100%,50%)");
+			g.addColorStop(1, "#FFF");
+			ctx.beginPath(); // draw triangle
+			ctx.moveTo(x, top);
+			ctx.lineTo(x, y);
+			ctx.lineTo(x + 2, y);
+			ctx.lineTo(x + 5, top);
+			ctx.fillStyle = g; // apply gradient
+			ctx.fill();
+			ctx.translate(x, y); // rotate + translate into position
+			ctx.rotate((1 / 360) * Math.PI * 2);
+			ctx.translate(-x, -y);
+		}
+		return canvas1;
+	};
+	//
+	var percent = 1 - document.body.scrollTop / document.body.scrollHeight;
+	ctx.drawImage(theSphere = sphere(percent), 0, 0)
+};
+
+
+</script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-420768-7']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>

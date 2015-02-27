@@ -161,7 +161,7 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 		}
 		root.currentTime = currentTime;
 		if (root.currentTime === queuedTime && queuedTime < root.endTime) { // grab next sequence
-			startAudio(queuedTime, true);
+			startAudio(queuedTime + 0.5, true);
 		}
 	}, currentTime - offset);
 	return interval;
@@ -204,8 +204,25 @@ var startAudio = function (currentTime, fromCache) {
 	//
 	queuedTime = 0.5;
 	startTime = ctx.currentTime;
+	
+	// Events are played in blocks.
+	var blockLength = 100;	// The number of events (actually note-on events) in a block.
+	var blockQueueTime;		// The reference time for the block we are processing.
+	
 	//
-	for (var n = 0; n < length && messages < 100; n++) {
+	for (var n = 0; n < length; n++) {
+		if (messages >= blockLength) {
+			// Is this our initial block check
+			if (typeof (blockQueueTime) === "undefined") {
+				// Turn on block checking. Store the current time that we are processing. We need to consume all events at this same time reference.
+				blockQueueTime = queuedTime;
+			}
+			// Is the next event beyond the current block time reference (plus a small offset)
+			if (queuedTime + data[n][1] > blockQueueTime + 0.5) {
+				break;	// We are done with this block - BREAK.
+			}
+		}
+		
 		queuedTime += data[n][1];
 		if (queuedTime < currentTime) {
 			offset = queuedTime;
