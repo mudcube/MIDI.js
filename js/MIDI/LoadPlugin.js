@@ -30,7 +30,7 @@ MIDI.loadPlugin = function(conf) {
 	for (var n = 0; n < instruments.length; n ++) {
 		var instrument = instruments[n];
 		if (typeof(instrument) === "number") {
-			instruments[n] = MIDI.GeneralMIDI.byId[instrument];
+			instruments[n] = MIDI.GeneralMIDI.byId[instrument].id;
 		}
 	};
 	///
