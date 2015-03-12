@@ -103,7 +103,7 @@ var setPlugin = function(root) {
 			output = plugin.outputs()[0];
 			if (conf.callback) conf.callback();
 		}, function (err) { // well at least we tried!
-			if (window.AudioContext || window.webkitAudioContext) { // Chrome
+			if (window.AudioContext ) { // Chrome
 				conf.api = "webaudio";
 			} else if (window.Audio) { // Firefox
 				conf.api = "audiotag";
@@ -123,9 +123,9 @@ var setPlugin = function(root) {
 	--------------------------------------------
 */
 
-if (window.AudioContext || window.webkitAudioContext) (function () {
+if (window.AudioContext ) (function () {
 
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var AudioContext = window.AudioContext;
 	var root = MIDI.WebAudio = {
 		api: "webaudio"
 	};

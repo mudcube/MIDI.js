@@ -107,7 +107,7 @@ MIDI.loadPlugin = function(conf) {
 		if (type === "") {
 			if (navigator.requestMIDIAccess) {
 				type = "webmidi";
-			} else if (window.webkitAudioContext) { // Chrome
+			} else if (window.AudioContext) { // Chrome
 				type = "webaudio";
 			} else if (window.Audio) { // Firefox
 				type = "audiotag";
@@ -361,9 +361,9 @@ if (typeof (MIDI) === "undefined") var MIDI = {};
 
 if (typeof (MIDI.WebAudioAPI) === "undefined") MIDI.WebAudioAPI = {};
 
-if (window.AudioContext || window.webkitAudioContext) (function () {
+if ( window.AudioContext ) (function () {
 
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var AudioContext = window.AudioContext;
 	var root = MIDI.WebAudioAPI;
 	var ctx;
 	var sources = {};
