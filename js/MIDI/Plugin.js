@@ -41,7 +41,7 @@ var setPlugin = function(root) {
 	--------------------------------------------
 	Web MIDI API - Native Soundbank
 	--------------------------------------------
-	https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
+	http://webaudio.github.io/web-midi-api/
 	--------------------------------------------
 */
 
@@ -119,7 +119,7 @@ var setPlugin = function(root) {
 	--------------------------------------------
 	Web Audio API - OGG or MPEG Soundbank
 	--------------------------------------------
-	https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
+	http://webaudio.github.io/web-audio-api/
 	--------------------------------------------
 */
 
