@@ -256,7 +256,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	root.connect = function (conf) {
 		setPlugin(root);
 		//
-		MIDI.Player.ctx = ctx = new AudioContext();
+		if (MIDI.Player.ctx == null || MIDI.Player.ctx == undefined) {
+		  MIDI.Player.ctx = ctx = new AudioContext();
+		}
 		///
 		var urlList = [];
 		var keyToNote = MIDI.keyToNote;
