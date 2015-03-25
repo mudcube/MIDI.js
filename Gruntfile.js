@@ -1,12 +1,14 @@
 /*
+	----------------------------------------------------------
 	Build environment
-	----------------------------------------
+	----------------------------------------------------------
 	1) Install NodeJS:
 		http://nodejs.org/
 	2) Install dev dependencies
 	  npm install
 	3) Install Grunt CLI globally
 		npm install grunt-cli -g
+	----------------------------------------------------------
 */
 
 module.exports = function (grunt) {
