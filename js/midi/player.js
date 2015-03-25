@@ -95,25 +95,29 @@ midi.setAnimation = function(config) {
 
 // helpers
 
-midi.loadMidiFile = function(onload, onprogress, onerror) { // reads midi into javascript array of events
-    midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
-    midi.data = midi.replayer.getData();
-	midi.endTime = getLength();
-	///
-	MIDI.loadPlugin({
-//		instruments: midi.getFileInstruments(),
-		callback: onload,
-		onprogress: onprogress,
-		onerror: onerror
-	});
+midi.loadMidiFile = function(onsuccess, onprogress, onerror) { // reads midi into javascript array of events
+	try {
+		midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
+		midi.data = midi.replayer.getData();
+		midi.endTime = getLength();
+		///
+		MIDI.loadPlugin({
+	//		instruments: midi.getFileInstruments(),
+			callback: onsuccess,
+			onprogress: onprogress,
+			onerror: onerror
+		});
+	} catch(err) {
+		onerror && onerror(err);
+	}
 };
 
-midi.loadFile = function (file, onload, onprogress, onerror) {
+midi.loadFile = function (file, onsuccess, onprogress, onerror) {
 	midi.stop();
 	if (file.indexOf('base64,') !== -1) {
 		var data = window.atob(file.split(',')[1]);
 		midi.currentData = data;
-		midi.loadMidiFile(onload, onprogress, onerror);
+		midi.loadMidiFile(onsuccess, onprogress, onerror);
 		return;
 	}
 	///
@@ -132,7 +136,7 @@ midi.loadFile = function (file, onload, onprogress, onerror) {
 				}
 				var data = ff.join('');
 				midi.currentData = data;
-				midi.loadMidiFile(onload, onprogress, onerror);
+				midi.loadMidiFile(onsuccess, onprogress, onerror);
 			} else {
 				onerror && onerror('Unable to load MIDI file');
 			}
@@ -208,10 +212,10 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 };
 
 var getContext = function() {
-	if (MIDI.lang === 'WebAudioAPI') {
-		return MIDI.Player.ctx;
-	} else if (!midi.ctx) {
-		midi.ctx = { currentTime: 0 };
+	if (MIDI.api === 'webaudio') {
+		return MIDI.WebAudio.getContext();
+	} else {
+		midi.ctx = {currentTime: 0};
 	}
 	return midi.ctx;
 };
@@ -228,18 +232,23 @@ var getLength = function() {
 
 var __now;
 var getNow = function() {
-    if (window.performance && window.performance.now)
+    if (window.performance && window.performance.now) {
         return window.performance.now();
-    return Date.now();
+    } else {
+		return Date.now();
+	}
 };
 
 var startAudio = function (currentTime, fromCache, callback) {
-	if (!midi.replayer) return;
+	if (!midi.replayer) {
+		return;
+	}
 	if (!fromCache) {
-		if (typeof (currentTime) === 'undefined') {
+		if (typeof currentTime === 'undefined') {
 			currentTime = midi.restart;
 		}
-		if (midi.playing) stopAudio();
+		///
+		midi.playing && stopAudio();
 		midi.playing = true;
 		midi.data = midi.replayer.getData();
 		midi.endTime = getLength();
