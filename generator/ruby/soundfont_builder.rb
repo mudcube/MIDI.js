@@ -10,7 +10,8 @@
 #   OggEnc (from vorbis-tools)
 #   Ruby Gem: midilib
 #
-#   $ brew install fluidsynth vorbis-tools lame (on OSX)
+#   $ brew install --with-libsndfile fluidsynth
+#   $ brew install vorbis-tools lame
 #   $ gem install midilib
 #
 # You'll need to download a GM soundbank to generate audio.
