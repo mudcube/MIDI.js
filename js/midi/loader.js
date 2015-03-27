@@ -150,7 +150,9 @@ MIDI.Player = MIDI.Player || {};
 				waitForEnd();
 			} else { // needs to be requested
 				sendRequest(instruments[i], audioFormat, function(evt, progress) {
-					onprogress && onprogress('load', fpoint + (pending - 1) / length, instrumentId);
+					var fileProgress = progress / length;
+					var queueProgress = (length - pending) / length;
+					onprogress && onprogress('load', fileProgress + queueProgress, instrumentId);
 				}, function() {
 					waitForEnd();
 				}, onerror);
