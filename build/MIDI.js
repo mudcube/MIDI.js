@@ -97,9 +97,9 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 })(MIDI);
 /*
-	---------------------------------------------------
+	----------------------------------------------------------
 	GeneralMIDI
-	---------------------------------------------------
+	----------------------------------------------------------
 */
 
 (function(root) { 'use strict';
@@ -393,7 +393,7 @@ MIDI.Player = MIDI.Player || {};
 		var instruments = opts.instruments;
 		var onprogress = opts.onprogress;
 		var onerror = opts.onerror;
-		var onload = opts.callback;
+		var onsuccess = opts.onsuccess;
 		///
 		var length = instruments.length;
 		var pending = length;
@@ -401,6 +401,7 @@ MIDI.Player = MIDI.Player || {};
 			if (!--pending) {
 				onprogress && onprogress('load', 1.0);
 				root[context].connect(opts);
+				onsuccess && onsuccess();
 			}
 		};
 		///
@@ -409,7 +410,7 @@ MIDI.Player = MIDI.Player || {};
 			if (MIDI.Soundfont[instrumentId]) { // already loaded
 				waitForEnd();
 			} else { // needs to be requested
-				sendRequest(instruments[i], audioFormat, function(fpoint) {
+				sendRequest(instruments[i], audioFormat, function(evt, progress) {
 					onprogress && onprogress('load', fpoint + (pending - 1) / length, instrumentId);
 				}, function() {
 					waitForEnd();
@@ -418,34 +419,22 @@ MIDI.Player = MIDI.Player || {};
 		};
 	};
 
-	var sendRequest = function(instrumentId, audioFormat, onprogress, onload, onerror) {
+	var sendRequest = function(instrumentId, audioFormat, onprogress, onsuccess, onerror) {
 		var soundfontPath = root.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
 		if (root.USE_XHR) {
 			root.util.request({
 				url: soundfontPath,
+				format: 'text',
 				onerror: onerror,
-				onprogress: function(event) {
-					if (!this.totalBytes) { // requires server to send Content-Length-Raw - actual bytes non-gzipped
-						var rawLength = this.getResponseHeader('Content-Length-Raw');
-						if (rawLength) {
-							this.totalBytes = parseInt(rawLength);
-						} else {
-							this.totalBytes = event.total;
-						}
-					}
-					///
-					if (this.totalBytes) {
-						onprogress(event.loaded / this.totalBytes);
-					}
-				},
-				onload: function(response) {
+				onprogress: onprogress,
+				onsuccess: function(event, responseText) {
 					var script = document.createElement('script');
 					script.language = 'javascript';
 					script.type = 'text/javascript';
-					script.text = response.responseText;
+					script.text = responseText;
 					document.body.appendChild(script);
 					///
-					onload();
+					onsuccess();
 				}
 			});
 		} else {
@@ -454,7 +443,7 @@ MIDI.Player = MIDI.Player || {};
 				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
 				onerror: onerror,
 				callback: function() {
-					onload();
+					onsuccess();
 				}
 			});
 		}
@@ -988,11 +977,11 @@ var stopAudio = function () {
 
 })(MIDI);
 /*
-	----------------------------------------------------------------------
+	----------------------------------------------------------
 	Web Audio API - OGG or MPEG Soundbank
-	----------------------------------------------------------------------
+	----------------------------------------------------------
 	http://webaudio.github.io/web-audio-api/
-	----------------------------------------------------------------------
+	----------------------------------------------------------
 */
 
 (function(root) { 'use strict';
@@ -1246,7 +1235,7 @@ var stopAudio = function () {
 						///
 						if (-- bufferPending[instrumentId] === 0) {
 							var percent = index / 87;
-							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
+// 							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
 							soundfont.isLoaded = true;
 							waitForEnd(instrument);
 						}
@@ -1394,19 +1383,24 @@ var stopAudio = function () {
 })(MIDI);
 /*
 	----------------------------------------------------------
-	util/Request : 0.1.1 : 2014-10-17
+	util/Request : 0.1.1 : 2015-03-26
 	----------------------------------------------------------
 	util.request({
 		url: './dir/something.extension',
-		body: 'test!',
-		onerror: function(event) {
-			console.log(event);
+		data: 'test!',
+		format: 'text', // text | xml | json | binary
+		responseType: 'text', // arraybuffer | blob | document | json | text
+		headers: {},
+		withCredentials: true, // true | false
+		///
+		onerror: function(evt, percent) {
+			console.log(evt);
 		},
-		onload: function(response) {
-			console.log(response.responseText);
+		onsuccess: function(evt, responseText) {
+			console.log(responseText);
 		},
-		onprogress: function(event) {
-			var percent = event.loaded / event.total * 100 >> 0;
+		onprogress: function(evt, percent) {
+			percent = Math.round(percent * 100);
 			loader.create('thread', 'loading... ', percent);
 		}
 	});
@@ -1418,41 +1412,43 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 	var util = root.util || (root.util = {});
 
-	util.request = function(params, onload, onerror, onprogress) { 'use strict';
-		if (typeof(params) === 'string') params = {url: params};
+	util.request = function(opts, onsuccess, onerror, onprogress) { 'use strict';
+		if (typeof opts === 'string') opts = {url: opts};
 		///
-		var body = params.body;
-		var url = params.url;
-		var headers = params.headers;
-		var responseType = params.responseType;
-		var withCredentials = params.withCredentials;
-		var asBinaryString = params.asBinaryString;
-		var onload = onload || params.onload;
-		var onerror = onerror || params.onerror;
-		var onprogress = onprogress || params.onprogress;
+		var data = opts.data;
+		var url = opts.url;
+		var method = opts.method || (opts.data ? 'POST' : 'GET');
+		var format = opts.format;
+		var headers = opts.headers;
+		var responseType = opts.responseType;
+		var withCredentials = opts.withCredentials || false;
 		///
-		if (typeof(NodeFS) !== 'undefined' && root.loc.isLocalUrl(url)) {
-			NodeFS.readFile(url, 'utf8', function(error, data) {
-				if (error) {
-					onerror && onerror(error, false);
+		var onsuccess = onsuccess || opts.onsuccess;
+		var onerror = onerror || opts.onerror;
+		var onprogress = onprogress || opts.onprogress;
+		///
+		if (typeof NodeFS !== 'undefined' && root.loc.isLocalUrl(url)) {
+			NodeFS.readFile(url, 'utf8', function(err, res) {
+				if (err) {
+					onerror && onerror(err);
 				} else {
-					onload && onload({responseText: data});
+					onsuccess && onsuccess({responseText: res});
 				}
 			});
 			return;
 		}
 		///
 		var xhr = new XMLHttpRequest();
-		xhr.open(body ? 'POST' : 'GET', url, true);
+		xhr.open(method, url, true);
 		///
 		if (headers) {
-			for (var key in headers) {
-				xhr.setRequestHeader(key, headers[key]);
+			for (var type in headers) {
+				xhr.setRequestHeader(type, headers[type]);
 			}
-		} else if (body) { // set the default headers for POST
+		} else if (data) { // set the default headers for POST
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		}
-		if (asBinaryString) { //- default to responseType="blob" when supported
+		if (format === 'binary') { //- default to responseType="blob" when supported
 			if (xhr.overrideMimeType) {
 				xhr.overrideMimeType('text/plain; charset=x-user-defined');
 			}
@@ -1467,26 +1463,59 @@ if (typeof MIDI === 'undefined') MIDI = {};
 			xhr.onerror = onerror;
 		}
 		if (onprogress && xhr.upload && 'onprogress' in xhr.upload) {
-			if (body) {
-				xhr.upload.onprogress = onprogress;
+			if (data) {
+				xhr.upload.onprogress = function(evt) {
+					onprogress.call(xhr, evt, event.loaded / event.total);
+				};
 			} else {
-				xhr.onprogress = onprogress;
+				xhr.addEventListener('progress', function(evt) {
+					var totalBytes = 0;
+					if (evt.lengthComputable) {
+						totalBytes = evt.total;
+					} else if (xhr.totalBytes) {
+						totalBytes = xhr.totalBytes;
+					} else {
+						var rawBytes = parseInt(xhr.getResponseHeader('Content-Length-Raw'));
+						if (isFinite(rawBytes)) {
+							xhr.totalBytes = totalBytes = rawBytes;
+						} else {
+							return;
+						}
+					}
+					onprogress.call(xhr, evt, evt.loaded / totalBytes);
+				});
 			}
 		}
 		///
-		xhr.onreadystatechange = function(event) {
+		xhr.onreadystatechange = function(evt) {
 			if (xhr.readyState === 4) { // The request is complete
 				if (xhr.status === 200 || // Response OK
 					xhr.status === 304 || // Not Modified
-					xhr.status === 0 && root.client && root.client.cordova // Cordova quirk
+					xhr.status === 308 || // Permanent Redirect
+					xhr.status === 0 && root.client.cordova // Cordova quirk
 				) {
-					onload && onload(xhr);
+					if (onsuccess) {
+						var res;
+						if (format === 'xml') {
+							res = evt.target.responseXML;
+						} else if (format === 'text') {
+							res = evt.target.responseText;
+						} else if (format === 'json') {
+							try {
+								res = JSON.parse(evt.target.response);
+							} catch(err) {
+								onerror && onerror.call(xhr, evt);
+							}
+						}
+						///
+						onsuccess.call(xhr, evt, res);
+					}
 				} else {
-					onerror && onerror(event, false);
+					onerror && onerror.call(xhr, evt);
 				}
 			}
 		};
-		xhr.send(body);
+		xhr.send(data);
 		return xhr;
 	};
 
