@@ -134,7 +134,7 @@ MIDI.Player = MIDI.Player || {};
 		var instruments = opts.instruments;
 		var onprogress = opts.onprogress;
 		var onerror = opts.onerror;
-		var onload = opts.callback;
+		var onsuccess = opts.onsuccess;
 		///
 		var length = instruments.length;
 		var pending = length;
@@ -142,6 +142,7 @@ MIDI.Player = MIDI.Player || {};
 			if (!--pending) {
 				onprogress && onprogress('load', 1.0);
 				root[context].connect(opts);
+				onsuccess && onsuccess();
 			}
 		};
 		///
@@ -150,7 +151,7 @@ MIDI.Player = MIDI.Player || {};
 			if (MIDI.Soundfont[instrumentId]) { // already loaded
 				waitForEnd();
 			} else { // needs to be requested
-				sendRequest(instruments[i], audioFormat, function(fpoint) {
+				sendRequest(instruments[i], audioFormat, function(evt, progress) {
 					onprogress && onprogress('load', fpoint + (pending - 1) / length, instrumentId);
 				}, function() {
 					waitForEnd();
@@ -159,34 +160,22 @@ MIDI.Player = MIDI.Player || {};
 		};
 	};
 
-	var sendRequest = function(instrumentId, audioFormat, onprogress, onload, onerror) {
+	var sendRequest = function(instrumentId, audioFormat, onprogress, onsuccess, onerror) {
 		var soundfontPath = root.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
 		if (root.USE_XHR) {
 			root.util.request({
 				url: soundfontPath,
+				format: 'text',
 				onerror: onerror,
-				onprogress: function(event) {
-					if (!this.totalBytes) { // requires server to send Content-Length-Raw - actual bytes non-gzipped
-						var rawLength = this.getResponseHeader('Content-Length-Raw');
-						if (rawLength) {
-							this.totalBytes = parseInt(rawLength);
-						} else {
-							this.totalBytes = event.total;
-						}
-					}
-					///
-					if (this.totalBytes) {
-						onprogress(event.loaded / this.totalBytes);
-					}
-				},
-				onload: function(response) {
+				onprogress: onprogress,
+				onsuccess: function(event, responseText) {
 					var script = document.createElement('script');
 					script.language = 'javascript';
 					script.type = 'text/javascript';
-					script.text = response.responseText;
+					script.text = responseText;
 					document.body.appendChild(script);
 					///
-					onload();
+					onsuccess();
 				}
 			});
 		} else {
@@ -195,7 +184,7 @@ MIDI.Player = MIDI.Player || {};
 				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
 				onerror: onerror,
 				callback: function() {
-					onload();
+					onsuccess();
 				}
 			});
 		}

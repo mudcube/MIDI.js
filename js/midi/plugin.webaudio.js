@@ -257,7 +257,7 @@
 						///
 						if (-- bufferPending[instrumentId] === 0) {
 							var percent = index / 87;
-							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
+// 							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
 							soundfont.isLoaded = true;
 							waitForEnd(instrument);
 						}
