@@ -1204,7 +1204,7 @@ var stopAudio = function() {
 
 		midi.connect = function(opts) {
 			root.setDefaultPlugin(midi);
-			midi.setContext(ctx || new AudioContext(), opts.onsuccess);
+			midi.setContext(ctx || createAudioContext(), opts.onsuccess);
 		};
 	
 		midi.getContext = function() {
@@ -1279,7 +1279,7 @@ var stopAudio = function() {
 
 		/* Load audio file: streaming | base64 | arraybuffer
 		---------------------------------------------------------------------- */
-		var loadAudio = function(url, onload, onerror) {
+		function loadAudio(url, onload, onerror) {
 			if (useStreamingBuffer) {
 				var audio = new Audio();
 				audio.src = url;
@@ -1306,6 +1306,10 @@ var stopAudio = function() {
 				};
 				request.send();
 			}
+		};
+		
+		function createAudioContext() {
+			return new (window.AudioContext || window.webkitAudioContext)();
 		};
 	})();
 })(MIDI);
