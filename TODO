@@ -1,0 +1,21 @@
+----------------------------------------------------------
+TODO
+----------------------------------------------------------
+	* Sound on Android/iOS working? Check various devices
+	------------------------------------------------------
+	* Add browser supports to the project
+	------------------------------------------------------
+	* Loading progress feedback example
+	------------------------------------------------------
+	* Document how to support from file://
+		<script src="./soundfont/acoustic_grand_piano-ogg.js"></script>
+	------------------------------------------------------
+	* better on event listeners for MIDIPlayer, get inspiration from these?
+		https://github.com/hhromic/midi-utils-js
+		https://github.com/justinlatimer/node-midi
+	------------------------------------------------------
+	* add some docs on color music history: http://www.musanim.com/
+	------------------------------------------------------
+	* List of Developers who work w/ MIDI.js
+		???
+	------------------------------------------------------

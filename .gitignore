@@ -1,10 +1,18 @@
-generator/shell/node_modules/*
-generator/shell/build*
-generator/shell/sf2*
-generator/shell/testarea*
-soundfont-*
-*.gz
+generator/sf2/*
+generator/ruby/soundfont*
+**/source*
+**/build*
+*/soundfont/*
+!examples/soundfont/acoustic_grand_piano*
+!examples/soundfont/synth_drum*
 oggenc
 oggdec
+
+# NODE/NPM
 node_modules*
+npm-debug.log
+
+# FORMATS
+*.gz
 *.DS_Store
+

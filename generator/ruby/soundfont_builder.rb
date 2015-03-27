@@ -10,7 +10,8 @@
 #   OggEnc (from vorbis-tools)
 #   Ruby Gem: midilib
 #
-#   $ brew install fluidsynth vorbis-tools lame (on OSX)
+#   $ brew install --with-libsndfile fluidsynth
+#   $ brew install vorbis-tools lame
 #   $ gem install midilib
 #
 # You'll need to download a GM soundbank to generate audio.
@@ -24,30 +25,34 @@
 require 'base64'
 require 'fileutils'
 require 'midilib'
+require 'zlib'
 include FileUtils
 
-BUILD_DIR = "../../soundfont"            # Output path
-SOUNDFONT = "./FluidR3_GM.sf2"        # Soundfont file path
+BUILD_DIR = "./soundfont" # Output path
+SOUNDFONT = "../sf2/redco/TR-808-Drums.SF2" # Soundfont file path
 
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
 INSTRUMENTS = [
-  0,     # Acoustic Grand Piano
-  24,    # Acoustic Guitar (nylon)
-  25,    # Acoustic Guitar (steel)
-  26,    # Electric Guitar (jazz)
-  30,    # Distortion Guitar
-  33,    # Electric Bass (finger)
-  34,    # Electric Bass (pick)
-  56,    # Trumpet
-  61,    # Brass Section
-  64,    # Soprano Sax
-  65,    # Alto Sax
-  66,    # Tenor Sax
-  67,    # Baritone Sax
-  73,    # Flute
-  118    # Synth Drum
-]
+  0     # Acoustic Grand Piano
+];
+# INSTRUMENTS = [
+#   0,     # Acoustic Grand Piano
+#   24,    # Acoustic Guitar (nylon)
+#   25,    # Acoustic Guitar (steel)
+#   26,    # Electric Guitar (jazz)
+#   30,    # Distortion Guitar
+#   33,    # Electric Bass (finger)
+#   34,    # Electric Bass (pick)
+#   56,    # Trumpet
+#   61,    # Brass Section
+#   64,    # Soprano Sax
+#   65,    # Alto Sax
+#   66,    # Tenor Sax
+#   67,    # Baritone Sax
+#   73,    # Flute
+#   118    # Synth Drum
+# ];
 
 # The encoders and tools are expected in your PATH. You can supply alternate
 # paths by changing the constants below.
@@ -96,8 +101,15 @@ NOTES = {
 
 MIDI_C0 = 12
 VELOCITY = 85
-DURATION = Integer(3200 * 0.75)
+DURATION = Integer(3000)
 TEMP_FILE = "#{BUILD_DIR}/temp.midi"
+
+def deflate(string, level)
+  z = Zlib::Deflate.new(level)
+  dst = z.deflate(string, Zlib::FINISH)
+  z.close
+  dst
+end
 
 def note_to_int(note, octave)
   value = NOTES[note]
@@ -140,9 +152,9 @@ def run_command(cmd)
 end
 
 def midi_to_audio(source, target)
-  run_command "#{FLUIDSYNTH} -C 1 -R 1 -g 0.5 -F #{target} #{SOUNDFONT} #{source}"
-  run_command "#{OGGENC} -m 32 -M 64 #{target}"
-  run_command "#{LAME} -v -b 8 -B 32 #{target}"
+  run_command "#{FLUIDSYNTH} -C no -R no -g 0.5 -F #{target} #{SOUNDFONT} #{source}"
+  run_command "#{OGGENC} -m 32 -M 128 #{target}"
+  run_command "#{LAME} -v -b 8 -B 64 #{target}"
   rm target
 end
 
@@ -172,13 +184,13 @@ end
 def generate_audio(program)
   include MIDI
   instrument = GM_PATCH_NAMES[program]
-  program_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s+/, "_")
+  instrument_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s+/, "_")
 
-  puts "Generating audio for: " + instrument + "(#{program_key})"
+  puts "Generating audio for: " + instrument + "(#{instrument_key})"
 
-  mkdir_p "#{BUILD_DIR}/#{program_key}-mp3"
-  ogg_js_file = open_js_file(program_key, "ogg")
-  mp3_js_file = open_js_file(program_key, "mp3")
+  mkdir_p "#{BUILD_DIR}/#{instrument_key}-mp3"
+  ogg_js_file = open_js_file(instrument_key, "ogg")
+  mp3_js_file = open_js_file(instrument_key, "mp3")
 
   note_to_int("A", 0).upto(note_to_int("C", 8)) do |note_value|
     note = int_to_note(note_value)
@@ -193,13 +205,22 @@ def generate_audio(program)
     ogg_js_file.write(base64js(output_name, output_path_prefix + ".ogg", "ogg") + ",\n")
     mp3_js_file.write(base64js(output_name, output_path_prefix + ".mp3", "mp3") + ",\n")
 
-    mv output_path_prefix + ".mp3", "#{BUILD_DIR}/#{program_key}-mp3"
+    mv output_path_prefix + ".mp3", "#{BUILD_DIR}/#{instrument_key}-mp3"
     rm output_path_prefix + ".ogg"
     rm TEMP_FILE
   end
 
   close_js_file(ogg_js_file)
   close_js_file(mp3_js_file)
+  
+  ogg_js_file = File.read("#{BUILD_DIR}/#{instrument_key}-ogg.js")
+  ojsz = File.open("#{BUILD_DIR}/#{instrument_key}-ogg.js.gz", "w")
+  ojsz.write(deflate(ogg_js_file, 9));
+
+  mp3_js_file = File.read("#{BUILD_DIR}/#{instrument_key}-mp3.js")
+  mjsz = File.open("#{BUILD_DIR}/#{instrument_key}-mp3.js.gz", "w")
+  mjsz.write(deflate(mp3_js_file, 9));
+
 end
 
 INSTRUMENTS.each {|i| generate_audio(i)}
