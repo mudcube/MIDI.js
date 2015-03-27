@@ -94,10 +94,10 @@
 	</div>
 <script type="text/javascript">
 	if (typeof (console) === "undefined") var console = {
-		log: function () {}
+		log: function() {}
 	};
 	// Toggle between Pause and Play modes.
-	var pausePlayStop = function (stop) {
+	var pausePlayStop = function(stop) {
 		var d = document.getElementById("pausePlayStop");
 		if (stop) {
 			MIDI.Player.stop();
@@ -110,7 +110,7 @@
 			MIDI.Player.resume();
 		}
 	};
-	eventjs.add(window, "load", function (event) {
+	eventjs.add(window, "load", function(event) {
 		var link = document.createElement("link");
 		link.href = "http://fonts.googleapis.com/css?family=Oswald";
 		link.ref = "stylesheet";
@@ -144,7 +144,7 @@
 				player.loadFile(song[songid++ % song.length], player.start);
 				// control the piano keys colors
 				var colorMap = MIDI.Synesthesia.map();
-				player.addListener(function (data) {
+				player.addListener(function(data) {
 					var pianoKey = data.note - 21;
 					var d = colorElements[pianoKey];
 					if (!d) return;
@@ -164,14 +164,14 @@
 		});
 	});
 	///
-	var MIDIPlayerPercentage = function (player) {
+	var MIDIPlayerPercentage = function(player) {
 		// update the timestamp
 		var time1 = document.getElementById("time1");
 		var time2 = document.getElementById("time2");
 		var capsule = document.getElementById("capsule");
 		var timeCursor = document.getElementById("cursor");
 		//
-		eventjs.add(capsule, "drag", function (event, self) {
+		eventjs.add(capsule, "drag", function(event, self) {
 			eventjs.cancel(event);
 			player.currentTime = (self.x) / 420 * player.endTime;
 			if (player.currentTime < 0) player.currentTime = 0;
@@ -189,11 +189,11 @@
 			if (seconds.length == 1) seconds = "0" + seconds;
 			return minutes + ":" + seconds;
 		};
-		player.getNextSong = function (n) {
+		player.getNextSong = function(n) {
 			var id = Math.abs((songid += n) % song.length);
 			player.loadFile(song[id], player.start); // load MIDI
 		};
-		player.setAnimation(function (data, element) {
+		player.setAnimation(function(data, element) {
 			var percent = data.now / data.end;
 			var now = data.now >> 0; // where we are now
 			var end = data.end >> 0; // end of song
@@ -209,7 +209,7 @@
 	};
 	
 	/* SPHERE */
-	var ColorSphereBackground = function () {
+	var ColorSphereBackground = function() {
 		var d = document;
 		var canvas = document.createElement("canvas");
 		var ctx = canvas.getContext("2d");
@@ -218,12 +218,12 @@
 		canvas.style.height = window.innerHeight + "px";
 		document.body.appendChild(canvas);
 		//
-		eventjs.add(window, "resize", function () {
+		eventjs.add(window, "resize", function() {
 			canvas.style.width = window.innerWidth + "px";
 			canvas.style.height = window.innerHeight + "px";
 			ctx.drawImage(theSphere = sphere(percent), 0, 0)
 		});
-		eventjs.add(d, "scroll", function (e) {
+		eventjs.add(d, "scroll", function(e) {
 			var percent = 1 - document.body.scrollTop / document.body.scrollHeight;
 			ctx.drawImage(theSphere = sphere(percent), 0, 0);
 			onMouseMove();
@@ -231,7 +231,7 @@
 		var theSphere;
 		var px = window.innerWidth / 2;
 		var py = window.innerHeight / 2;
-		var onMouseMove = function (event) {
+		var onMouseMove = function(event) {
 			ctx.drawImage(theSphere, 0, 0);
 			if (event) {
 				var coords = eventjs.proxy.getCoord(event);
