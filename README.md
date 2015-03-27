@@ -1,4 +1,4 @@
-## Code examples (from the repo)
+## Code examples - from the repo
 
 * [Basic](./examples/Basic.html) - the most basic implementation.
 * [MIDIPlayer](./examples/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
@@ -29,7 +29,7 @@ To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sou
 
 ## API
 
-### [MIDI.loadPlugin.js](./js/midi/LoadPlugin.js): Decides which framework is best to use, and sends request.
+### [MIDI.loadPlugin.js](./js/midi/LoadPlugin.js) - Decides which framework is best to use
 
 ```javascript
 // interface to download soundfont, then execute callback;
@@ -42,7 +42,7 @@ MIDI.loadPlugin({
 });
 ```
 
-### [MIDI.Plugin.js](./js/midi/plugin.js): Ties together the following frameworks:
+### [MIDI.Plugin.js](./js/midi/plugin.js) - Controls MIDI output
 
 ```javascript
 MIDI.noteOn(channel, note, velocity, delay);
@@ -53,7 +53,7 @@ MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 ```
 
-### [MIDI.Player.js](./js/midi/player.js): Streams the MIDI to the browser.
+### [MIDI.Player.js](./js/midi/player.js) - Plays MIDI stream
 
 ```javascript
 MIDI.Player.currentTime = integer; // time we are at now within the song.
@@ -66,7 +66,7 @@ MIDI.Player.pause(); // pause the MIDI track.
 MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
 ```
 
-### Callback whenever a note is played.
+### Listener for when notes are played
 
 ```javascript
 MIDI.Player.removeListener(); // removes current listener.
@@ -81,7 +81,7 @@ MIDI.Player.addListener(function(data) { // set it to your own function!
 });
 ```
 
-### Smooth animation, interpolates between onMidiEvent calls
+### Smooth animation interpolating between onMidiEvent calls
 
 ```javascript
 MIDI.Player.clearAnimation(); // clears current animation.
@@ -93,7 +93,7 @@ MIDI.Player.setAnimation(function(data) {
 });
 ```
 
-### Effects available for WebAudioContext (via Tuna.js)
+### Effects available for WebAudioContext via Tuna.js
 
 ```javascript
 MIDI.setEffects([
