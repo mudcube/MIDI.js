@@ -13,19 +13,19 @@
 			{
 				url: "../js/jszip/jszip.js",
 				verify: "JSZip",
-				callback: function() {
+				onsuccess: function() {
 					console.log(1)
 				}
 			},
 			{ 
 				url: "../inc/downloadify/js/swfobject.js",
 				verify: "swfobject",
-				callback: function() {
+				onsuccess: function() {
 					console.log(2)
 				}
 			}
 		],
-		callback: function() {
+		onsuccess: function() {
 			console.log(3)
 		}
 	});
@@ -33,7 +33,7 @@
 	dom.loadScript.add({
 		url: "../js/jszip/jszip.js",
 		verify: "JSZip",
-		callback: function() {
+		onsuccess: function() {
 			console.log(1)
 		}
 	});
@@ -72,7 +72,7 @@ dom.loadScript.prototype.add = function(config) {
 		if (that.loading[element.url]) that.loading[element.url]();
 		delete that.loading[element.url];
 		//
-		if (element.callback) element.callback();
+		if (element.onsuccess) element.onsuccess();
 		if (typeof(getNext) !== "undefined") getNext();
 	};
 	///
@@ -148,8 +148,8 @@ dom.loadScript.prototype.add = function(config) {
 				if (config.error) {
 					config.error();
 				}
-			} else if (config.callback) {
-				config.callback();
+			} else if (config.onsuccess) {
+				config.onsuccess();
 			}
 		} else { // keep calling back the function
 			setTimeout(function() { //- should get slower over time?
@@ -167,15 +167,15 @@ dom.loadScript.prototype.add = function(config) {
 					if (config.error) {
 						config.error();
 					}
-				} else if (config.callback) {
-					config.callback();
+				} else if (config.onsuccess) {
+					config.onsuccess();
 				}
 			} else { // loading new script
 				var element = urls[ID];
 				var url = element.url;
 				if (that.loading[url]) { // already loading from another call (attach to event)
 					that.loading[url] = function() {
-						if (element.callback) element.callback();
+						if (element.onsuccess) element.onsuccess();
 						getNext();
 					}
 				} else if (!that.loaded[url]) { // create script element

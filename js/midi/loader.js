@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2015-01-15
+	MIDI.Plugin : 0.3.4 : 2015-03-26
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -28,7 +28,7 @@ MIDI.Player = MIDI.Player || {};
 
 	/*
 		MIDI.loadPlugin({
-			callback: function() { },
+			onsuccess: function() { },
 			onprogress: function(state, percent) { },
 			targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
 			instrument: 'acoustic_grand_piano', // or 1 (default)
@@ -38,7 +38,7 @@ MIDI.Player = MIDI.Player || {};
 
 	root.loadPlugin = function(opts) {
 		if (typeof opts === 'function') {
-			opts = {callback: opts};
+			opts = {onsuccess: opts};
 		}
 
 		root.soundfontUrl = opts.soundfontUrl || root.soundfontUrl;
@@ -80,7 +80,7 @@ MIDI.Player = MIDI.Player || {};
 
 	/*
 		root.loadResource({
-			callback: function() { },
+			onsuccess: function() { },
 			onprogress: function(state, percent) { },
 			instrument: 'banjo'
 		})
@@ -134,7 +134,6 @@ MIDI.Player = MIDI.Player || {};
 		var instruments = opts.instruments;
 		var onprogress = opts.onprogress;
 		var onerror = opts.onerror;
-		var onsuccess = opts.onsuccess;
 		///
 		var length = instruments.length;
 		var pending = length;
@@ -142,7 +141,6 @@ MIDI.Player = MIDI.Player || {};
 			if (!--pending) {
 				onprogress && onprogress('load', 1.0);
 				root[context].connect(opts);
-				onsuccess && onsuccess();
 			}
 		};
 		///
@@ -183,7 +181,7 @@ MIDI.Player = MIDI.Player || {};
 				url: soundfontPath,
 				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
 				onerror: onerror,
-				callback: function() {
+				onsuccess: function() {
 					onsuccess();
 				}
 			});

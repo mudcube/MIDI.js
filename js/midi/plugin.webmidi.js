@@ -67,7 +67,7 @@
 		navigator.requestMIDIAccess().then(function(access) {
 			plugin = access;
 			output = plugin.outputs()[0];
-			opts.callback && opts.callback();
+			opts.onsuccess && opts.onsuccess();
 		}, function(err) { // well at least we tried!
 			if (window.AudioContext) { // Chrome
 				opts.api = 'webaudio';

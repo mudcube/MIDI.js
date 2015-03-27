@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-01-15
+	MIDI.Player : 0.3.1 : 2015-03-26
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -12,7 +12,6 @@ if (typeof MIDI.Player === 'undefined') MIDI.Player = {};
 (function() { 'use strict';
 
 var midi = MIDI.Player;
-midi.callback = undefined; // your custom callback goes here!
 midi.currentTime = 0;
 midi.endTime = 0; 
 midi.restart = 0; 
@@ -115,7 +114,7 @@ midi.loadMidiFile = function(onsuccess, onprogress, onerror) {
 		///
 		MIDI.loadPlugin({
 // 			instruments: midi.getFileInstruments(),
-			callback: onsuccess,
+			onsuccess: onsuccess,
 			onprogress: onprogress,
 			onerror: onerror
 		});
@@ -193,7 +192,7 @@ var eventQueue = []; // hold events to be triggered
 var queuedTime; // 
 var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
-var onMidiEvent = undefined; // listener callback
+var onMidiEvent = undefined; // listener
 var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
 	return setTimeout(function() {
 		var data = {

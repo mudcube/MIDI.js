@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.audioDetect : 0.3.2 : 2015-01-15
+	MIDI.audioDetect : 0.3.2 : 2015-03-26
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -17,24 +17,27 @@ if (typeof MIDI === 'undefined') MIDI = {};
 	var pending = 0; // pending file types to process
 	var canPlayThrough = function (src) { // check whether format plays through
 		pending ++;
+		var body = document.body;
 		var audio = new Audio();
 		var mime = src.split(';')[0];
 		audio.id = 'audio';
 		audio.setAttribute('preload', 'auto');
 		audio.setAttribute('audiobuffer', true);
 		audio.addEventListener('error', function() {
+			body.removeChild(audio);
 			supports[mime] = false;
 			pending --;
 		}, false);
 		audio.addEventListener('canplaythrough', function() {
+			body.removeChild(audio);
 			supports[mime] = true;
 			pending --;
 		}, false);
 		audio.src = 'data:' + src;
-		document.body.appendChild(audio);
+		body.appendChild(audio);
 	};
 
-	root.audioDetect = function(callback) {
+	root.audioDetect = function(onsuccess) {
 		/// detect jazz-midi plugin
 		if (navigator.requestMIDIAccess) {
 			var isNative = Function.prototype.toString.call(navigator.requestMIDIAccess).indexOf('[native code]');
@@ -52,7 +55,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 		/// check whether <audio> tag is supported
 		if (typeof(Audio) === 'undefined') {
-			return callback({});
+			return onsuccess({});
 		} else {
 			supports['audiotag'] = true;
 		}
@@ -65,7 +68,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		/// check whether canPlayType is supported
 		var audio = new Audio();
 		if (typeof(audio.canPlayType) === 'undefined') {
-			return callback(supports);
+			return onsuccess(supports);
 		}
 
 		/// see what we can learn from the browser
@@ -75,7 +78,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		mpeg = (mpeg === 'probably' || mpeg === 'maybe');
 		// maybe nothing is supported
 		if (!vorbis && !mpeg) {
-			callback(supports);
+			onsuccess(supports);
 			return;
 		}
 
@@ -90,7 +93,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 			var maxExecution = now - time > 5000;
 			if (!pending || maxExecution) {
 				window.clearInterval(interval);
-				callback(supports);
+				onsuccess(supports);
 			}
 		}, 1);
 	};

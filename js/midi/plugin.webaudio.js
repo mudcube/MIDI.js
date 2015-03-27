@@ -215,7 +215,7 @@
 
 		midi.connect = function(opts) {
 			root.setDefaultPlugin(midi);
-			midi.setContext(ctx || new AudioContext(), opts.callback);
+			midi.setContext(ctx || new AudioContext(), opts.onsuccess);
 		};
 	
 		midi.getContext = function() {

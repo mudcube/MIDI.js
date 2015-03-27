@@ -33,12 +33,12 @@ To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sou
 
 ```javascript
 // interface to download soundfont, then execute callback;
-MIDI.loadPlugin(callback);
+MIDI.loadPlugin(onsuccess);
 // simple example to get started;
 MIDI.loadPlugin({
     instrument: "acoustic_grand_piano", // or the instrument code 1 (aka the default)
     instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
-    callback: function() { }
+    onsuccess: function() { }
 });
 ```
 
@@ -59,7 +59,7 @@ MIDI.noteToKey = object; // 21 => A0
 MIDI.Player.currentTime = integer; // time we are at now within the song.
 MIDI.Player.endTime = integer; // time when song ends.
 MIDI.Player.playing = boolean; // are we playing? yes or no.
-MIDI.Player.loadFile(file, callback); // load .MIDI from base64 or binary XML request.
+MIDI.Player.loadFile(file, onsuccess); // load .MIDI from base64 or binary XML request.
 MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile callback)
 MIDI.Player.resume(); // resume the MIDI track from pause.
 MIDI.Player.pause(); // pause the MIDI track.
@@ -195,9 +195,9 @@ MIDI.setEffects([
 * [colorspace.js](./js/color/spaceW3.js): Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
 * [dom_request_script.js](./js/util/dom_request_script.js): Loads scripts in synchronously, or asynchronously.
-<pre>DOMLoader.script.add(src, callback);</pre>
+<pre>DOMLoader.script.add(src, onsuccess);</pre>
 * [dom_request_xhr.js](./js/util/dom_request_xhr.js): Cross-browser XMLHttpd request.
-<pre>DOMLoader.sendRequest(src, callback);</pre>
+<pre>DOMLoader.sendRequest(src, onsuccess);</pre>
 * [synesthesia.js](./js/midi/synesthesia.js): Note-to-color mappings (from Isaac Newton onwards).
 
 ### Many thanks to the authors of these libraries

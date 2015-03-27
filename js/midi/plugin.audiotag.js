@@ -143,7 +143,7 @@
 				notes[key] = {id: key};
 			}
 			///
-			opts.callback && opts.callback();
+			opts.onsuccess && opts.onsuccess();
 		};
 	})();
 
