@@ -192,13 +192,13 @@ MIDI.setEffects([
 
 ## Libraries
 
-* [Color.js](./js/color/spaceW3.js): Color conversions, music isn&rsquo;t complete without!
+* [colorspace.js](./js/color/spaceW3.js): Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
-* [DOMLoader.script.js](./js/Window/DOMLoader.script.js): Loads scripts in synchronously, or asynchronously.
+* [dom_request_script.js](./js/util/dom_request_script.js): Loads scripts in synchronously, or asynchronously.
 <pre>DOMLoader.script.add(src, callback);</pre>
-* [DOMLoader.XMLHttp.js](./js/Window/DOMLoader.XMLHttp.js): Cross-browser XMLHttpd request.
+* [dom_request_xhr.js](./js/util/dom_request_xhr.js): Cross-browser XMLHttpd request.
 <pre>DOMLoader.sendRequest(src, callback);</pre>
-* [MusicTheory.Synesthesia.js](./js/MusicTheory/Synesthesia.js): Note-to-color mappings (from Isaac Newton onwards).
+* [synesthesia.js](./js/midi/synesthesia.js): Note-to-color mappings (from Isaac Newton onwards).
 
 ### Many thanks to the authors of these libraries
 
