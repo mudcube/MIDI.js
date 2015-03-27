@@ -6,3 +6,5 @@ soundfont-*
 *.gz
 oggenc
 oggdec
+node_modules*
+*.DS_Store
