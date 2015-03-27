@@ -48,21 +48,25 @@ midi.removeListener = function() {
 };
 
 midi.clearAnimation = function() {
-	if (midi.interval)  {
-		window.clearInterval(midi.interval);
+	if (midi.animationFrameId)  {
+		cancelAnimationFrame(midi.animationFrameId);
 	}
 };
 
-midi.setAnimation = function(config) {
-	var callback = (typeof(config) === 'function') ? config : config.callback;
-	var interval = config.interval || 30;
+midi.setAnimation = function(opts) {
+	var callback = (typeof opts === 'function') ? opts : opts.callback;
 	var currentTime = 0;
 	var tOurTime = 0;
 	var tTheirTime = 0;
 	//
 	midi.clearAnimation();
-	midi.interval = setInterval(function () {
-		if (midi.endTime === 0) return;
+	///
+	var frame = function () {
+		midi.animationFrameId = requestAnimationFrame(frame);
+		///
+		if (midi.endTime === 0) {
+			return;
+		}
 		if (midi.playing) {
 			currentTime = (tTheirTime === midi.currentTime) ? tOurTime - (new Date).getTime() : 0;
 			if (midi.currentTime === 0) {
@@ -77,6 +81,7 @@ midi.setAnimation = function(config) {
 		} else { // paused
 			currentTime = midi.currentTime;
 		}
+		///
 		var endTime = midi.endTime;
 		var percent = currentTime / endTime;
 		var total = currentTime / 1000;
@@ -84,13 +89,18 @@ midi.setAnimation = function(config) {
 		var seconds = total - (minutes * 60);
 		var t1 = minutes * 60 + seconds;
 		var t2 = (endTime / 1000);
-		if (t2 - t1 < -1) return;
-		callback({
-			now: t1,
-			end: t2,
-			events: noteRegistrar
-		});
-	}, interval);
+		if (t2 - t1 < -1) {
+			return;
+		} else {
+			callback({
+				now: t1,
+				end: t2,
+				events: noteRegistrar
+			});
+		}
+	};
+	///
+	requestAnimationFrame(frame);
 };
 
 // helpers
