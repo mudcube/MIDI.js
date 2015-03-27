@@ -23,12 +23,11 @@
 	<script src="../js/midi/plugin.webmidi.js" type="text/javascript"></script>
 	<script src="../js/midi/player.js" type="text/javascript"></script>
 	<script src="../js/midi/synesthesia.js" type="text/javascript"></script>
-	<!-- loader.js package -->
-	<script src="../js/widget/loader.js" type="text/javascript"></script>
 	<!-- utils -->
 	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
 	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 	<!-- includes -->
+	<script src="./inc/timer.js" type="text/javascript"></script>
 	<script src="./inc/colorspace.js" type="text/javascript"></script>
 	<script src="./inc/event.js" type="text/javascript"></script>
 </head>
@@ -49,7 +48,7 @@
 			<div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
 				<span id="time1" class="time">0:00</span>
 				<span id="capsule">
-	<span id="cursor"></span>
+					<span id="cursor"></span>
 				</span>
 				<span id="time2" class="time" style="text-align: left;">-0:00</span>
 			</div>
@@ -91,6 +90,7 @@
 			<li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;MIDI file byte-code reader, and translats into a Javascript array.</li>
 			<li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">Base64binary.js</a>: &nbsp;Converts base64 soundfonts to binary for Web Audio API.</li>
 	</div>
+
 <script type="text/javascript">
 	if (typeof (console) === "undefined") var console = {
 		log: function() {}
@@ -111,16 +111,17 @@
 	};
 	eventjs.add(window, "load", function(event) {
 		var link = document.createElement("link");
-		link.href = "http://fonts.googleapis.com/css?family=Oswald";
+		link.href = "//fonts.googleapis.com/css?family=Oswald";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
 		var link = document.createElement("link");
-		link.href = "http://fonts.googleapis.com/css?family=Andada";
+		link.href = "//fonts.googleapis.com/css?family=Andada";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
-		// load up the piano keys
+		
+		/// load up the piano keys
 		var colors = document.getElementById("colors");
 		var colorElements = [];
 		for (var n = 0; n < 88; n++) {
@@ -129,40 +130,46 @@
 			colorElements.push(d);
 			colors.appendChild(d);
 		}
-		//
-		MIDI.loader = new widget.Loader;
+		///
+		MIDI.loader = new sketch.ui.Timer;
 		MIDI.loadPlugin({
 			soundfontUrl: "./soundfont/",
-			callback: function() {
-				// this is the language we are running in
+			onprogress: function(state, progress) {
+				MIDI.loader.setValue(progress * 100);
+			},
+			onsuccess: function() {
+				/// this is the language we are running in
 				var title = document.getElementById("title");
 				title.innerHTML = "Sound being generated with " + MIDI.api + " " + JSON.stringify(MIDI.supports);
-				// this sets up the MIDI.Player and gets things going...
+
+				/// this sets up the MIDI.Player and gets things going...
 				player = MIDI.Player;
 				player.timeWarp = 1; // speed the song is played back
 				player.loadFile(song[songid++ % song.length], player.start);
-				// control the piano keys colors
+
+				/// control the piano keys colors
 				var colorMap = MIDI.Synesthesia.map();
 				player.addListener(function(data) {
 					var pianoKey = data.note - 21;
 					var d = colorElements[pianoKey];
-					if (!d) return;
-					if (data.message === 144) {
-						var map = colorMap[data.note - 27];
-						if (map) d.style.background = map.hex;
-						d.style.color = "#fff";
-					} else {
-						d.style.background = "";
-						d.style.color = "";
+					if (d) {
+						if (data.message === 144) {
+							var map = colorMap[data.note - 27];
+							if (map) d.style.background = map.hex;
+							d.style.color = "#fff";
+						} else {
+							d.style.background = "";
+							d.style.color = "";
+						}
 					}
 				});
-				//
+				///
 				ColorSphereBackground();
 				MIDIPlayerPercentage(player);
 			}
 		});
 	});
-	///
+
 	var MIDIPlayerPercentage = function(player) {
 		// update the timestamp
 		var time1 = document.getElementById("time1");
@@ -207,7 +214,6 @@
 		});
 	};
 	
-	/* SPHERE */
 	var ColorSphereBackground = function() {
 		var d = document;
 		var canvas = document.createElement("canvas");
