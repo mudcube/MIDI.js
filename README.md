@@ -2,7 +2,6 @@
 
 * [Basic](./examples/Basic.html) - the most basic implementation.
 * [MIDIPlayer](./examples/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
-* [MultipleInstruments](./examples/MultipleInstruments.html) - synth drum and piano playing together
 * [WhitneyMusicBox](./examples/WhitneyMusicBox.html) - a audio/visual experiment by Jim Bumgardner
 
 ## Demos
@@ -16,7 +15,6 @@
 * [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
 * [Ragamroll](http://online-compute.rhcloud.com/ragamroll/) by Mani Balasubramanian
 * [Gbloink!](http://gbloink.com/alpha/) by Phil Jones
-* [Watch & Repeat](http://watchandrepeat.com/) by Etay Luz
 
 ## Generating Base64 Soundfonts
 
@@ -29,7 +27,7 @@ To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sou
 
 ## API
 
-### [MIDI.loadPlugin.js](./js/midi/LoadPlugin.js) - Decides which framework is best to use
+### [MIDI.loadPlugin.js](./js/midi/loader.js) - Decides which framework is best to use
 
 ```javascript
 // interface to download soundfont, then execute callback;
@@ -42,7 +40,7 @@ MIDI.loadPlugin({
 });
 ```
 
-### [MIDI.Plugin.js](./js/midi/plugin.js) - Controls MIDI output
+### [MIDI.Plugin.js](./js/midi/plugin.webaudio.js) - Controls MIDI output
 
 ```javascript
 MIDI.noteOn(channel, note, velocity, delay);
@@ -192,7 +190,7 @@ MIDI.setEffects([
 
 ## Libraries
 
-* [colorspace.js](./js/color/spaceW3.js): Color conversions, music isn&rsquo;t complete without!
+* [colorspace.js](./examples/inc/colorspace.js): Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
 * [dom_request_script.js](./js/util/dom_request_script.js): Loads scripts in synchronously, or asynchronously.
 <pre>DOMLoader.script.add(src, onsuccess);</pre>
