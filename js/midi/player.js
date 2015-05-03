@@ -1,37 +1,36 @@
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-03-26
+	MIDI.Player : 0.3.1 : 2015-05-03 : https://mudcu.be
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
 */
 
 if (typeof MIDI === 'undefined') MIDI = {};
-if (typeof MIDI.Player === 'undefined') MIDI.Player = {};
+if (typeof MIDI.player === 'undefined') MIDI.player = {};
 
 (function() { 'use strict';
 
-var midi = MIDI.Player;
+MIDI.Player = MIDI.player; //- depreciate me
+///
+var midi = MIDI.player;
 midi.currentTime = 0;
-midi.endTime = 0; 
+midi.duration = 0; 
 midi.restart = 0; 
 midi.playing = false;
 midi.timeWarp = 1;
 midi.startDelay = 0;
 midi.BPM = 120;
 
-midi.start =
-midi.resume = function(onsuccess) {
+
+/* Playback
+---------------------------------------------------------- */
+midi.play =
+midi.start = function(onsuccess) {
     if (midi.currentTime < -1) {
     	midi.currentTime = -1;
     }
     startAudio(midi.currentTime, null, onsuccess);
-};
-
-midi.pause = function() {
-	var tmp = midi.restart;
-	stopAudio();
-	midi.restart = tmp;
 };
 
 midi.stop = function() {
@@ -40,6 +39,23 @@ midi.stop = function() {
 	midi.currentTime = 0;
 };
 
+midi.pause = function() {
+	var tmp = midi.restart;
+	stopAudio();
+	midi.restart = tmp;
+};
+
+midi.toggle = function() {
+	if (midi.playing) {
+		midi.pause();
+	} else {
+		midi.play();
+	}
+};
+
+
+/* Listeners
+---------------------------------------------------------- */
 midi.addListener = function(onsuccess) {
 	onMidiEvent = onsuccess;
 };
@@ -49,9 +65,7 @@ midi.removeListener = function() {
 };
 
 midi.clearAnimation = function() {
-	if (midi.animationFrameId)  {
-		cancelAnimationFrame(midi.animationFrameId);
-	}
+	midi.frameId && cancelAnimationFrame(midi.frameId);
 };
 
 midi.setAnimation = function(callback) {
@@ -61,10 +75,10 @@ midi.setAnimation = function(callback) {
 	//
 	midi.clearAnimation();
 	///
-	var frame = function() {
-		midi.animationFrameId = requestAnimationFrame(frame);
+	function frame() {
+		midi.frameId = requestAnimationFrame(frame);
 		///
-		if (midi.endTime === 0) {
+		if (midi.duration === 0) {
 			return;
 		}
 		if (midi.playing) {
@@ -82,22 +96,26 @@ midi.setAnimation = function(callback) {
 			currentTime = midi.currentTime;
 		}
 		///
-		var endTime = midi.endTime;
-		var percent = currentTime / endTime;
+		var duration = midi.duration;
+		var percent = currentTime / duration;
 		var total = currentTime / 1000;
 		var minutes = total / 60;
 		var seconds = total - (minutes * 60);
 		var t1 = minutes * 60 + seconds;
-		var t2 = (endTime / 1000);
+		var t2 = (duration / 1000);
 		///
 		if (t2 - t1 < -1.0) {
 			return;
 		} else {
-			callback({
-				now: t1,
-				end: t2,
-				events: noteRegistrar
-			});
+			var progress = Math.min(1.0, t1 / t2);
+			if (progress !== callback.progress) {
+				callback.progress = progress;
+				callback({
+					progress: progress,
+					currentTime: t1,
+					duration: t2
+				});
+			}
 		}
 	};
 	///
@@ -110,7 +128,7 @@ midi.loadMidiFile = function(onsuccess, onprogress, onerror) {
 	try {
 		midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
 		midi.data = midi.replayer.getData();
-		midi.endTime = getLength();
+		midi.duration = getLength();
 		///
 		MIDI.loadPlugin({
 // 			instruments: midi.getFileInstruments(),
@@ -123,15 +141,21 @@ midi.loadMidiFile = function(onsuccess, onprogress, onerror) {
 	}
 };
 
-midi.loadFile = function(file, onsuccess, onprogress, onerror) {
+midi.loadFile = function(opts, onsuccess, onprogress, onerror) {
+	if (typeof opts === 'string') opts = {src: opts};
+	var src = opts.src;
+	var onsuccess = onsuccess || opts.onsuccess;
+	var onerror = onerror || opts.onerror;
+	var onprogress = onprogress || opts.onprogress;
+	///
 	midi.stop();
-	if (file.indexOf('base64,') !== -1) {
-		var data = window.atob(file.split(',')[1]);
+	if (src.indexOf('base64,') !== -1) {
+		var data = window.atob(src.split(',')[1]);
 		midi.currentData = data;
 		midi.loadMidiFile(onsuccess, onprogress, onerror);
 	} else {
 		var fetch = new XMLHttpRequest();
-		fetch.open('GET', file);
+		fetch.open('GET', src);
 		fetch.overrideMimeType('text/plain; charset=x-user-defined');
 		fetch.onreadystatechange = function() {
 			if (this.readyState === 4) {
@@ -148,7 +172,7 @@ midi.loadFile = function(file, onsuccess, onprogress, onerror) {
 					midi.currentData = data;
 					midi.loadMidiFile(onsuccess, onprogress, onerror);
 				} else {
-					onerror && onerror('Unable to load MIDI file');
+					onerror && onerror('Unable to load MIDI file.');
 				}
 			}
 		};
@@ -191,40 +215,44 @@ midi.getFileInstruments = function() {
 var eventQueue = []; // hold events to be triggered
 var queuedTime; // 
 var startTime = 0; // to measure time elapse
-var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener
-var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
+
+midi.packets = {}; // get event for requested note
+
+function scheduleTracking(event, note, currentTime, offset, message, velocity, time) {
 	return setTimeout(function() {
-		var data = {
-			channel: channel,
+		var packet = {
+			name: event.subtype,
+			message: message,
+			channel: event.channel,
+			///
 			note: note,
 			now: currentTime,
-			end: midi.endTime,
-			message: message,
+			end: midi.duration,
 			velocity: velocity
 		};
-		//
-		if (message === 128) {
-			delete noteRegistrar[note];
+		///
+		if (message === 144) { //- handle multiple channels
+			midi.packets[note] = packet;
 		} else {
-			noteRegistrar[note] = data;
+			delete midi.packets[note];
 		}
-		if (onMidiEvent) {
-			onMidiEvent(data);
-		}
+		///
+		onMidiEvent && onMidiEvent(packet);
+		///
 		midi.currentTime = currentTime;
 		///
 		eventQueue.shift();
 		///
 		if (eventQueue.length < 1000) {
 			startAudio(queuedTime, true);
-		} else if (midi.currentTime === queuedTime && queuedTime < midi.endTime) { // grab next sequence
+		} else if (midi.currentTime === queuedTime && queuedTime < midi.duration) { // grab next sequence
 			startAudio(queuedTime, true);
 		}
 	}, currentTime - offset);
 };
 
-var getContext = function() {
+function getContext() {
 	if (MIDI.api === 'webaudio') {
 		return MIDI.WebAudio.getContext();
 	} else {
@@ -233,7 +261,7 @@ var getContext = function() {
 	return midi.ctx;
 };
 
-var getLength = function() {
+function getLength() {
 	var data =  midi.data;
 	var length = data.length;
 	var totalTime = 0.5;
@@ -243,8 +271,8 @@ var getLength = function() {
 	return totalTime;
 };
 
-var __now;
-var getNow = function() {
+var NOW;
+function getNow() {
     if (window.performance && window.performance.now) {
         return window.performance.now();
     } else {
@@ -252,7 +280,7 @@ var getNow = function() {
 	}
 };
 
-var startAudio = function(currentTime, fromCache, onsuccess) {
+function startAudio(currentTime, fromCache, onsuccess) {
 	if (!midi.replayer) {
 		return;
 	}
@@ -264,7 +292,7 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 		midi.playing && stopAudio();
 		midi.playing = true;
 		midi.data = midi.replayer.getData();
-		midi.endTime = getLength();
+		midi.duration = getLength();
 	}
 	///
 	var note;
@@ -281,8 +309,8 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 	///
 	if (MIDI.api !== 'webaudio') { // set currentTime on ctx
 		var now = getNow();
-		__now = __now || now;
-		ctx.currentTime = (now - __now) / 1000;
+		NOW = NOW || now;
+		ctx.currentTime = (now - NOW) / 1000;
 	}
 	///
 	startTime = ctx.currentTime;
@@ -322,7 +350,7 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 				    event: event,
 				    time: queueTime,
 				    source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
-				    interval: scheduleTracking(channelId, note, queuedTime + midi.startDelay, offset - foffset, 144, event.velocity)
+				    interval: scheduleTracking(event, note, queuedTime + midi.startDelay, offset - foffset, 144, event.velocity)
 				});
 				messages++;
 				break;
@@ -333,7 +361,7 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 				    event: event,
 				    time: queueTime,
 				    source: MIDI.noteOff(channelId, event.noteNumber, delay),
-				    interval: scheduleTracking(channelId, note, queuedTime, offset - foffset, 128, 0)
+				    interval: scheduleTracking(event, note, queuedTime, offset - foffset, 128, 0)
 				});
 				break;
 			default:
@@ -344,7 +372,7 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 	onsuccess && onsuccess(eventQueue);
 };
 
-var stopAudio = function() {
+function stopAudio() {
 	var ctx = getContext();
 	midi.playing = false;
 	midi.restart += (ctx.currentTime - startTime) * 1000;
@@ -360,21 +388,23 @@ var stopAudio = function() {
 		}
 	}
 	// run callback to cancel any notes still playing
-	for (var key in noteRegistrar) {
-		var o = noteRegistrar[key]
-		if (noteRegistrar[key].message === 144 && onMidiEvent) {
-			onMidiEvent({
-				channel: o.channel,
-				note: o.note,
-				now: o.now,
-				end: o.end,
-				message: 128,
-				velocity: o.velocity
-			});
+	for (var key in midi.packets) {
+		if (onMidiEvent) {
+			var packet = midi.packets[key]
+			if (packet.message === 144) {
+				onMidiEvent({
+					channel: o.channel,
+					note: o.note,
+					now: o.now,
+					end: o.end,
+					message: 128,
+					velocity: o.velocity
+				});
+			}
 		}
+		///
+		delete midi.packets[key];
 	}
-	// reset noteRegistrar
-	noteRegistrar = {};
 };
 
 })();
