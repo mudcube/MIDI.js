@@ -1,42 +1,41 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<title>MIDI.js - Sequencing in Javascript.</title>
-	<!-- midi.js css -->
+	<!-- css -->
 	<link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
-	<!-- shim -->
-	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
-	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
-	<script src="../inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<script src="../inc/shim/WebMIDIAPI.js" type="text/javascript"></script>
-	<!-- jasmid package -->
+	<!-- shims -->
+	<script src="../inc/shim/Base64.js"></script>
+	<script src="../inc/shim/Base64binary.js"></script>
+	<script src="../inc/shim/WebAudioAPI.js"></script>
+	<script src="../inc/shim/WebMIDIAPI.js"></script>
+	<!-- jasmid -->
 	<script src="../inc/jasmid/stream.js"></script>
 	<script src="../inc/jasmid/midifile.js"></script>
 	<script src="../inc/jasmid/replayer.js"></script>
-	<!-- midi.js package -->
-	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
-	<script src="../js/midi/gm.js" type="text/javascript"></script>
-	<script src="../js/midi/loader.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.audiotag.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webaudio.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webmidi.js" type="text/javascript"></script>
-	<script src="../js/midi/player.js" type="text/javascript"></script>
-	<script src="../js/midi/synesthesia.js" type="text/javascript"></script>
+	<!-- midi.js -->
+	<script src="../js/midi/audioDetect.js"></script>
+	<script src="../js/midi/gm.js"></script>
+	<script src="../js/midi/loader.js"></script>
+	<script src="../js/midi/plugin.audiotag.js"></script>
+	<script src="../js/midi/plugin.webaudio.js"></script>
+	<script src="../js/midi/plugin.webmidi.js"></script>
+	<script src="../js/midi/player.js"></script>
+	<script src="../js/midi/synesthesia.js"></script>
 	<!-- utils -->
-	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
+	<script src="../js/util/dom_request_xhr.js"></script>
+	<script src="../js/util/dom_request_script.js"></script>
 	<!-- includes -->
-	<script src="./inc/timer.js" type="text/javascript"></script>
-	<script src="./inc/colorspace.js" type="text/javascript"></script>
-	<script src="./inc/event.js" type="text/javascript"></script>
+	<script src="./inc/ui/timer.js"></script>
+	<script src="./inc/colorspace.js"></script>
+	<script src="./inc/event.js"></script>
 </head>
 <body>
 	<img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
 	<img src="./images/tuna.png" onmousedown="event.preventDefault()" width="625" style="opacity: 0.95; position: fixed; top: 0; left: 765px; z-index: 2; padding: 10px; float: left; margin-right: 20px; ">
 	<h1>MIDI.js - Sequencing in Javascript.</h1>
-	<div style="position: fixed; top: 0; left: 0; z-index: 4; overflow: hidden;" id="colors"></div>
-	<div style="text-align: center; position: absolute; top: -70px; left: -40px; opacity: 0.9" id="colors"></div>
+	<div style="position: fixed; top: 0; left: 0; z-index: 4; overflow: hidden;" class="keys"></div>
 	<div style="margin-bottom: 50px; border: 1px solid #000; background: rgba(255,255,255,0.5); border-radius: 11px; float: left; width: 800px; padding-bottom: 15px; position: relative; z-index: 2;">
 		<div class="player" style="height: 42px; box-shadow: 0 -1px #000; margin-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
 			<div style="margin: 0 auto; width: 160px; float: right;">
@@ -59,7 +58,7 @@
 			simulations, Drum machines, MIDI recording, and all kinds of certified funkitude is within your grasps!
 			<p><a href="https://www.google.com/chrome">Google Chrome</a> is recommended for best listening experience, it&rsquo;s timing perfection! Firefox and Safari can both perform a bit more like the piano has been drinking, arrr.</p>
 			<p>Carpe beerum, and <a href="https://github.com/mudcube/MIDI.js">commandeer</a> yer own copy!</p>
-			<p><a href="../README.md" target="_blank">Documentation</a>
+			<p><a href="https://github.com/mudcube/MIDI.js/blob/master/README.md" target="_blank">Documentation</a>
 			<h3>Basic Examples</h3>
 			<ol>
 				<li><a href="./Basic.html" target="_blank">Basic (play note)</a></li>
@@ -91,7 +90,7 @@
 			<li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">Base64binary.js</a>: &nbsp;Converts base64 soundfonts to binary for Web Audio API.</li>
 	</div>
 
-<script type="text/javascript">
+<script>
 	if (typeof (console) === "undefined") var console = {
 		log: function() {}
 	};
@@ -106,7 +105,7 @@
 			MIDI.Player.pause(true);
 		} else {
 			d.src = "./images/pause.png";
-			MIDI.Player.resume();
+			MIDI.Player.play();
 		}
 	};
 	eventjs.add(window, "load", function(event) {
@@ -122,7 +121,7 @@
 		document.body.appendChild(link);
 		
 		/// load up the piano keys
-		var colors = document.getElementById("colors");
+		var colors = document.querySelector(".keys");
 		var colorElements = [];
 		for (var n = 0; n < 88; n++) {
 			var d = document.createElement("div");
@@ -179,13 +178,13 @@
 		//
 		eventjs.add(capsule, "drag", function(event, self) {
 			eventjs.cancel(event);
-			player.currentTime = (self.x) / 420 * player.endTime;
+			player.currentTime = (self.x) / 420 * player.duration;
 			if (player.currentTime < 0) player.currentTime = 0;
-			if (player.currentTime > player.endTime) player.currentTime = player.endTime;
+			if (player.currentTime > player.duration) player.currentTime = player.duration;
 			if (self.state === "down") {
 				player.pause(true);
 			} else if (self.state === "up") {
-				player.resume();
+				player.play();
 			}
 		});
 		//
@@ -200,17 +199,18 @@
 			player.loadFile(song[id], player.start); // load MIDI
 		};
 		player.setAnimation(function(data, element) {
-			var percent = data.now / data.end;
-			var now = data.now >> 0; // where we are now
-			var end = data.end >> 0; // end of song
-			if (now === end) { // go to next song
+			var progress = data.progress;
+			var currentTime = data.currentTime >> 0; // where we are now
+			var duration = data.duration >> 0; // end of song
+			///
+			if (currentTime === duration) { // go to next song
 				var id = ++songid % song.length;
 				player.loadFile(song[id], player.start); // load MIDI
 			}
-			// display the information to the user
-			timeCursor.style.width = (percent * 100) + "%";
-			time1.innerHTML = timeFormatting(now);
-			time2.innerHTML = "-" + timeFormatting(end - now);
+			///
+			timeCursor.style.width = (progress * 100) + "%";
+			time1.innerHTML = timeFormatting(currentTime);
+			time2.innerHTML = "-" + timeFormatting(duration - currentTime);
 		});
 	};
 	

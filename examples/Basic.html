@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns = "http://www.w3.org/1999/xhtml">
+<html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<!-- polyfill -->
+	<!-- shims -->
 	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
 	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
 	<script src="../inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<!-- midi.js package -->
+	<!-- midi.js -->
 	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
 	<script src="../js/midi/gm.js" type="text/javascript"></script>
 	<script src="../js/midi/loader.js" type="text/javascript"></script>
@@ -18,7 +18,7 @@
 	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
 <body>
-<script type="text/javascript">
+<script>
 
 window.onload = function () {
 	MIDI.loadPlugin({

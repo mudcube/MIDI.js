@@ -1,11 +1,14 @@
 /*
 	----------------------------------------------------------
-	util/Request : 0.1.1 : 2015-03-26
+	util/Request : 0.1.1 : 2015-04-12 : https://sketch.io
+	----------------------------------------------------------
+	XMLHttpRequest - IE7+ | Chrome 1+ | Firefox 1+ | Safari 1.2+
+	CORS - IE10+ | Chrome 3+ | Firefox 3.5+ | Safari 4+
 	----------------------------------------------------------
 	util.request({
 		url: './dir/something.extension',
 		data: 'test!',
-		format: 'text', // text | xml | json | binary
+		format: 'text', // text | xml | json
 		responseType: 'text', // arraybuffer | blob | document | json | text
 		headers: {},
 		withCredentials: true, // true | false
@@ -21,6 +24,10 @@
 			loader.create('thread', 'loading... ', percent);
 		}
 	});
+	
+	
+	https://mathiasbynens.be/demo/xhr-responsetype //- shim for responseType='json'
+	
 */
 
 if (typeof MIDI === 'undefined') MIDI = {};
@@ -40,9 +47,9 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		var responseType = opts.responseType;
 		var withCredentials = opts.withCredentials || false;
 		///
+		var onprogress = onprogress || opts.onprogress;
 		var onsuccess = onsuccess || opts.onsuccess;
 		var onerror = onerror || opts.onerror;
-		var onprogress = onprogress || opts.onprogress;
 		///
 		if (typeof NodeFS !== 'undefined' && root.loc.isLocalUrl(url)) {
 			NodeFS.readFile(url, 'utf8', function(err, res) {
@@ -65,16 +72,11 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		} else if (data) { // set the default headers for POST
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		}
-		if (format === 'binary') { //- default to responseType="blob" when supported
-			if (xhr.overrideMimeType) {
-				xhr.overrideMimeType('text/plain; charset=x-user-defined');
-			}
-		}
 		if (responseType) {
 			xhr.responseType = responseType;
 		}
 		if (withCredentials) {
-			xhr.withCredentials = 'true';
+			xhr.withCredentials = true;
 		}
 		if (onerror && 'onerror' in xhr) {
 			xhr.onerror = onerror;
@@ -103,7 +105,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				});
 			}
 		}
-		///
+
 		xhr.onreadystatechange = function(evt) {
 			if (xhr.readyState === 4) { // The request is complete
 				if (xhr.status === 200 || // Response OK
@@ -113,16 +115,18 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				) {
 					if (onsuccess) {
 						var res;
-						if (format === 'xml') {
-							res = evt.target.responseXML;
-						} else if (format === 'text') {
-							res = evt.target.responseText;
-						} else if (format === 'json') {
+						if (format === 'json') {
 							try {
 								res = JSON.parse(evt.target.response);
 							} catch(err) {
 								onerror && onerror.call(xhr, evt);
 							}
+						} else if (format === 'xml') {
+							res = evt.target.responseXML;
+						} else if (format === 'text') {
+							res = evt.target.responseText;
+						} else {
+							res = evt.target.response;
 						}
 						///
 						onsuccess.call(xhr, evt, res);
