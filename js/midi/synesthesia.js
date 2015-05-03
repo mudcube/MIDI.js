@@ -1,15 +1,15 @@
 /*
 	----------------------------------------------------------
-	MIDI.Synesthesia : 0.3.1 : 2012-01-06
+	MIDI.Synesthesia : 0.3.1 : 2015-05-02 : https://mudcu.be
 	----------------------------------------------------------
-	Peacock:  “Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
-	Gerstner:  Karl Gerstner, The Forms of Color 1986
-	Klein:  Colour-Music: The art of light, London: Crosby Lockwood and Son, 1927.
-	Jameson:  “Visual music in a visual programming language,” IEEE Symposium on Visual Languages, 1999, 111-118. 
-	Helmholtz:  Treatise on Physiological Optics, New York: Dover Books, 1962 
-	Jones:  The art of light & color, New York: Van Nostrand Reinhold, 1972
+	Peacock		“Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
+	Gerstner	Karl Gerstner, The Forms of Color 1986.
+	Klein		Colour-Music: The art of light, London: Crosby Lockwood and Son, 1927.
+	Jameson		“Visual music in a visual programming language,” IEEE Symposium on Visual Languages, 1999, 111-118.
+	Helmholtz	Treatise on Physiological Optics, New York: Dover Books, 1962.
+	Jones		The art of light & color, New York: Van Nostrand Reinhold, 1972.
 	----------------------------------------------------------
-	Reference: http://rhythmiclight.com/archives/ideas/colorscales.html
+	Reference	http://rhythmiclight.com/archives/ideas/colorscales.html
 	----------------------------------------------------------
 */
 
@@ -18,11 +18,11 @@ if (typeof MIDI === 'undefined') var MIDI = {};
 MIDI.Synesthesia = MIDI.Synesthesia || {};
 
 (function(root) {
-	root.data = {
+	var defs = {
 		'Isaac Newton (1704)': { 
 			format: 'HSL',
 			ref: 'Gerstner, p.167',
-			english: ['red',null,'orange',null,'yellow','green',null,'blue',null,'indigo',null,'violet'],
+			english: ['red', null, 'orange', null, 'yellow', 'green', null, 'blue', null, 'indigo', null, 'violet'],
 			0: [ 0, 96, 51 ], // C
 			1: [ 0, 0, 0 ], // C#
 			2: [ 29, 94, 52 ], // D
@@ -39,7 +39,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Louis Bertrand Castel (1734)': { 
 			format: 'HSL',
 			ref: 'Peacock, p.400',
-			english: ['blue','blue-green','green','olive green','yellow','yellow-orange','orange','red','crimson','violet','agate','indigo'],
+			english: ['blue', 'blue-green', 'green', 'olive green', 'yellow', 'yellow-orange', 'orange', 'red', 'crimson', 'violet', 'agate', 'indigo'],			
 			0: [ 248, 82, 28 ],
 			1: [ 172, 68, 34 ],
 			2: [ 135, 76, 32 ],
@@ -56,7 +56,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'George Field (1816)': { 
 			format: 'HSL',
 			ref: 'Klein, p.69',
-			english: ['blue',null,'purple',null,'red','orange',null,'yellow',null,'yellow green',null,'green'],
+			english: ['blue', null, 'purple', null, 'red', 'orange', null, 'yellow', null, 'yellow green', null, 'green'],
 			0: [ 248, 82, 28 ],
 			1: [ 0, 0, 0 ],
 			2: [ 302, 88, 26 ],
@@ -73,7 +73,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'D. D. Jameson (1844)': { 
 			format: 'HSL',
 			ref: 'Jameson, p.12',
-			english: ['red','red-orange','orange','orange-yellow','yellow','green','green-blue','blue','blue-purple','purple','purple-violet','violet'],
+			english: ['red', 'red-orange', 'orange', 'orange-yellow', 'yellow', 'green', 'green-blue', 'blue', 'blue-purple', 'purple', 'purple-violet', 'violet'],
 			0: [ 360, 96, 51 ],
 			1: [ 14, 91, 51 ],
 			2: [ 29, 94, 52 ],
@@ -90,7 +90,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Theodor Seemann (1881)': { 
 			format: 'HSL',
 			ref: 'Klein, p.86',
-			english: ['carmine','scarlet','orange','yellow-orange','yellow','green','green blue','blue','indigo','violet','brown','black'],
+			english: ['carmine', 'scarlet', 'orange', 'yellow-orange', 'yellow', 'green', 'green blue', 'blue', 'indigo', 'violet', 'brown', 'black'],
 			0: [ 0, 58, 26 ],
 			1: [ 360, 96, 51 ],
 			2: [ 29, 94, 52 ],
@@ -107,7 +107,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'A. Wallace Rimington (1893)': { 
 			format: 'HSL',
 			ref: 'Peacock, p.402',
-			english: ['deep red','crimson','orange-crimson','orange','yellow','yellow-green','green','blueish green','blue-green','indigo','deep blue','violet'],
+			english: ['deep red', 'crimson', 'orange-crimson', 'orange', 'yellow', 'yellow-green', 'green', 'blueish green', 'blue-green', 'indigo', 'deep blue', 'violet'],
 			0: [ 360, 96, 51 ],
 			1: [ 1, 89, 33 ],
 			2: [ 14, 91, 51 ],
@@ -124,7 +124,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Bainbridge Bishop (1893)': { 
 			format: 'HSL',
 			ref: 'Bishop, p.11',
-			english: ['red','orange-red or scarlet','orange','gold or yellow-orange','yellow or green-gold','yellow-green','green','greenish-blue or aquamarine','blue','indigo or violet-blue','violet','violet-red','red'],
+			english: ['red', 'orange-red or scarlet', 'orange', 'gold or yellow-orange', 'yellow or green-gold', 'yellow-green', 'green', 'greenish-blue or aquamarine', 'blue', 'indigo or violet-blue', 'violet', 'violet-red', 'red'],			
 			0: [ 360, 96, 51 ],
 			1: [ 1, 89, 33 ],
 			2: [ 29, 94, 52 ],
@@ -141,7 +141,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'H. von Helmholtz (1910)': { 
 			format: 'HSL',
 			ref: 'Helmholtz, p.22',
-			english: ['yellow','green','greenish blue','cayan-blue','indigo blue','violet','end of red','red','red','red','red orange','orange'],
+			english: ['yellow', 'green', 'greenish blue', 'cayan-blue', 'indigo blue', 'violet', 'end of red', 'red', 'red', 'red', 'red orange', 'orange'],
 			0: [ 60, 90, 60 ],
 			1: [ 135, 76, 32 ],
 			2: [ 172, 68, 34 ],
@@ -158,7 +158,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Alexander Scriabin (1911)': { 
 			format: 'HSL',
 			ref: 'Jones, p.104',
-			english: ['red','violet','yellow','steely with the glint of metal','pearly blue the shimmer of moonshine','dark red','bright blue','rosy orange','purple','green','steely with a glint of metal','pearly blue the shimmer of moonshine'],
+			english: ['red', 'violet', 'yellow', 'steely with the glint of metal', 'pearly blue the shimmer of moonshine', 'dark red', 'bright blue', 'rosy orange', 'purple', 'green', 'steely with a glint of metal', 'pearly blue the shimmer of moonshine'],
 			0: [ 360, 96, 51 ],
 			1: [ 325, 84, 46 ],
 			2: [ 60, 90, 60 ],
@@ -175,7 +175,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Adrian Bernard Klein (1930)': { 
 			format: 'HSL',
 			ref: 'Klein, p.209',
-			english: ['dark red','red','red orange','orange','yellow','yellow green','green','blue-green','blue','blue violet','violet','dark violet'],
+			english: ['dark red', 'red', 'red orange', 'orange', 'yellow', 'yellow green', 'green', 'blue-green', 'blue', 'blue violet', 'violet', 'dark violet'],
 			0: [ 0, 91, 40 ],
 			1: [ 360, 96, 51 ],
 			2: [ 14, 91, 51 ],
@@ -192,7 +192,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'August Aeppli (1940)': { 
 			format: 'HSL',
 			ref: 'Gerstner, p.169',
-			english: ['red',null,'orange',null,'yellow',null,'green','blue-green',null,'ultramarine blue','violet','purple'],
+			english: ['red', null, 'orange', null, 'yellow', null, 'green', 'blue-green', null, 'ultramarine blue', 'violet', 'purple'],
 			0: [ 0, 96, 51 ],
 			1: [ 0, 0, 0 ],
 			2: [ 29, 94, 52 ],
@@ -208,7 +208,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		},
 		'I. J. Belmont (1944)': { 
 			ref: 'Belmont, p.226',
-			english: ['red','red-orange','orange','yellow-orange','yellow','yellow-green','green','blue-green','blue','blue-violet','violet','red-violet'],
+			english: ['red', 'red-orange', 'orange', 'yellow-orange', 'yellow', 'yellow-green', 'green', 'blue-green', 'blue', 'blue-violet', 'violet', 'red-violet'],
 			0: [ 360, 96, 51 ],
 			1: [ 14, 91, 51 ],
 			2: [ 29, 94, 52 ],
@@ -225,7 +225,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Steve Zieverink (2004)': { 
 			format: 'HSL',
 			ref: 'Cincinnati Contemporary Art Center',
-			english: ['yellow-green','green','blue-green','blue','indigo','violet','ultra violet','infra red','red','orange','yellow-white','yellow'],
+			english: ['yellow-green', 'green', 'blue-green', 'blue', 'indigo', 'violet', 'ultra violet', 'infra red', 'red', 'orange', 'yellow-white', 'yellow'],
 			0: [ 73, 73, 55 ],
 			1: [ 135, 76, 32 ],
 			2: [ 172, 68, 34 ],
@@ -242,7 +242,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 		'Circle of Fifths (Johnston 2003)': {
 			format: 'RGB',
 			ref: 'Joseph Johnston',
-			english: ['yellow', 'blue', 'orange', 'teal', 'red', 'green', 'purple', 'light orange', 'light blue', 'dark orange', 'dark green', 'violet' ],
+			english: ['yellow', 'blue', 'orange', 'teal', 'red', 'green', 'purple', 'light orange', 'light blue', 'dark orange', 'dark green', 'violet'],
 			0: [ 255, 255, 0 ],
 			1: [ 50, 0, 255 ],
 			2: [ 255, 150, 0 ],
@@ -260,11 +260,12 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 			format: 'HEX',
 			ref: 'Stuart Wheatman', // http://www.valleysfamilychurch.org/
 			english: [],
-			data: ['#122400', '#2E002E', '#002914', '#470000', '#002142', '#2E2E00', '#290052', '#003D00', '#520029', '#003D3D', '#522900', '#000080', '#244700', '#570057', '#004D26', '#7A0000', '#003B75', '#4C4D00', '#47008F', '#006100', '#850042', '#005C5C', '#804000', '#0000C7', '#366B00', '#80007F', '#00753B', '#B80000', '#0057AD', '#6B6B00', '#6600CC', '#008A00', '#B8005C', '#007F80', '#B35900', '#2424FF', '#478F00', '#AD00AD', '#00994D', '#F00000', '#0073E6', '#8F8F00', '#8A14FF', '#00AD00', '#EB0075', '#00A3A3', '#E07000', '#6B6BFF', '#5CB800', '#DB00DB', '#00C261', '#FF5757', '#3399FF', '#ADAD00', '#B56BFF', '#00D600', '#FF57AB', '#00C7C7', '#FF9124', '#9999FF', '#6EDB00', '#FF29FF', '#00E070', '#FF9999', '#7ABDFF', '#D1D100', '#D1A3FF', '#00FA00', '#FFA3D1', '#00E5E6', '#FFC285', '#C2C2FF', '#80FF00', '#FFA8FF', '#00E070', '#FFCCCC', '#C2E0FF', '#F0F000', '#EBD6FF', '#ADFFAD', '#FFD6EB', '#8AFFFF', '#FFEBD6', '#EBEBFF', '#E0FFC2', '#FFEBFF', '#E5FFF2', '#FFF5F5']		}
+			data: ['#122400', '#2E002E', '#002914', '#470000', '#002142', '#2E2E00', '#290052', '#003D00', '#520029', '#003D3D', '#522900', '#000080', '#244700', '#570057', '#004D26', '#7A0000', '#003B75', '#4C4D00', '#47008F', '#006100', '#850042', '#005C5C', '#804000', '#0000C7', '#366B00', '#80007F', '#00753B', '#B80000', '#0057AD', '#6B6B00', '#6600CC', '#008A00', '#B8005C', '#007F80', '#B35900', '#2424FF', '#478F00', '#AD00AD', '#00994D', '#F00000', '#0073E6', '#8F8F00', '#8A14FF', '#00AD00', '#EB0075', '#00A3A3', '#E07000', '#6B6BFF', '#5CB800', '#DB00DB', '#00C261', '#FF5757', '#3399FF', '#ADAD00', '#B56BFF', '#00D600', '#FF57AB', '#00C7C7', '#FF9124', '#9999FF', '#6EDB00', '#FF29FF', '#00E070', '#FF9999', '#7ABDFF', '#D1D100', '#D1A3FF', '#00FA00', '#FFA3D1', '#00E5E6', '#FFC285', '#C2C2FF', '#80FF00', '#FFA8FF', '#00E070', '#FFCCCC', '#C2E0FF', '#F0F000', '#EBD6FF', '#ADFFAD', '#FFD6EB', '#8AFFFF', '#FFEBD6', '#EBEBFF', '#E0FFC2', '#FFEBFF', '#E5FFF2', '#FFF5F5']
+		}
 	};
 
 	root.map = function(type) {
-		var data = {};
+		var res = {};
 		var blend = function(a, b) {
 			return [ // blend two colors and round results
 				(a[0] * 0.5 + b[0] * 0.5 + 0.5) >> 0, 
@@ -273,48 +274,48 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 			];
 		};
 		///
-		var syn = root.data;
-		var colors = syn[type] || syn['D. D. Jameson (1844)'];
-		for (var note = 0, pclr, H, S, L; note <= 88; note ++) { // creates mapping for 88 notes
+		var colors = defs[type] || defs['D. D. Jameson (1844)'];
+		for (var note = 0, pcolor; note <= 88; note ++) { // creates mapping for 88 notes
 			if (colors.data) {
-				data[note] = {
+				res[note] = {
 					hsl: colors.data[note],
 					hex: colors.data[note] 
 				};
 			} else {
-				var clr = colors[(note + 9) % 12];
+				var color = colors[(note + 9) % 12];
 				///
+				var H, S, L;
 				switch(colors.format) {
 					case 'RGB':
-						clr = Color.Space(clr, 'RGB>HSL');
-						H = clr.H >> 0;
-						S = clr.S >> 0;
-						L = clr.L >> 0;
+						color = Color.Space(color, 'RGB>HSL');
+						H = color.H >> 0;
+						S = color.S >> 0;
+						L = color.L >> 0;
 						break;
 					case 'HSL':
-						H = clr[0];
-						S = clr[1];
-						L = clr[2];
+						H = color[0];
+						S = color[1];
+						L = color[2];
 						break;
 				}
 				///
 				if (H === S && S === L) { // note color is unset
-					clr = blend(pclr, colors[(note + 10) % 12]);
+					color = blend(pcolor, colors[(note + 10) % 12]);
 				}
 				///
 // 				var amount = L / 10;
 // 				var octave = note / 12 >> 0;
 // 				var octaveLum = L + amount * octave - 3.0 * amount; // map luminance to octave
 				///
-				data[note] = {
+				res[note] = {
 					hsl: 'hsla(' + H + ',' + S + '%,' + L + '%, 1)',
 					hex: Color.Space({H: H, S: S, L: L}, 'HSL>RGB>HEX>W3')
 				};
 				///
-				pclr = clr;
+				pcolor = color;
 			}
 		}
-		return data;
+		return res;
 	};
 
 })(MIDI.Synesthesia);
