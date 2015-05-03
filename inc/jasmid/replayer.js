@@ -58,21 +58,21 @@ function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
 				}
 			}
 			return {
-				"ticksToEvent": ticksToNextEvent,
-				"event": nextEvent,
-				"track": nextEventTrack
+				'ticksToEvent': ticksToNextEvent,
+				'event': nextEvent,
+				'track': nextEventTrack
 			}
 		} else {
 			return null;
 		}
 	};
-	//
+	///
 	var midiEvent;
 	var temporal = [];
-	//
+	///
 	function processEvents() {
 		function processNext() {
-		    if (!bpmOverride && midiEvent.event.type == "meta" && midiEvent.event.subtype == "setTempo" ) {
+		    if (!bpmOverride && midiEvent.event.type == 'meta' && midiEvent.event.subtype == 'setTempo' ) {
 				// tempo change events can occur anywhere in the middle and affect events that follow
 				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
 			}
@@ -93,9 +93,10 @@ function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
 			while(midiEvent) processNext(true);
 		}
 	};
+	///
 	processEvents();
 	return {
-		"getData": function() {
+		getData: function() {
 			return clone(temporal);
 		}
 	};
