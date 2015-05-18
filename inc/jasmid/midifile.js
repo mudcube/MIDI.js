@@ -22,10 +22,13 @@ function MidiFile(data) {
 		if ((eventTypeByte & 0xf0) == 0xf0) {
 			/* system / meta event */
 			if (eventTypeByte == 0xff) {
-				/* meta event */
-				event.type = 'meta';
 				var subtypeByte = stream.readInt8();
 				var length = stream.readVarInt();
+
+				/* meta event */
+				event.type = 'meta';
+				event.status = subtypeByte;
+
 				switch(subtypeByte) {
 					case 0x00:
 						event.subtype = 'sequenceNumber';
@@ -143,9 +146,12 @@ function MidiFile(data) {
 				param1 = stream.readInt8();
 				lastEventTypeByte = eventTypeByte;
 			}
+
 			var eventType = eventTypeByte >> 4;
 			event.channel = eventTypeByte & 0x0f;
 			event.type = 'channel';
+			event.status = eventTypeByte;
+
 			switch (eventType) {
 				case 0x08:
 					event.subtype = 'noteOff';

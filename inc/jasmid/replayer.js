@@ -1,18 +1,25 @@
-var clone = function (o) {
-	if (typeof o != 'object') return (o);
-	if (o == null) return (o);
-	var ret = (typeof o.length == 'number') ? [] : {};
-	for (var key in o) ret[key] = clone(o[key]);
-	return ret;
-};
-
 function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
+	function clone(o) {
+		if (typeof o === 'object') {
+			if (o == null) {
+				return (o);
+			} else {
+				var res = typeof o.length === 'number' ? [] : {};
+				for (var key in o) {
+					res[key] = clone(o[key]);
+				}
+				return res;
+			}
+		} else {
+			return o;
+		}
+	};
+
 	var trackStates = [];
 	var beatsPerMinute = bpm ? bpm : 120;
-	var bpmOverride = bpm ? true : false;
-
-	var ticksPerBeat = midiFile.header.ticksPerBeat;
-	
+	var bpmOverride = bpm === +bpm;
+	///
+	var ticksPerBeat = midiFile.header.ticksPerBeat;	
 	for (var i = 0; i < midiFile.tracks.length; i++) {
 		trackStates[i] = {
 			'nextEventIndex': 0,
@@ -67,34 +74,61 @@ function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
 		}
 	};
 	///
-	var midiEvent;
+	var packet;
 	var temporal = [];
+	var calcDuration = {}; // used to calculate duration of noteOn
 	///
 	function processEvents() {
 		function processNext() {
-		    if (!bpmOverride && midiEvent.event.type == 'meta' && midiEvent.event.subtype == 'setTempo' ) {
-				// tempo change events can occur anywhere in the middle and affect events that follow
-				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
-			}
+			var event = packet.event;
+			var subtype = event.subtype;
 			///
 			var beatsToGenerate = 0;
 			var secondsToGenerate = 0;
-			if (midiEvent.ticksToEvent > 0) {
-				beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
+			if (packet.ticksToEvent > 0) {
+				beatsToGenerate = packet.ticksToEvent / ticksPerBeat;
 				secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
 			}
 			///
-			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
-			temporal.push([ midiEvent, time]);
-			midiEvent = getNextEvent();
+			var currentTime = secondsToGenerate * 1000 * timeWarp || 0;
+			///
+			switch(subtype) {
+				case 'setTempo':
+					if (!bpmOverride) { // tempo change events can occur anywhere in the middle and affect events that follow
+						beatsPerMinute = 60000000 / event.microsecondsPerBeat;
+					}
+					break;
+				case 'noteOn':
+					var eid = event.channel + 'x' + event.noteNumber;
+ 					calcDuration[eid] = {
+ 						event: event,
+ 						currentTime: currentTime
+ 					};
+					break;
+				case 'noteOff':
+					var eid = event.channel + 'x' + event.noteNumber;
+					var map = calcDuration[eid];
+					if (map) {
+						map.event.duration = currentTime - map.currentTime;
+						delete calcDuration[eid];
+					}
+					break;
+			}
+			///
+			temporal.push([packet, currentTime]);
+			///
+			packet = getNextEvent();
 		};
 		///
-		if (midiEvent = getNextEvent()) {
-			while(midiEvent) processNext(true);
+		if (packet = getNextEvent()) {
+			while(packet) {
+				processNext(true);
+			}
 		}
 	};
 	///
 	processEvents();
+	///
 	return {
 		getData: function() {
 			return clone(temporal);
