@@ -98,14 +98,14 @@
 	var pausePlayStop = function(stop) {
 		var d = document.getElementById("pausePlayStop");
 		if (stop) {
-			MIDI.Player.stop();
+			MIDI.player.stop();
 			d.src = "./images/play.png";
-		} else if (MIDI.Player.playing) {
+		} else if (MIDI.player.isPlaying) {
 			d.src = "./images/play.png";
-			MIDI.Player.pause(true);
+			MIDI.player.pause(true);
 		} else {
 			d.src = "./images/pause.png";
-			MIDI.Player.play();
+			MIDI.player.play();
 		}
 	};
 	eventjs.add(window, "load", function(event) {
@@ -141,19 +141,19 @@
 				var title = document.getElementById("title");
 				title.innerHTML = "Sound being generated with " + MIDI.api + " " + JSON.stringify(MIDI.supports);
 
-				/// this sets up the MIDI.Player and gets things going...
-				player = MIDI.Player;
+				/// this sets up the MIDI.player and gets things going...
+				player = MIDI.player;
 				player.timeWarp = 1; // speed the song is played back
 				player.loadFile(song[songid++ % song.length], player.start);
 
 				/// control the piano keys colors
 				var colorMap = MIDI.Synesthesia.map();
-				player.addListener(function(data) {
-					var pianoKey = data.note - 21;
+				player.addListener(function(event) {
+					var pianoKey = event.noteNumber - 21;
 					var d = colorElements[pianoKey];
 					if (d) {
-						if (data.message === 144) {
-							var map = colorMap[data.note - 27];
+						if (event.status === 144) {
+							var map = colorMap[event.noteNumber - 27];
 							if (map) d.style.background = map.hex;
 							d.style.color = "#fff";
 						} else {
@@ -198,10 +198,10 @@
 			var id = Math.abs((songid += n) % song.length);
 			player.loadFile(song[id], player.start); // load MIDI
 		};
-		player.setAnimation(function(data, element) {
-			var progress = data.progress;
-			var currentTime = data.currentTime >> 0; // where we are now
-			var duration = data.duration >> 0; // end of song
+		player.setAnimation(function(event, element) {
+			var progress = event.progress;
+			var currentTime = event.currentTime >> 0; // where we are now
+			var duration = event.duration >> 0; // end of song
 			///
 			if (currentTime === duration) { // go to next song
 				var id = ++songid % song.length;

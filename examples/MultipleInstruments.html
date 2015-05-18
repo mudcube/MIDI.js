@@ -57,7 +57,7 @@ window.onload = function () {
 			MIDI.loader.setValue(progress * 100);
 		},
 		onsuccess: function() {
-			var player = MIDI.Player;
+			var player = MIDI.player;
 			player.timeWarp = 1; // speed the song is played back
 			player.loadFile(song, player.start, handleProgress, handleError);
 		}
