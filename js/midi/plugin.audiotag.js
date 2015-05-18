@@ -6,10 +6,10 @@
 	----------------------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
 	window.Audio && (function() {
-		var midi = root.AudioTag = { api: 'audiotag' };
+		var midi = MIDI.AudioTag = { api: 'audiotag' };
 		var noteToKey = {};
 		var volume = 127; // floating point 
 		var buffer_nid = -1; // current channel
@@ -21,22 +21,22 @@
 		}
 
 		function playChannel(channel, note) {
-			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].program;
-			var instrumentId = root.GM.byId[instrument].id;
+			if (!MIDI.channels[channel]) return;
+			var instrument = MIDI.channels[channel].program;
+			var instrumentId = MIDI.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
 				var instrumentNoteId = instrumentId + '' + note.id;
 				var nid = (buffer_nid + 1) % audioBuffers.length;
 				var audio = audioBuffers[nid];
 				notesOn[ nid ] = instrumentNoteId;
-				if (!root.Soundfont[instrumentId]) {
-					if (root.DEBUG) {
+				if (!MIDI.Soundfont[instrumentId]) {
+					if (MIDI.DEBUG) {
 						console.log('404', instrumentId);
 					}
 					return;
 				}
-				audio.src = root.Soundfont[instrumentId][note.id];
+				audio.src = MIDI.Soundfont[instrumentId][note.id];
 				audio.volume = volume / 127;
 				audio.play();
 				buffer_nid = nid;
@@ -44,9 +44,9 @@
 		};
 
 		function stopChannel(channel, note) {
-			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].program;
-			var instrumentId = root.GM.byId[instrument].id;
+			if (!MIDI.channels[channel]) return;
+			var instrument = MIDI.channels[channel].program;
+			var instrumentId = MIDI.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
 				var instrumentNoteId = instrumentId + '' + note.id;
@@ -61,16 +61,14 @@
 				}
 			}
 		};
-	
+		///
 		midi.audioBuffers = audioBuffers;
+		midi.messageHandler = {};
+		///
 		midi.send = function(data, delay) { };
 		midi.setController = function(channel, type, value, delay) { };
 		midi.setVolume = function(channel, n) {
 			volume = n; //- should be channel specific volume
-		};
-
-		midi.programChange = function(channel, program) {
-			root.channels[channel].program = program;
 		};
 
 		midi.pitchBend = function(channel, program, delay) { };
@@ -140,10 +138,10 @@
 		};
 	
 		midi.connect = function(opts) {
-			root.setDefaultPlugin(midi);
+			MIDI.setDefaultPlugin(midi);
 			///
-			for (var key in root.keyToNote) {
-				noteToKey[root.keyToNote[key]] = key;
+			for (var key in MIDI.keyToNote) {
+				noteToKey[MIDI.keyToNote[key]] = key;
 				notes[key] = {id: key};
 			}
 			///

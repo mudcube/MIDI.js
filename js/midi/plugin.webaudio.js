@@ -6,13 +6,13 @@
 	----------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
 	window.AudioContext && (function() {
 
 		var audioContext = null; // new AudioContext();
 		var useStreamingBuffer = false; // !!audioContext.createMediaElementSource;
-		var midi = root.WebAudio = {api: 'webaudio'};
+		var midi = MIDI.WebAudio = {api: 'webaudio'};
 		var ctx; // audio context
 		var sources = {};
 		var effects = {};
@@ -20,6 +20,7 @@
 		var audioBuffers = {};
 		///
 		midi.audioBuffers = audioBuffers;
+		midi.messageHandler = {};
 		///
 		midi.send = function(data, delay) {
 		
@@ -39,21 +40,8 @@
 			}
 		};
 
-		midi.programChange = function(channelId, program, delay) {
-			var channel = root.channels[channelId];
-			if (channel) {
-				if (delay) {
-					return setTimeout(function() {
-						channel.program = program;
-					}, delay);
-				} else {
-					channel.program = program;
-				}
-			}
-		};
-
 		midi.pitchBend = function(channelId, bend, delay) {
-			var channel = root.channels[channelId];
+			var channel = MIDI.channels[channelId];
 			if (channel) {
 				if (delay) {
 					setTimeout(function() {
@@ -69,7 +57,7 @@
 			delay = delay || 0;
 
 			/// check whether the note exists
-			var channel = root.channels[channelId];
+			var channel = MIDI.channels[channelId];
 			var instrument = channel.program;
 			var bufferId = instrument + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
@@ -131,7 +119,7 @@
 			delay = delay || 0;
 
 			/// check whether the note exists
-			var channel = root.channels[channelId];
+			var channel = MIDI.channels[channelId];
 			var instrument = channel.program;
 			var bufferId = instrument + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
@@ -223,7 +211,7 @@
 		};
 
 		midi.connect = function(opts) {
-			root.setDefaultPlugin(midi);
+			MIDI.setDefaultPlugin(midi);
 			midi.setContext(ctx || createAudioContext(), opts.onsuccess);
 		};
 	
@@ -231,27 +219,32 @@
 			return ctx;
 		};
 	
-		midi.setContext = function(newCtx, onload, onprogress, onerror) {
+		midi.setContext = function(newCtx, onsuccess, onprogress, onerror) {
 			ctx = newCtx;
 
 			/// tuna.js effects module - https://github.com/Dinahmoe/tuna
-			if (typeof Tuna !== 'undefined' && !ctx.tunajs) {
-				ctx.tunajs = new Tuna(ctx);
+			if (typeof Tuna !== 'undefined') {
+				if (!(ctx.tunajs instanceof Tuna)) {
+					ctx.tunajs = new Tuna(ctx);
+				}
 			}
 		
 			/// loading audio files
 			var urls = [];
-			var notes = root.keyToNote;
-			for (var key in notes) urls.push(key);
+			var notes = MIDI.keyToNote;
+			for (var key in notes) {
+				urls.push(key);
+			}
 			///
 			function waitForEnd(instrument) {
 				for (var key in bufferPending) { // has pending items
-					if (bufferPending[key]) return;
+					if (bufferPending[key]) {
+						return;
+					}
 				}
-				///
-				if (onload) { // run onload once
-					onload();
-					onload = null;
+				if (onsuccess) { // run onsuccess once
+					onsuccess();
+					onsuccess = null;
 				}
 			};
 
@@ -261,12 +254,13 @@
 					bufferPending[programId] ++;
 					loadAudio(url, function(buffer) {
 						buffer.id = key;
-						var noteId = root.keyToNote[key];
+						var noteId = MIDI.keyToNote[key];
 						audioBuffers[programId + 'x' + noteId] = buffer;
 						///
 						if (--bufferPending[programId] === 0) {
 							var percent = index / 87;
 							soundfont.isLoaded = true;
+							console.log('loaded: ', instrument);
 							waitForEnd(instrument);
 						}
 					}, function() {
@@ -276,29 +270,31 @@
 			};
 			///
 			var bufferPending = {};
-			for (var instrument in root.Soundfont) {
-				var soundfont = root.Soundfont[instrument];
+			var soundfonts = MIDI.Soundfont;
+			for (var instrument in soundfonts) {
+				var soundfont = soundfonts[instrument];
 				if (soundfont.isLoaded) {
 					continue;
-				}
-				///
-				var synth = root.GM.byName[instrument];
-				var programId = synth.program;
-				///
-				bufferPending[programId] = 0;
-				///
-				for (var index = 0; index < urls.length; index++) {
-					var key = urls[index];
-					requestAudio(soundfont, programId, index, key);
+				} else {
+					var spec = MIDI.GM.byName[instrument];
+					var programId = spec.program;
+					///
+					bufferPending[programId] = 0;
+					///
+					for (var index = 0; index < urls.length; index++) {
+						var key = urls[index];
+						requestAudio(soundfont, programId, index, key);
+					}
 				}
 			}
 			///
 			setTimeout(waitForEnd, 1);
 		};
 
+
 		/* Load audio file: streaming | base64 | arraybuffer
 		---------------------------------------------------------------------- */
-		function loadAudio(url, onload, onerror) {
+		function loadAudio(url, onsuccess, onerror) {
 			if (useStreamingBuffer) {
 				var audio = new Audio();
 				audio.src = url;
@@ -306,7 +302,7 @@
 				audio.autoplay = false;
 				audio.preload = false;
 				audio.addEventListener('canplay', function() {
-					onload && onload(audio);
+					onsuccess && onsuccess(audio);
 				});
 				audio.addEventListener('error', function(err) {
 					onerror && onerror(err);
@@ -315,13 +311,13 @@
 			} else if (url.indexOf('data:audio') === 0) { // Base64 string
 				var base64 = url.split(',')[1];
 				var buffer = Base64Binary.decodeArrayBuffer(base64);
-				ctx.decodeAudioData(buffer, onload, onerror);
+				ctx.decodeAudioData(buffer, onsuccess, onerror);
 			} else { // XMLHTTP buffer
 				var request = new XMLHttpRequest();
 				request.open('GET', url, true);
 				request.responseType = 'arraybuffer';
 				request.onload = function() {
-					ctx.decodeAudioData(request.response, onload, onerror);
+					ctx.decodeAudioData(request.response, onsuccess, onerror);
 				};
 				request.send();
 			}
