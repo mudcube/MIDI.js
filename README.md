@@ -1,9 +1,9 @@
 ## Code examples - from the repo
 
-* [Basic](./examples/Basic.html) - the most basic implementation.
-* [MIDIPlayer](./examples/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
-* [MultipleInstruments](./examples/MultipleInstruments.html) - synth drum and piano playing together
-* [WhitneyMusicBox](./examples/WhitneyMusicBox.html) - a audio/visual experiment by Jim Bumgardner
+* [Basic](https://mudcu.be/github/midi-js/Basic.html) - the most basic implementation.
+* [MIDIPlayer](https://mudcu.be/github/midi-js/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
+* [MultipleInstruments](https://mudcu.be/github/midi-js/MultipleInstruments.html) - synth drum and piano playing together
+* [WhitneyMusicBox](https://mudcu.be/github/midi-js/WhitneyMusicBox.html) - a audio/visual experiment by Jim Bumgardner
 
 ## Demos
 
@@ -17,6 +17,9 @@
 * [Ragamroll](http://online-compute.rhcloud.com/ragamroll/) by Mani Balasubramanian
 * [Gbloink!](http://gbloink.com/alpha/) by Phil Jones
 * [Watch & Repeat](http://watchandrepeat.com/) by Etay Luz
+
+## Related projects
+* [MIDI-Player for Polymer](https://github.com/miztroh/midi-player)
 
 ## Generating Base64 Soundfonts
 
