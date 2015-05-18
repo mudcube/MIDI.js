@@ -20,9 +20,9 @@
 			audioBuffers[nid] = new Audio();
 		}
 
-		var playChannel = function(channel, note) {
+		function playChannel(channel, note) {
 			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].instrument;
+			var instrument = root.channels[channel].program;
 			var instrumentId = root.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
@@ -43,9 +43,9 @@
 			}
 		};
 
-		var stopChannel = function(channel, note) {
+		function stopChannel(channel, note) {
 			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].instrument;
+			var instrument = root.channels[channel].program;
 			var instrumentId = root.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
@@ -70,40 +70,14 @@
 		};
 
 		midi.programChange = function(channel, program) {
-			root.channels[channel].instrument = program;
+			root.channels[channel].program = program;
 		};
 
 		midi.pitchBend = function(channel, program, delay) { };
 
 		midi.noteOn = function(channel, note, velocity, delay) {
 			var id = noteToKey[note];
-			if (!notes[id]) return;
-			if (delay) {
-				return setTimeout(function() {
-					playChannel(channel, id);
-				}, delay * 1000);
-			} else {
-				playChannel(channel, id);
-			}
-		};
-	
-		midi.noteOff = function(channel, note, delay) {
-// 			var id = noteToKey[note];
-// 			if (!notes[id]) return;
-// 			if (delay) {
-// 				return setTimeout(function() {
-// 					stopChannel(channel, id);
-// 				}, delay * 1000)
-// 			} else {
-// 				stopChannel(channel, id);
-// 			}
-		};
-	
-		midi.chordOn = function(channel, chord, velocity, delay) {
-			for (var idx = 0; idx < chord.length; idx ++) {
-				var n = chord[idx];
-				var id = noteToKey[n];
-				if (!notes[id]) continue;
+			if (notes[id]) {
 				if (delay) {
 					return setTimeout(function() {
 						playChannel(channel, id);
@@ -114,17 +88,47 @@
 			}
 		};
 	
+		midi.noteOff = function(channel, note, delay) {
+// 			var id = noteToKey[note];
+// 			if (notes[id]) {
+// 				if (delay) {
+// 					return setTimeout(function() {
+// 						stopChannel(channel, id);
+// 					}, delay * 1000)
+// 				} else {
+// 					stopChannel(channel, id);
+// 				}
+// 			}
+		};
+	
+		midi.chordOn = function(channel, chord, velocity, delay) {
+			for (var idx = 0; idx < chord.length; idx ++) {
+				var n = chord[idx];
+				var id = noteToKey[n];
+				if (notes[id]) {
+					if (delay) {
+						return setTimeout(function() {
+							playChannel(channel, id);
+						}, delay * 1000);
+					} else {
+						playChannel(channel, id);
+					}
+				}
+			}
+		};
+	
 		midi.chordOff = function(channel, chord, delay) {
 			for (var idx = 0; idx < chord.length; idx ++) {
 				var n = chord[idx];
 				var id = noteToKey[n];
-				if (!notes[id]) continue;
-				if (delay) {
-					return setTimeout(function() {
+				if (notes[id]) {
+					if (delay) {
+						return setTimeout(function() {
+							stopChannel(channel, id);
+						}, delay * 1000);
+					} else {
 						stopChannel(channel, id);
-					}, delay * 1000);
-				} else {
-					stopChannel(channel, id);
+					}
 				}
 			}
 		};

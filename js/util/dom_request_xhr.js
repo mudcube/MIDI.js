@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	util/Request : 0.1.1 : 2015-04-12 : https://sketch.io
+	util.request : 0.1.1 : 2015-04-12 : https://mudcu.be
 	----------------------------------------------------------
 	XMLHttpRequest - IE7+ | Chrome 1+ | Firefox 1+ | Safari 1.2+
 	CORS - IE10+ | Chrome 3+ | Firefox 3.5+ | Safari 4+
@@ -30,7 +30,7 @@
 	
 */
 
-if (typeof MIDI === 'undefined') MIDI = {};
+if (typeof galactic === 'undefined') galactic = {};
 
 (function(root) {
 
@@ -147,4 +147,4 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		module.exports = root.util.request;
 	}
 
-})(MIDI);
+})(galactic);

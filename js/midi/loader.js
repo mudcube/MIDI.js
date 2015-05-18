@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2015-03-26 : https://mudcu.be
+	MIDI.Plugin : 2015-05-16 : https://mudcu.be
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -18,13 +18,17 @@
 if (typeof MIDI === 'undefined') MIDI = {};
 
 MIDI.Soundfont = MIDI.Soundfont || {};
-MIDI.Player = MIDI.Player || {};
+MIDI.player = MIDI.player || {};
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
-	root.DEBUG = true;
-	root.USE_XHR = true;
-	root.soundfontUrl = './soundfont/';
+	if (console && console.log) {
+		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
+	}
+
+	MIDI.DEBUG = true;
+	MIDI.USE_XHR = true;
+	MIDI.soundfontUrl = './soundfont/';
 
 	/*
 		MIDI.loadPlugin({
@@ -36,15 +40,18 @@ MIDI.Player = MIDI.Player || {};
 		});
 	*/
 
-	root.loadPlugin = function(opts) {
+	MIDI.loadPlugin = function(opts) {
+	
 		if (typeof opts === 'function') {
 			opts = {onsuccess: opts};
 		}
-
-		root.soundfontUrl = opts.soundfontUrl || root.soundfontUrl;
+		
+		if (opts.soundfontUrl) {
+			MIDI.soundfontUrl = opts.soundfontUrl;
+		}
 
 		/// Detect the best type of audio to use
-		root.audioDetect(function(supports) {
+		MIDI.audioDetect(function(supports) {
 			var hash = window.location.hash;
 			var api = '';
 
@@ -70,23 +77,23 @@ MIDI.Player = MIDI.Player || {};
 				}
 
 				/// load the specified plugin
-				root.__api = api;
-				root.__audioFormat = audioFormat;
-				root.supports = supports;
-				root.loadResource(opts);
+				MIDI.__api = api;
+				MIDI.__audioFormat = audioFormat;
+				MIDI.supports = supports;
+				MIDI.loadResource(opts);
 			}
 		});
 	};
 
 	/*
-		root.loadResource({
+		MIDI.loadResource({
 			onsuccess: function() { },
 			onprogress: function(state, percent) { },
 			instrument: 'banjo'
 		})
 	*/
 
-	root.loadResource = function(opts) {
+	MIDI.loadResource = function(opts) {
 		var instruments = opts.instruments || opts.instrument || 'acoustic_grand_piano';
 		///
 		if (typeof instruments !== 'object') {
@@ -100,22 +107,22 @@ MIDI.Player = MIDI.Player || {};
 		for (var i = 0; i < instruments.length; i ++) {
 			var instrument = instruments[i];
 			if (instrument === +instrument) { // is numeric
-				if (root.GM.byId[instrument]) {
-					instruments[i] = root.GM.byId[instrument].id;
+				if (MIDI.GM.byId[instrument]) {
+					instruments[i] = MIDI.GM.byId[instrument].id;
 				}
 			}
 		}
 		///
-		opts.format = root.__audioFormat;
+		opts.format = MIDI.__audioFormat;
 		opts.instruments = instruments;
 		///
-		connect[root.__api](opts);
+		connect[MIDI.__api](opts);
 	};
 
 	var connect = {
 		webmidi: function(opts) {
 			// cant wait for this to be standardized!
-			root.WebMIDI.connect(opts);
+			MIDI.WebMIDI.connect(opts);
 		},
 		audiotag: function(opts) {
 			// works ok, kinda like a drunken tuna fish, across the board
@@ -129,7 +136,7 @@ MIDI.Player = MIDI.Player || {};
 		}
 	};
 
-	var requestQueue = function(opts, context) {
+	function requestQueue(opts, context) {
 		var audioFormat = opts.format;
 		var instruments = opts.instruments;
 		var onprogress = opts.onprogress;
@@ -140,19 +147,19 @@ MIDI.Player = MIDI.Player || {};
 		var waitForEnd = function() {
 			if (!--pending) {
 				onprogress && onprogress('load', 1.0);
-				root[context].connect(opts);
+				MIDI[context].connect(opts);
 			}
 		};
 		///
 		for (var i = 0; i < length; i ++) {
-			var instrumentId = instruments[i];
-			if (MIDI.Soundfont[instrumentId]) { // already loaded
+			var programId = instruments[i];
+			if (MIDI.Soundfont[programId]) { // already loaded
 				waitForEnd();
 			} else { // needs to be requested
 				sendRequest(instruments[i], audioFormat, function(evt, progress) {
 					var fileProgress = progress / length;
 					var queueProgress = (length - pending) / length;
-					onprogress && onprogress('load', fileProgress + queueProgress, instrumentId);
+					onprogress && onprogress('load', fileProgress + queueProgress, programId);
 				}, function() {
 					waitForEnd();
 				}, onerror);
@@ -160,10 +167,10 @@ MIDI.Player = MIDI.Player || {};
 		};
 	};
 
-	var sendRequest = function(instrumentId, audioFormat, onprogress, onsuccess, onerror) {
-		var soundfontPath = root.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
-		if (root.USE_XHR) {
-			root.util.request({
+	function sendRequest(programId, audioFormat, onprogress, onsuccess, onerror) {
+		var soundfontPath = MIDI.soundfontUrl + programId + '-' + audioFormat + '.js';
+		if (MIDI.USE_XHR) {
+			galactic.util.request({
 				url: soundfontPath,
 				format: 'text',
 				onerror: onerror,
@@ -174,14 +181,13 @@ MIDI.Player = MIDI.Player || {};
 					script.type = 'text/javascript';
 					script.text = responseText;
 					document.body.appendChild(script);
-					///
 					onsuccess();
 				}
 			});
 		} else {
 			dom.loadScript.add({
 				url: soundfontPath,
-				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
+				verify: 'MIDI.Soundfont["' + programId + '"]',
 				onerror: onerror,
 				onsuccess: function() {
 					onsuccess();
@@ -190,9 +196,9 @@ MIDI.Player = MIDI.Player || {};
 		}
 	};
 
-	root.setDefaultPlugin = function(midi) {
+	MIDI.setDefaultPlugin = function(midi) {
 		for (var key in midi) {
-			root[key] = midi[key];
+			MIDI[key] = midi[key];
 		}
 	};
 
