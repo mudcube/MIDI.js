@@ -4,32 +4,42 @@
 	----------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
-	root.GM = (function(arr) {
-		var clean = function(name) {
-			return name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
-		};
-		var res = {
-			byName: { },
-			byId: { },
-			byCategory: { }
-		};
+	function asId(name) {
+		return name.replace(/[^a-z0-9_ ]/gi, '').
+				    replace(/[ ]/g, '_').
+				    toLowerCase();
+	};
+	
+	var GM = (function(arr) {
+		var res = {};
+		var byCategory = res.byCategory = {};
+		var byId = res.byId = {};
+		var byName = res.byName = {};
+		///
 		for (var key in arr) {
 			var list = arr[key];
 			for (var n = 0, length = list.length; n < length; n++) {
 				var instrument = list[n];
-				if (!instrument) continue;
-				var num = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
-				instrument = instrument.replace(num + ' ', '');
-				res.byId[--num] = 
-				res.byName[clean(instrument)] = 
-				res.byCategory[clean(key)] = {
-					id: clean(instrument),
-					instrument: instrument,
-					number: num,
-					category: key
-				};
+				if (instrument) {
+					var id = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
+					var name = instrument.replace(id + ' ', '');
+					var nameId = asId(name);
+					var categoryId = asId(key);
+					///
+					var spec = {
+						id: nameId,
+						name: name,
+						program: --id,
+						category: key
+					};
+					///
+					byId[id] = spec;
+					byName[nameId] = spec;
+					byCategory[categoryId] = byCategory[categoryId] || [];
+					byCategory[categoryId].push(spec);
+				}
 			}
 		}
 		return res;
@@ -51,86 +61,125 @@
 		'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
 		'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
 	});
-
-	/* get/setInstrument
-	--------------------------------------------------- */
-	root.getInstrument = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.instrument;
-	};
-
-	root.setInstrument = function(channelId, program, delay) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.instrument = program;
-			}, delay);
+	
+	GM.findProgramSpec = function(program) {
+		var def;
+		if (typeof program === 'string') {
+			def = GM.byName[asId(program)];
 		} else {
-			channel.instrument = program;
+			def = GM.byId[program];
+		}
+		///
+		if (def) {
+			return def;
+		} else {
+			MIDI.handleError('invalid program', arguments);
 		}
 	};
 
-	/* get/setMono
+
+	/* getProgram | programChange
 	--------------------------------------------------- */
-	root.getMono = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.mono;
+	MIDI.getProgram = function(channelId) {
+		var channel = channels[channelId];
+		if (channel) {
+			return channel.program;
+		}
 	};
 
-	root.setMono = function(channelId, truthy, delay) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
+	MIDI.programChange = function(channelId, program, delay) {
+		var spec = GM.findProgramSpec(program);
+		if (isFinite(spec && spec.program)) {
+			var channel = channels[channelId];
+			if (channel) {
+				if (delay) {
+					setTimeout(function() {
+						channel.program = spec.program;
+					}, delay);
+				} else {
+					channel.program = spec.program;
+				}
+			}
+		}
+	};
+
+
+	/* getMono | setMono
+	--------------------------------------------------- */
+	MIDI.getMono = function(channelId) {
+		var channel = channels[channelId];
+		if (channel) {
+			return channel.mono;
+		}
+	};
+
+	MIDI.setMono = function(channelId, truthy, delay) {
+		var channel = channels[channelId];
+		if (channel) {
+			if (delay) {
+				setTimeout(function() {
+					channel.mono = truthy;
+				}, delay);
+			} else {
 				channel.mono = truthy;
-			}, delay);
-		} else {
-			channel.mono = truthy;
+			}
 		}
 	};
 
-	/* get/setOmni
+
+	/* getOmni | setOmni
 	--------------------------------------------------- */
-	root.getOmni = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.omni;
-	};
-
-	root.setOmni = function(channelId, truthy) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.omni = truthy;	
-			}, delay);
-		} else {
-			channel.omni = truthy;
+	MIDI.getOmni = function(channelId) {
+		var channel = channels[channelId];
+		if (channel) {
+			return channel.omni;
 		}
 	};
 
-	/* get/setSolo
+	MIDI.setOmni = function(channelId, truthy) {
+		var channel = channels[channelId];
+		if (channel) {
+			if (delay) {
+				setTimeout(function() {
+					channel.omni = truthy;	
+				}, delay);
+			} else {
+				channel.omni = truthy;
+			}
+		}
+	};
+
+
+	/* getSolo | setSolo
 	--------------------------------------------------- */
-	root.getSolo = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.solo;
-	};
-
-	root.setSolo = function(channelId, truthy) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.solo = truthy;	
-			}, delay);
-		} else {
-			channel.solo = truthy;
+	MIDI.getSolo = function(channelId) {
+		var channel = channels[channelId];
+		if (channel) {
+			return channel.solo;
 		}
 	};
+
+	MIDI.setSolo = function(channelId, truthy) {
+		var channel = channels[channelId];
+		if (channel) {
+			if (delay) {
+				setTimeout(function() {
+					channel.solo = truthy;	
+				}, delay);
+			} else {
+				channel.solo = truthy;
+			}
+		}
+	};
+
 
 	/* channels
 	--------------------------------------------------- */
-	root.channels = (function() { // 0 - 15 channels
-		var channels = {};
-		for (var i = 0; i < 16; i++) {
-			channels[i] = { // default values
-				instrument: i,
+	var channels = (function() { // 0 - 15 channels
+		var res = {};
+		for (var program = 0; program < 16; program++) {
+			res[program] = { // default values
+				program: program,
 				pitchBend: 0,
 				mute: false,
 				mono: false,
@@ -138,13 +187,14 @@
 				solo: false
 			};
 		}
-		return channels;
+		return res;
 	})();
+
 
 	/* note conversions
 	--------------------------------------------------- */
-	root.keyToNote = {}; // C8  == 108
-	root.noteToKey = {}; // 108 ==  C8
+	MIDI.keyToNote = {}; // C8  == 108
+	MIDI.noteToKey = {}; // 108 ==  C8
 
 	(function() {
 		var A0 = 0x15; // first note
@@ -153,9 +203,24 @@
 		for (var n = A0; n <= C8; n++) {
 			var octave = (n - 12) / 12 >> 0;
 			var name = number2key[n % 12] + octave;
-			root.keyToNote[name] = n;
-			root.noteToKey[n] = name;
+			MIDI.keyToNote[name] = n;
+			MIDI.noteToKey[n] = name;
 		}
 	})();
+	
+
+	/* expose
+	--------------------------------------------------- */
+	MIDI.channels = channels;
+	MIDI.GM = GM;	
+
+
+	/* handle errors
+	--------------------------------------------------- */
+	MIDI.handleError = function(type, args) {
+		if (console && console.log) {
+			console.log(type, args);
+		}
+	};
 
 })(MIDI);
