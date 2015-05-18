@@ -91,10 +91,10 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 				/// lets find out!
 				var startTime = Date.now();
-				var interval = window.setInterval(function() {
+				var interval = setInterval(function() {
 					var maxExecution = Date.now() - startTime > 5000;
 					if (!pending || maxExecution) {
-						window.clearInterval(interval);
+						clearInterval(interval);
 						onsuccess(supports);
 					}
 				}, 1);

@@ -62,16 +62,15 @@
 		'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
 	});
 	
-	GM.findProgramSpec = function(program) {
-		var def;
+	GM.getProgramSpec = function(program) {
+		var spec;
 		if (typeof program === 'string') {
-			def = GM.byName[asId(program)];
+			spec = GM.byName[asId(program)];
 		} else {
-			def = GM.byId[program];
+			spec = GM.byId[program];
 		}
-		///
-		if (def) {
-			return def;
+		if (spec) {
+			return spec;
 		} else {
 			MIDI.handleError('invalid program', arguments);
 		}
@@ -81,25 +80,13 @@
 	/* getProgram | programChange
 	--------------------------------------------------- */
 	MIDI.getProgram = function(channelId) {
-		var channel = channels[channelId];
-		if (channel) {
-			return channel.program;
-		}
+		return getParam('program', channelId);
 	};
 
 	MIDI.programChange = function(channelId, program, delay) {
-		var spec = GM.findProgramSpec(program);
-		if (isFinite(spec && spec.program)) {
-			var channel = channels[channelId];
-			if (channel) {
-				if (delay) {
-					setTimeout(function() {
-						channel.program = spec.program;
-					}, delay);
-				} else {
-					channel.program = spec.program;
-				}
-			}
+		var spec = GM.getProgramSpec(program);
+		if (spec && isFinite(program = spec.program)) {
+			setParam('program', channelId, program, delay);
 		}
 	};
 
@@ -107,22 +94,12 @@
 	/* getMono | setMono
 	--------------------------------------------------- */
 	MIDI.getMono = function(channelId) {
-		var channel = channels[channelId];
-		if (channel) {
-			return channel.mono;
-		}
+		return getParam('mono', channelId);
 	};
 
 	MIDI.setMono = function(channelId, truthy, delay) {
-		var channel = channels[channelId];
-		if (channel) {
-			if (delay) {
-				setTimeout(function() {
-					channel.mono = truthy;
-				}, delay);
-			} else {
-				channel.mono = truthy;
-			}
+		if (isFinite(truthy)) {
+			setParam('mono', channelId, truthy, delay);
 		}
 	};
 
@@ -130,22 +107,12 @@
 	/* getOmni | setOmni
 	--------------------------------------------------- */
 	MIDI.getOmni = function(channelId) {
-		var channel = channels[channelId];
-		if (channel) {
-			return channel.omni;
-		}
+		return getParam('omni', channelId);
 	};
 
-	MIDI.setOmni = function(channelId, truthy) {
-		var channel = channels[channelId];
-		if (channel) {
-			if (delay) {
-				setTimeout(function() {
-					channel.omni = truthy;	
-				}, delay);
-			} else {
-				channel.omni = truthy;
-			}
+	MIDI.setOmni = function(channelId, truthy, delay) {
+		if (isFinite(truthy)) {
+			setParam('omni', channelId, truthy, delay);
 		}
 	};
 
@@ -153,21 +120,36 @@
 	/* getSolo | setSolo
 	--------------------------------------------------- */
 	MIDI.getSolo = function(channelId) {
+		return getParam('solo', channelId);
+	};
+
+	MIDI.setSolo = function(channelId, truthy, delay) {
+		if (isFinite(truthy)) {
+			setParam('solo', channelId, truthy, delay);
+		}
+	};
+	
+	function getParam(param, channelId) {
 		var channel = channels[channelId];
 		if (channel) {
-			return channel.solo;
+			return channel[param];
 		}
 	};
 
-	MIDI.setSolo = function(channelId, truthy) {
+	function setParam(param, channelId, value, delay) {
 		var channel = channels[channelId];
 		if (channel) {
 			if (delay) {
-				setTimeout(function() {
-					channel.solo = truthy;	
+				setTimeout(function() { //- is there a better option?
+					channel[param] = value;
 				}, delay);
 			} else {
-				channel.solo = truthy;
+				channel[param] = value;
+			}
+			///
+			var wrapper = MIDI.messageHandler[param] || messageHandler[param];
+			if (wrapper) {
+				wrapper(channelId, value, delay);
 			}
 		}
 	};
@@ -175,11 +157,12 @@
 
 	/* channels
 	--------------------------------------------------- */
-	var channels = (function() { // 0 - 15 channels
+	var channels = (function() {
 		var res = {};
-		for (var program = 0; program < 16; program++) {
-			res[program] = { // default values
-				program: program,
+		for (var number = 0; number <= 15; number++) {
+			res[number] = {
+				number: number,
+				program: number,
 				pitchBend: 0,
 				mute: false,
 				mono: false,
@@ -212,14 +195,32 @@
 	/* expose
 	--------------------------------------------------- */
 	MIDI.channels = channels;
-	MIDI.GM = GM;	
+	MIDI.GM = GM;
+	
+
+	/* handle message
+	--------------------------------------------------- */
+	MIDI.messageHandler = {}; // overrides
+	
+	var messageHandler = { // defaults
+		program: function(channelId, program, delay) {
+			if (MIDI.__api) {
+				if (MIDI.player.isPlaying) {
+					MIDI.player.pause();
+					MIDI.loadProgram(program, MIDI.player.play);
+				} else {
+					MIDI.loadProgram(program);
+				}
+			}
+		}
+	};
 
 
 	/* handle errors
 	--------------------------------------------------- */
 	MIDI.handleError = function(type, args) {
-		if (console && console.log) {
-			console.log(type, args);
+		if (console && console.error) {
+			console.error(type, args);
 		}
 	};
 
