@@ -32,27 +32,28 @@ MIDI.player = MIDI.player || {};
 
 	/*
 		MIDI.loadPlugin({
+			audioFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
 			onsuccess: function() { },
 			onprogress: function(state, percent) { },
-			targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
 			instrument: 'acoustic_grand_piano', // or 1 (default)
 			instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
 		});
 	*/
 
-	MIDI.loadPlugin = function(opts) {
-	
+	MIDI.loadPlugin = function(opts, onsuccess, onerror, onprogress) {
+		opts = opts || {};
 		if (typeof opts === 'function') {
 			opts = {onsuccess: opts};
 		}
-		
+
+		///		
 		if (opts.soundfontUrl) {
 			MIDI.soundfontUrl = opts.soundfontUrl;
 		}
 
 		/// Detect the best type of audio to use
 		MIDI.audioDetect(function(supports) {
-			var hash = window.location.hash;
+			var hash = location.hash;
 			var api = '';
 
 			/// use the most appropriate plugin if not specified
@@ -70,8 +71,8 @@ MIDI.player = MIDI.player || {};
 
 			if (connect[api]) {
 				/// use audio/ogg when supported
-				if (opts.targetFormat) {
-					var audioFormat = opts.targetFormat;
+				if (opts.audioFormat) {
+					var audioFormat = opts.audioFormat;
 				} else { // use best quality
 					var audioFormat = supports['audio/ogg'] ? 'ogg' : 'mp3';
 				}
@@ -80,45 +81,58 @@ MIDI.player = MIDI.player || {};
 				MIDI.__api = api;
 				MIDI.__audioFormat = audioFormat;
 				MIDI.supports = supports;
-				MIDI.loadResource(opts);
+				MIDI.loadProgram(opts);
 			}
 		});
 	};
 
 	/*
-		MIDI.loadResource({
-			onsuccess: function() { },
-			onprogress: function(state, percent) { },
-			instrument: 'banjo'
+		MIDI.loadProgram('banjo', onsuccess, onerror, onprogress);
+		MIDI.loadProgram({
+			instrument: 'banjo',
+			onsuccess: function(){},
+			onerror: function(){},
+			onprogress: function(state, percent){}
 		})
 	*/
 
-	MIDI.loadResource = function(opts) {
-		var instruments = opts.instruments || opts.instrument || 'acoustic_grand_piano';
-		///
-		if (typeof instruments !== 'object') {
-			if (instruments || instruments === 0) {
-				instruments = [instruments];
-			} else {
-				instruments = [];
-			}
-		}
-		/// convert numeric ids into strings
-		for (var i = 0; i < instruments.length; i ++) {
-			var instrument = instruments[i];
-			if (instrument === +instrument) { // is numeric
-				if (MIDI.GM.byId[instrument]) {
-					instruments[i] = MIDI.GM.byId[instrument].id;
+	MIDI.loadProgram = (function() {
+
+		function asList(opts) {
+			var res = opts.instruments || opts.instrument || MIDI.channels[0].program;
+			if (typeof res !== 'object') {
+				if (res === undefined) {
+					res = [];
+				} else {
+					res = [res];
 				}
 			}
-		}
-		///
-		opts.format = MIDI.__audioFormat;
-		opts.instruments = instruments;
-		///
-		connect[MIDI.__api](opts);
-	};
+			/// program number -> id
+			for (var i = 0; i < res.length; i ++) {
+				var instrument = res[i];
+				if (instrument === +instrument) { // is numeric
+					if (MIDI.GM.byId[instrument]) {
+						res[i] = MIDI.GM.byId[instrument].id;
+					}
+				}
+			}
+			return res;
+		};
 
+		return function(opts, onsuccess, onerror, onprogress) {
+			opts = opts || {};
+			if (typeof opts !== 'object') opts = {instrument: opts};
+			if (onerror) opts.onerror = onerror;
+			if (onprogress) opts.onprogress = onprogress;
+			if (onsuccess) opts.onsuccess = onsuccess;
+			///
+			opts.format = MIDI.__audioFormat;
+			opts.instruments = asList(opts);
+			///
+			connect[MIDI.__api](opts);
+		};
+	})();
+	
 	var connect = {
 		webmidi: function(opts) {
 			// cant wait for this to be standardized!
