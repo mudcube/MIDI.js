@@ -26,10 +26,7 @@ player.transpose = 0; // transpose notes up or down
 ---------------------------------------------------------- */
 player.play =
 player.start = function(onsuccess) {
-    if (player.currentTime < -1.0) {
-    	player.currentTime = -1.0;
-    }
-    ///
+	player.currentTime = clamp(0, player.duration, player.currentTime);
     startAudio(player.currentTime, null, onsuccess);
 };
 
@@ -117,7 +114,7 @@ player.setAnimation = function(callback) {
 };
 
 
-/* Load File
+/* Load File - accepts base64 or url to MIDI File
 ---------------------------------------------------------- */
 player.loadFile = (function() {
 
@@ -159,7 +156,7 @@ player.loadFile = (function() {
 
 	function loadFile(onsuccess, onprogress, onerror) {
 		try {
-			player.replayer = new Replayer(MidiFile(player.currentData), player.timeWarp, null, player.BPM);
+			player.replayer = new Replayer(MidiFile(player.currentData), 1.0 / player.timeWarp, null, player.BPM);
 			player.packets = player.replayer.getData();
 			player.duration = getLength();
 			///
@@ -218,6 +215,8 @@ player.loadFile = (function() {
 /* Scheduling
 ---------------------------------------------------------- */
 var packetQueue = []; // hold events to be triggered
+var packetOn = {};
+///
 var onPacketListener = undefined; // listener
 var startTime = 0; // to measure time elapse
 ///
@@ -225,17 +224,19 @@ player.packets = {}; // get event for requested note
 
 function scheduleTracking(event, note, currentTime, offset) {
 	return setTimeout(function() {
-		if (event.status === 144) { //- fixme to handle multiple channels
-			player.packets[note] = event;
-		} else {
-			delete player.packets[note];
-		}
-		///
 		onPacketListener && onPacketListener(event);
 		///
 		player.currentTime = currentTime;
 		///
 		packetQueue.shift();
+		///
+		var sid = event.channel + 'x' + event.noteNumber;
+		var subtype = event.subtype;
+		if (subtype === 'noteOn') {
+			packetOn[sid] = event;
+		} else if (subtype === 'noteOff') {
+			delete packetOn[sid];
+		}
 		///
 		if (OFFSET < player.duration) {
 			if (packetQueue.length < 1000) { // fill queue
@@ -286,12 +287,10 @@ function startAudio(currentTime, isPlaying, onsuccess) {
 		var offset = OFFSET = obj.offset;
 	}
 
-// 	if (foffset !== 0) console.log(foffset);
-
-	while(packetIdx < length && messages < 100) {
+	while(packetIdx < length && messages <= 1) {
 		var packet = packets[packetIdx];
 		///
-		IDX = packetIdx ++;
+		IDX = ++ packetIdx;
 		OFFSET += packet[1];
 		currentTime = OFFSET - offset;
 		///
@@ -377,29 +376,32 @@ function stopAudio() {
 		///
 		var ctx = getContext();
 		player.currentTime += (ctx.currentTime - startTime) * 1000;
-		///
-		while(packetQueue.length) { // stop the audio, and intervals
+
+		/// stop the audio, and intervals
+		while(packetQueue.length) {
 			var packet = packetQueue.pop();
-			clearInterval(packet.interval);
-			///
-			if (packet.source) { // webAudio
-				if (typeof packet.source === 'number') {
-					clearTimeout(packet.source);
-				} else { // webaudio
-					packet.source.disconnect(0);
+			if (packet) {
+				if (packet.source) {
+					if (typeof packet.source === 'number') { // HTML5 Audio
+						clearTimeout(packet.source);
+					} else { // WebAudioAPI
+						packet.source.disconnect(0);
+					}
 				}
+				///
+				clearTimeout(packet.interval);
 			}
 		}
-		// run callback to cancel any notes still playing
-		for (var key in player.packets) {
-			if (onPacketListener) {
-				var packet = player.packets[key]
-				if (packet.status === 144) {
-					onPacketListener(packet);
-				}
-			}
-			///
-			delete player.packets[key];
+		
+		for (var sid in packetOn) {
+			var event = packetOn[sid];
+			onPacketListener({
+				channel: event.channel,
+				noteNumber: event.noteNumber,
+				status: event.status - 16,
+				subtype: 'noteOff',
+				type: 'channel'
+			});
 		}
 	}
 };

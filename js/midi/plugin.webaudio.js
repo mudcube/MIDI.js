@@ -277,13 +277,15 @@
 					continue;
 				} else {
 					var spec = MIDI.GM.byName[instrument];
-					var programId = spec.program;
-					///
-					bufferPending[programId] = 0;
-					///
-					for (var index = 0; index < urls.length; index++) {
-						var key = urls[index];
-						requestAudio(soundfont, programId, index, key);
+					if (spec) {
+						var programId = spec.program;
+						///
+						bufferPending[programId] = 0;
+						///
+						for (var index = 0; index < urls.length; index++) {
+							var key = urls[index];
+							requestAudio(soundfont, programId, index, key);
+						}
 					}
 				}
 			}
