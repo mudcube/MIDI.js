@@ -78,14 +78,14 @@
 			plugin = access;
 			var pluginOutputs = plugin.outputs;
 			if (typeof pluginOutputs == 'function') { // Chrome pre-43
-			  output = pluginOutputs()[0];
+				output = pluginOutputs()[0];
 			} else { // Chrome post-43
-        output = pluginOutputs[0];
+				output = pluginOutputs[0];
 			}
 			if (output === undefined) { // nothing there...
-			  errFunction();
+				errFunction();
 			} else {
-			  opts.onsuccess && opts.onsuccess();			
+				opts.onsuccess && opts.onsuccess();			
 			}
 		}, errFunction);
 	};
