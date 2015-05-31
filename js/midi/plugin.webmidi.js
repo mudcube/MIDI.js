@@ -8,7 +8,6 @@
 
 (function(MIDI) { 'use strict';
 
-	var plugin = null;
 	var output = null;
 	var channels = [];
 	var midi = MIDI.WebMIDI = {api: 'webmidi'};
@@ -66,11 +65,7 @@
 	midi.connect = function(opts) {
 		MIDI.setDefaultPlugin(midi);
 		///
-		navigator.requestMIDIAccess().then(function(access) {
-			plugin = access;
-			output = plugin.outputs()[0];
-			opts.onsuccess && opts.onsuccess();
-		}, function(err) { // well at least we tried!
+		function onerror(err) { // well at least we tried!
 			if (window.AudioContext) { // Chrome
 				opts.api = 'webaudio';
 			} else if (window.Audio) { // Firefox
@@ -79,7 +74,16 @@
 				return;
 			}
 			MIDI.loadPlugin(opts);
-		});
+		};
+		///
+		navigator.requestMIDIAccess().then(function(access) {
+			if (access.outputs.size) {
+				output = access.outputs[0];
+				opts.onsuccess && opts.onsuccess();
+			} else {
+				onerror();
+			}
+		}, onerror);
 	};
 
 })(MIDI);
