@@ -50,10 +50,12 @@ player.toggle = function() {
 
 /* Listeners
 ---------------------------------------------------------- */
+player.on =
 player.addListener = function(onsuccess) {
 	onPacketListener = onsuccess;
 };
 
+player.off =
 player.removeListener = function() {
 	onPacketListener = undefined;
 };
@@ -287,7 +289,7 @@ function startAudio(currentTime, isPlaying, onsuccess) {
 		var offset = OFFSET = obj.offset;
 	}
 
-	while(packetIdx < length && messages <= 1) {
+	while(packetIdx < length && messages <= 100) {
 		var packet = packets[packetIdx];
 		///
 		IDX = ++ packetIdx;
