@@ -360,7 +360,7 @@
                     value: 0.1,
                     min: 0.0001,
                     max: 1.0,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -498,25 +498,25 @@
                     value: 0.4,
                     min: 0,
                     max: 0.95,
-                    automatable: false,
+                    automatable: false
                 },
                 delay: {
                     value: 0.0045,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 depth: {
                     value: 0.7,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 rate: {
                     value: 1.5,
                     min: 0,
                     max: 8,
-                    automatable: false,
+                    automatable: false
                 },
                 bypass: {
                     value: true,
@@ -906,7 +906,7 @@
                     value: 100,
                     min: 20,
                     max: 1000,
-                    automatable: false,
+                    automatable: false
                 },
                 feedback: {
                     value: 0.45,
@@ -1044,13 +1044,13 @@
                     value: 0.065,
                     min: 0.0001,
                     max: 1.0,
-                    automatable: false,
+                    automatable: false
                 },
                 resonance: {
                     value: 3.5,
                     min: 0.0,
                     max: 4.0,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -1124,7 +1124,7 @@
                     value: 0.725,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 algorithmIndex: {
                     value: 0,
@@ -1304,31 +1304,31 @@
                     value: 0.1,
                     min: 0,
                     max: 8,
-                    automatable: false,
+                    automatable: false
                 },
                 depth: {
                     value: 0.6,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 feedback: {
                     value: 0.7,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 stereoPhase: {
                     value: 40,
                     min: 0,
                     max: 180,
-                    automatable: false,
+                    automatable: false
                 },
                 baseModulationFrequency: {
                     value: 700,
                     min: 500,
                     max: 1500,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -1439,19 +1439,19 @@
                     value: 0.3,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 stereoPhase: {
                     value: 0,
                     min: 0,
                     max: 180,
-                    automatable: false,
+                    automatable: false
                 },
                 rate: {
                     value: 5,
                     min: 0.1,
                     max: 11,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -1543,31 +1543,31 @@
                     value: 0.5,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 excursionOctaves: {
                     value: 2,
                     min: 1,
                     max: 6,
-                    automatable: false,
+                    automatable: false
                 },
                 sweep: {
                     value: 0.2,
                     min: 0,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 },
                 resonance: {
                     value: 10,
                     min: 1,
                     max: 100,
-                    automatable: false,
+                    automatable: false
                 },
                 sensitivity: {
                     value: 0.5,
                     min: -1,
                     max: 1,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -1686,13 +1686,13 @@
                     value: 0.003,
                     min: 0,
                     max: 0.5,
-                    automatable: false,
+                    automatable: false
                 },
                 releaseTime: {
                     value: 0.5,
                     min: 0,
                     max: 0.5,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
@@ -1829,25 +1829,25 @@
                     value: 1,
                     min: 0,
                     max: 20,
-                    automatable: false,
+                    automatable: false
                 },
                 offset: {
                     value: 0.85,
                     min: 0,
                     max: 22049,
-                    automatable: false,
+                    automatable: false
                 },
                 oscillation: {
                     value: 0.3,
                     min: -22050,
                     max: 22050,
-                    automatable: false,
+                    automatable: false
                 },
                 phase: {
                     value: 0,
                     min: 0,
                     max: 2 * Math.PI,
-                    automatable: false,
+                    automatable: false
                 }
             }
         },
