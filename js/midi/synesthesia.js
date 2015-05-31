@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Synesthesia : 2015-05-02 : https://mudcu.be
+	MIDI.Synesthesia : 2015-05-30 : https://mudcu.be
 	----------------------------------------------------------
 	Peacock		“Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
 	Gerstner	Karl Gerstner, The Forms of Color 1986.
@@ -261,6 +261,22 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 			ref: 'Stuart Wheatman', // http://www.valleysfamilychurch.org/
 			english: [],
 			data: ['#122400', '#2E002E', '#002914', '#470000', '#002142', '#2E2E00', '#290052', '#003D00', '#520029', '#003D3D', '#522900', '#000080', '#244700', '#570057', '#004D26', '#7A0000', '#003B75', '#4C4D00', '#47008F', '#006100', '#850042', '#005C5C', '#804000', '#0000C7', '#366B00', '#80007F', '#00753B', '#B80000', '#0057AD', '#6B6B00', '#6600CC', '#008A00', '#B8005C', '#007F80', '#B35900', '#2424FF', '#478F00', '#AD00AD', '#00994D', '#F00000', '#0073E6', '#8F8F00', '#8A14FF', '#00AD00', '#EB0075', '#00A3A3', '#E07000', '#6B6BFF', '#5CB800', '#DB00DB', '#00C261', '#FF5757', '#3399FF', '#ADAD00', '#B56BFF', '#00D600', '#FF57AB', '#00C7C7', '#FF9124', '#9999FF', '#6EDB00', '#FF29FF', '#00E070', '#FF9999', '#7ABDFF', '#D1D100', '#D1A3FF', '#00FA00', '#FFA3D1', '#00E5E6', '#FFC285', '#C2C2FF', '#80FF00', '#FFA8FF', '#00E070', '#FFCCCC', '#C2E0FF', '#F0F000', '#EBD6FF', '#ADFFAD', '#FFD6EB', '#8AFFFF', '#FFEBD6', '#EBEBFF', '#E0FFC2', '#FFEBFF', '#E5FFF2', '#FFF5F5']
+		},
+		'Daniel Christopher (2013)': {
+			format: 'HEX',
+			english: [],
+			0: '33669A',
+			1: '009999',
+			2: '079948',
+			3: '6FBE44',
+			4: 'F6EC13',
+			5: 'FFCD05',
+			6: 'F89838',
+			7: 'EF3B39',
+			8: 'CC3366',
+			9: 'CB9AC6',
+			10: '89509F',
+			11: '5e2c95'
 		}
 	};
 
@@ -286,6 +302,8 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 				///
 				var H, S, L;
 				switch(colors.format) {
+					case 'HEX':
+						color = Color.Space(color, 'W3>HEX>RGB');
 					case 'RGB':
 						color = Color.Space(color, 'RGB>HSL');
 						H = color.H >> 0;
