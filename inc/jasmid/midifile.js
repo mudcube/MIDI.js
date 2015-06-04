@@ -190,9 +190,9 @@ function MidiFile(data) {
 					event.value = param1 + (stream.readInt8() << 7);
 					return event;
 				default:
-					throw "Unrecognised MIDI event type: " + eventType
+					throw 'Unrecognised MIDI event type: ' + eventType
 					/* 
-					console.log("Unrecognised MIDI event type: " + eventType);
+					console.log('Unrecognised MIDI event type: ' + eventType);
 					stream.readInt8();
 					event.subtype = 'unknown';
 					return event;

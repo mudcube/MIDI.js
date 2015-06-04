@@ -260,7 +260,7 @@
 						if (--bufferPending[programId] === 0) {
 							var percent = index / 87;
 							soundfont.isLoaded = true;
-							console.log('loaded: ', instrument);
+							MIDI.DEBUG && console.log('loaded: ', instrument);
 							waitForEnd(instrument);
 						}
 					}, function() {

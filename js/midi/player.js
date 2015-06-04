@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.player : 2015-05-16 : https://mudcu.be
+	MIDI.player : 2015-05-16
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -168,8 +168,8 @@ player.loadFile = (function() {
 				onprogress: onprogress,
 				onerror: onerror
 			});
-		} catch(event) {
-			onerror && onerror(event);
+		} catch(err) {
+			onerror && onerror(err);
 		}
 	};
 	

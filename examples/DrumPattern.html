@@ -33,7 +33,7 @@ window.onload = function () {
 		soundfontUrl: "./soundfont/",
 		instrument: "glockenspiel",
 		onsuccess: function() {
-			var player = MIDI.Player;
+			var player = MIDI.player;
 			player.loadFile(song, player.start);
 		}
 	});

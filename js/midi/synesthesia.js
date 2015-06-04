@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Synesthesia : 2015-05-30 : https://mudcu.be
+	MIDI.Synesthesia : 2015-05-30
 	----------------------------------------------------------
 	Peacock		“Instruments to perform color-music: Two centuries of technological experimentation,” Leonardo, 21 (1988), 397-406.
 	Gerstner	Karl Gerstner, The Forms of Color 1986.

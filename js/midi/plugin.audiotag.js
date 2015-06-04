@@ -31,9 +31,7 @@
 				var audio = audioBuffers[nid];
 				notesOn[ nid ] = instrumentNoteId;
 				if (!MIDI.Soundfont[instrumentId]) {
-					if (MIDI.DEBUG) {
-						console.log('404', instrumentId);
-					}
+					MIDI.DEBUG && console.log('404', instrumentId);
 					return;
 				}
 				audio.src = MIDI.Soundfont[instrumentId][note.id];
