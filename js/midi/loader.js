@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Plugin : 2015-05-16 : https://mudcu.be
+	MIDI.Plugin : 2015-06-04
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -22,7 +22,7 @@ MIDI.player = MIDI.player || {};
 
 (function(MIDI) { 'use strict';
 
-	if (console && console.log) {
+	if (typeof console !== 'undefined' && console.log) {
 		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
 	}
 
@@ -41,18 +41,11 @@ MIDI.player = MIDI.player || {};
 	*/
 
 	MIDI.loadPlugin = function(opts, onsuccess, onerror, onprogress) {
+		if (typeof opts === 'function') opts = {onsuccess: opts};
 		opts = opts || {};
-		if (typeof opts === 'function') {
-			opts = {onsuccess: opts};
-		}
-
-		///		
-		if (opts.soundfontUrl) {
-			MIDI.soundfontUrl = opts.soundfontUrl;
-		}
-
-		/// Detect the best type of audio to use
-		MIDI.audioDetect(function(supports) {
+		opts.api = opts.api || MIDI.__api;
+		
+		function onDetect(supports) {
 			var hash = location.hash;
 			var api = '';
 
@@ -83,7 +76,19 @@ MIDI.player = MIDI.player || {};
 				MIDI.supports = supports;
 				MIDI.loadProgram(opts);
 			}
-		});
+		};
+
+		///		
+		if (opts.soundfontUrl) {
+			MIDI.soundfontUrl = opts.soundfontUrl;
+		}
+
+		/// Detect the best type of audio to use
+		if (MIDI.supports) {
+			onDetect(MIDI.supports);
+		} else {
+			MIDI.audioDetect(onDetect);
+		}
 	};
 
 	/*
@@ -158,27 +163,30 @@ MIDI.player = MIDI.player || {};
 		///
 		var length = instruments.length;
 		var pending = length;
-		var waitForEnd = function() {
-			if (!--pending) {
-				onprogress && onprogress('load', 1.0);
-				MIDI[context].connect(opts);
-			}
+		///
+		function onEnd() {
+			onprogress && onprogress('load', 1.0);
+			MIDI[context].connect(opts);
 		};
 		///
-		for (var i = 0; i < length; i ++) {
-			var programId = instruments[i];
-			if (MIDI.Soundfont[programId]) { // already loaded
-				waitForEnd();
-			} else { // needs to be requested
-				sendRequest(instruments[i], audioFormat, function(evt, progress) {
-					var fileProgress = progress / length;
-					var queueProgress = (length - pending) / length;
-					onprogress && onprogress('load', fileProgress + queueProgress, programId);
-				}, function() {
-					waitForEnd();
-				}, onerror);
+		if (length) {
+			for (var i = 0; i < length; i ++) {
+				var programId = instruments[i];
+				if (MIDI.Soundfont[programId]) { // already loaded
+					!--pending && onEnd();
+				} else { // needs to be requested
+					sendRequest(instruments[i], audioFormat, function(evt, progress) {
+						var fileProgress = progress / length;
+						var queueProgress = (length - pending) / length;
+						onprogress && onprogress('load', fileProgress + queueProgress, programId);
+					}, function() {
+						!--pending && onEnd();
+					}, onerror);
+				}
 			}
-		};
+		} else {
+			onEnd();
+		}
 	};
 
 	function sendRequest(programId, audioFormat, onprogress, onsuccess, onerror) {
