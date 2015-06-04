@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.audioDetect : 0.3.2 : 2015-03-26
+	MIDI.audioDetect : 2015-05-16
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -15,8 +15,10 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 	var supports = {}; // object of supported file types
 	var pending = 0; // pending file types to process
-	var canPlayThrough = function (src) { // check whether format plays through
+	///
+	function canPlayThrough(src) { // check whether format plays through
 		pending ++;
+		///
 		var body = document.body;
 		var audio = new Audio();
 		var mime = src.split(';')[0];
@@ -38,12 +40,14 @@ if (typeof MIDI === 'undefined') MIDI = {};
 	};
 
 	root.audioDetect = function(onsuccess) {
-		/// detect jazz-midi plugin
+
+		/// detect midi plugin
 		if (navigator.requestMIDIAccess) {
-			var isNative = Function.prototype.toString.call(navigator.requestMIDIAccess).indexOf('[native code]');
-			if (isNative) { // has native midiapi support
+			var toString = Function.prototype.toString;
+			var isNative = toString.call(navigator.requestMIDIAccess).indexOf('[native code]') !== -1;
+			if (isNative) { // has native midi support
 				supports['webmidi'] = true;
-			} else { // check for jazz plugin midiapi support
+			} else { // check for jazz plugin support
 				for (var n = 0; navigator.plugins.length > n; n ++) {
 					var plugin = navigator.plugins[n];
 					if (plugin.name.indexOf('Jazz-Plugin') >= 0) {
@@ -54,83 +58,96 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		}
 
 		/// check whether <audio> tag is supported
-		if (typeof(Audio) === 'undefined') {
-			return onsuccess({});
-		} else {
-			supports['audiotag'] = true;
-		}
-
-		/// check for webaudio api support
-		if (window.AudioContext || window.webkitAudioContext) {
-			supports['webaudio'] = true;
-		}
-
-		/// check whether canPlayType is supported
-		var audio = new Audio();
-		if (typeof(audio.canPlayType) === 'undefined') {
-			return onsuccess(supports);
-		}
-
-		/// see what we can learn from the browser
-		var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
-		vorbis = (vorbis === 'probably' || vorbis === 'maybe');
-		var mpeg = audio.canPlayType('audio/mpeg');
-		mpeg = (mpeg === 'probably' || mpeg === 'maybe');
-		// maybe nothing is supported
-		if (!vorbis && !mpeg) {
+		if (typeof Audio === 'undefined') {
 			onsuccess(supports);
 			return;
-		}
+		} else {
+			supports['audiotag'] = true;
 
-		/// or maybe something is supported
-		if (vorbis) canPlayThrough('audio/ogg;base64,T2dnUwACAAAAAAAAAADqnjMlAAAAAOyyzPIBHgF2b3JiaXMAAAAAAUAfAABAHwAAQB8AAEAfAACZAU9nZ1MAAAAAAAAAAAAA6p4zJQEAAAANJGeqCj3//////////5ADdm9yYmlzLQAAAFhpcGguT3JnIGxpYlZvcmJpcyBJIDIwMTAxMTAxIChTY2hhdWZlbnVnZ2V0KQAAAAABBXZvcmJpcw9CQ1YBAAABAAxSFCElGVNKYwiVUlIpBR1jUFtHHWPUOUYhZBBTiEkZpXtPKpVYSsgRUlgpRR1TTFNJlVKWKUUdYxRTSCFT1jFloXMUS4ZJCSVsTa50FkvomWOWMUYdY85aSp1j1jFFHWNSUkmhcxg6ZiVkFDpGxehifDA6laJCKL7H3lLpLYWKW4q91xpT6y2EGEtpwQhhc+211dxKasUYY4wxxsXiUyiC0JBVAAABAABABAFCQ1YBAAoAAMJQDEVRgNCQVQBABgCAABRFcRTHcRxHkiTLAkJDVgEAQAAAAgAAKI7hKJIjSZJkWZZlWZameZaouaov+64u667t6roOhIasBACAAAAYRqF1TCqDEEPKQ4QUY9AzoxBDDEzGHGNONKQMMogzxZAyiFssLqgQBKEhKwKAKAAAwBjEGGIMOeekZFIi55iUTkoDnaPUUcoolRRLjBmlEluJMYLOUeooZZRCjKXFjFKJscRUAABAgAMAQICFUGjIigAgCgCAMAYphZRCjCnmFHOIMeUcgwwxxiBkzinoGJNOSuWck85JiRhjzjEHlXNOSuekctBJyaQTAAAQ4AAAEGAhFBqyIgCIEwAwSJKmWZomipamiaJniqrqiaKqWp5nmp5pqqpnmqpqqqrrmqrqypbnmaZnmqrqmaaqiqbquqaquq6nqrZsuqoum65q267s+rZru77uqapsm6or66bqyrrqyrbuurbtS56nqqKquq5nqq6ruq5uq65r25pqyq6purJtuq4tu7Js664s67pmqq5suqotm64s667s2rYqy7ovuq5uq7Ks+6os+75s67ru2rrwi65r66os674qy74x27bwy7ouHJMnqqqnqq7rmarrqq5r26rr2rqmmq5suq4tm6or26os67Yry7aumaosm64r26bryrIqy77vyrJui67r66Ys67oqy8Lu6roxzLat+6Lr6roqy7qvyrKuu7ru+7JuC7umqrpuyrKvm7Ks+7auC8us27oxuq7vq7It/KosC7+u+8Iy6z5jdF1fV21ZGFbZ9n3d95Vj1nVhWW1b+V1bZ7y+bgy7bvzKrQvLstq2scy6rSyvrxvDLux8W/iVmqratum6um7Ksq/Lui60dd1XRtf1fdW2fV+VZd+3hV9pG8OwjK6r+6os68Jry8ov67qw7MIvLKttK7+r68ow27qw3L6wLL/uC8uq277v6rrStXVluX2fsSu38QsAABhwAAAIMKEMFBqyIgCIEwBAEHIOKQahYgpCCKGkEEIqFWNSMuakZM5JKaWUFEpJrWJMSuaclMwxKaGUlkopqYRSWiqlxBRKaS2l1mJKqcVQSmulpNZKSa2llGJMrcUYMSYlc05K5pyUklJrJZXWMucoZQ5K6iCklEoqraTUYuacpA46Kx2E1EoqMZWUYgupxFZKaq2kFGMrMdXUWo4hpRhLSrGVlFptMdXWWqs1YkxK5pyUzDkqJaXWSiqtZc5J6iC01DkoqaTUYiopxco5SR2ElDLIqJSUWiupxBJSia20FGMpqcXUYq4pxRZDSS2WlFosqcTWYoy1tVRTJ6XFklKMJZUYW6y5ttZqDKXEVkqLsaSUW2sx1xZjjqGkFksrsZWUWmy15dhayzW1VGNKrdYWY40x5ZRrrT2n1mJNMdXaWqy51ZZbzLXnTkprpZQWS0oxttZijTHmHEppraQUWykpxtZara3FXEMpsZXSWiypxNhirLXFVmNqrcYWW62ltVprrb3GVlsurdXcYqw9tZRrrLXmWFNtBQAADDgAAASYUAYKDVkJAEQBAADGMMYYhEYpx5yT0ijlnHNSKucghJBS5hyEEFLKnINQSkuZcxBKSSmUklJqrYVSUmqttQIAAAocAAACbNCUWByg0JCVAEAqAIDBcTRNFFXVdX1fsSxRVFXXlW3jVyxNFFVVdm1b+DVRVFXXtW3bFn5NFFVVdmXZtoWiqrqybduybgvDqKqua9uybeuorqvbuq3bui9UXVmWbVu3dR3XtnXd9nVd+Bmzbeu2buu+8CMMR9/4IeTj+3RCCAAAT3AAACqwYXWEk6KxwEJDVgIAGQAAgDFKGYUYM0gxphhjTDHGmAAAgAEHAIAAE8pAoSErAoAoAADAOeecc84555xzzjnnnHPOOeecc44xxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY0wAwE6EA8BOhIVQaMhKACAcAABACCEpKaWUUkoRU85BSSmllFKqFIOMSkoppZRSpBR1lFJKKaWUIqWgpJJSSimllElJKaWUUkoppYw6SimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaVUSimllFJKKaWUUkoppRQAYPLgAACVYOMMK0lnhaPBhYasBAByAwAAhRiDEEJpraRUUkolVc5BKCWUlEpKKZWUUqqYgxBKKqmlklJKKbXSQSihlFBKKSWUUkooJYQQSgmhlFRCK6mEUkoHoYQSQimhhFRKKSWUzkEoIYUOQkmllNRCSB10VFIpIZVSSiklpZQ6CKGUklJLLZVSWkqpdBJSKamV1FJqqbWSUgmhpFZKSSWl0lpJJbUSSkklpZRSSymFVFJJJYSSUioltZZaSqm11lJIqZWUUkqppdRSSiWlkEpKqZSSUmollZRSaiGVlEpJKaTUSimlpFRCSamlUlpKLbWUSkmptFRSSaWUlEpJKaVSSksppRJKSqmllFpJKYWSUkoplZJSSyW1VEoKJaWUUkmptJRSSymVklIBAEAHDgAAAUZUWoidZlx5BI4oZJiAAgAAQABAgAkgMEBQMApBgDACAQAAAADAAAAfAABHARAR0ZzBAUKCwgJDg8MDAAAAAAAAAAAAAACAT2dnUwAEAAAAAAAAAADqnjMlAgAAADzQPmcBAQA=');
-		if (mpeg) canPlayThrough('audio/mpeg;base64,/+MYxAAAAANIAUAAAASEEB/jwOFM/0MM/90b/+RhST//w4NFwOjf///PZu////9lns5GFDv//l9GlUIEEIAAAgIg8Ir/JGq3/+MYxDsLIj5QMYcoAP0dv9HIjUcH//yYSg+CIbkGP//8w0bLVjUP///3Z0x5QCAv/yLjwtGKTEFNRTMuOTeqqqqqqqqqqqqq/+MYxEkNmdJkUYc4AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
-
-		/// lets find out!
-		var time = (new Date()).getTime(); 
-		var interval = window.setInterval(function() {
-			var now = (new Date()).getTime();
-			var maxExecution = now - time > 5000;
-			if (!pending || maxExecution) {
-				window.clearInterval(interval);
-				onsuccess(supports);
+			/// check for webaudio api support
+			if (window.AudioContext || window.webkitAudioContext) {
+				supports['webaudio'] = true;
 			}
-		}, 1);
+
+			/// check whether canPlayType is supported
+			var audio = new Audio();
+			if (audio.canPlayType) {
+
+				/// see what we can learn from the browser
+				var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
+				vorbis = (vorbis === 'probably' || vorbis === 'maybe');
+				var mpeg = audio.canPlayType('audio/mpeg');
+				mpeg = (mpeg === 'probably' || mpeg === 'maybe');
+
+				// maybe nothing is supported
+				if (!vorbis && !mpeg) {
+					onsuccess(supports);
+					return;
+				}
+
+				/// or maybe something is supported
+				if (vorbis) canPlayThrough('audio/ogg;base64,T2dnUwACAAAAAAAAAADqnjMlAAAAAOyyzPIBHgF2b3JiaXMAAAAAAUAfAABAHwAAQB8AAEAfAACZAU9nZ1MAAAAAAAAAAAAA6p4zJQEAAAANJGeqCj3//////////5ADdm9yYmlzLQAAAFhpcGguT3JnIGxpYlZvcmJpcyBJIDIwMTAxMTAxIChTY2hhdWZlbnVnZ2V0KQAAAAABBXZvcmJpcw9CQ1YBAAABAAxSFCElGVNKYwiVUlIpBR1jUFtHHWPUOUYhZBBTiEkZpXtPKpVYSsgRUlgpRR1TTFNJlVKWKUUdYxRTSCFT1jFloXMUS4ZJCSVsTa50FkvomWOWMUYdY85aSp1j1jFFHWNSUkmhcxg6ZiVkFDpGxehifDA6laJCKL7H3lLpLYWKW4q91xpT6y2EGEtpwQhhc+211dxKasUYY4wxxsXiUyiC0JBVAAABAABABAFCQ1YBAAoAAMJQDEVRgNCQVQBABgCAABRFcRTHcRxHkiTLAkJDVgEAQAAAAgAAKI7hKJIjSZJkWZZlWZameZaouaov+64u667t6roOhIasBACAAAAYRqF1TCqDEEPKQ4QUY9AzoxBDDEzGHGNONKQMMogzxZAyiFssLqgQBKEhKwKAKAAAwBjEGGIMOeekZFIi55iUTkoDnaPUUcoolRRLjBmlEluJMYLOUeooZZRCjKXFjFKJscRUAABAgAMAQICFUGjIigAgCgCAMAYphZRCjCnmFHOIMeUcgwwxxiBkzinoGJNOSuWck85JiRhjzjEHlXNOSuekctBJyaQTAAAQ4AAAEGAhFBqyIgCIEwAwSJKmWZomipamiaJniqrqiaKqWp5nmp5pqqpnmqpqqqrrmqrqypbnmaZnmqrqmaaqiqbquqaquq6nqrZsuqoum65q267s+rZru77uqapsm6or66bqyrrqyrbuurbtS56nqqKquq5nqq6ruq5uq65r25pqyq6purJtuq4tu7Js664s67pmqq5suqotm64s667s2rYqy7ovuq5uq7Ks+6os+75s67ru2rrwi65r66os674qy74x27bwy7ouHJMnqqqnqq7rmarrqq5r26rr2rqmmq5suq4tm6or26os67Yry7aumaosm64r26bryrIqy77vyrJui67r66Ys67oqy8Lu6roxzLat+6Lr6roqy7qvyrKuu7ru+7JuC7umqrpuyrKvm7Ks+7auC8us27oxuq7vq7It/KosC7+u+8Iy6z5jdF1fV21ZGFbZ9n3d95Vj1nVhWW1b+V1bZ7y+bgy7bvzKrQvLstq2scy6rSyvrxvDLux8W/iVmqratum6um7Ksq/Lui60dd1XRtf1fdW2fV+VZd+3hV9pG8OwjK6r+6os68Jry8ov67qw7MIvLKttK7+r68ow27qw3L6wLL/uC8uq277v6rrStXVluX2fsSu38QsAABhwAAAIMKEMFBqyIgCIEwBAEHIOKQahYgpCCKGkEEIqFWNSMuakZM5JKaWUFEpJrWJMSuaclMwxKaGUlkopqYRSWiqlxBRKaS2l1mJKqcVQSmulpNZKSa2llGJMrcUYMSYlc05K5pyUklJrJZXWMucoZQ5K6iCklEoqraTUYuacpA46Kx2E1EoqMZWUYgupxFZKaq2kFGMrMdXUWo4hpRhLSrGVlFptMdXWWqs1YkxK5pyUzDkqJaXWSiqtZc5J6iC01DkoqaTUYiopxco5SR2ElDLIqJSUWiupxBJSia20FGMpqcXUYq4pxRZDSS2WlFosqcTWYoy1tVRTJ6XFklKMJZUYW6y5ttZqDKXEVkqLsaSUW2sx1xZjjqGkFksrsZWUWmy15dhayzW1VGNKrdYWY40x5ZRrrT2n1mJNMdXaWqy51ZZbzLXnTkprpZQWS0oxttZijTHmHEppraQUWykpxtZara3FXEMpsZXSWiypxNhirLXFVmNqrcYWW62ltVprrb3GVlsurdXcYqw9tZRrrLXmWFNtBQAADDgAAASYUAYKDVkJAEQBAADGMMYYhEYpx5yT0ijlnHNSKucghJBS5hyEEFLKnINQSkuZcxBKSSmUklJqrYVSUmqttQIAAAocAAACbNCUWByg0JCVAEAqAIDBcTRNFFXVdX1fsSxRVFXXlW3jVyxNFFVVdm1b+DVRVFXXtW3bFn5NFFVVdmXZtoWiqrqybduybgvDqKqua9uybeuorqvbuq3bui9UXVmWbVu3dR3XtnXd9nVd+Bmzbeu2buu+8CMMR9/4IeTj+3RCCAAAT3AAACqwYXWEk6KxwEJDVgIAGQAAgDFKGYUYM0gxphhjTDHGmAAAgAEHAIAAE8pAoSErAoAoAADAOeecc84555xzzjnnnHPOOeecc44xxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY0wAwE6EA8BOhIVQaMhKACAcAABACCEpKaWUUkoRU85BSSmllFKqFIOMSkoppZRSpBR1lFJKKaWUIqWgpJJSSimllElJKaWUUkoppYw6SimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaVUSimllFJKKaWUUkoppRQAYPLgAACVYOMMK0lnhaPBhYasBAByAwAAhRiDEEJpraRUUkolVc5BKCWUlEpKKZWUUqqYgxBKKqmlklJKKbXSQSihlFBKKSWUUkooJYQQSgmhlFRCK6mEUkoHoYQSQimhhFRKKSWUzkEoIYUOQkmllNRCSB10VFIpIZVSSiklpZQ6CKGUklJLLZVSWkqpdBJSKamV1FJqqbWSUgmhpFZKSSWl0lpJJbUSSkklpZRSSymFVFJJJYSSUioltZZaSqm11lJIqZWUUkqppdRSSiWlkEpKqZSSUmollZRSaiGVlEpJKaTUSimlpFRCSamlUlpKLbWUSkmptFRSSaWUlEpJKaVSSksppRJKSqmllFpJKYWSUkoplZJSSyW1VEoKJaWUUkmptJRSSymVklIBAEAHDgAAAUZUWoidZlx5BI4oZJiAAgAAQABAgAkgMEBQMApBgDACAQAAAADAAAAfAABHARAR0ZzBAUKCwgJDg8MDAAAAAAAAAAAAAACAT2dnUwAEAAAAAAAAAADqnjMlAgAAADzQPmcBAQA=');
+				if (mpeg) canPlayThrough('audio/mpeg;base64,/+MYxAAAAANIAUAAAASEEB/jwOFM/0MM/90b/+RhST//w4NFwOjf///PZu////9lns5GFDv//l9GlUIEEIAAAgIg8Ir/JGq3/+MYxDsLIj5QMYcoAP0dv9HIjUcH//yYSg+CIbkGP//8w0bLVjUP///3Z0x5QCAv/yLjwtGKTEFNRTMuOTeqqqqqqqqqqqqq/+MYxEkNmdJkUYc4AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+
+				/// lets find out!
+				var startTime = Date.now();
+				var interval = setInterval(function() {
+					var maxExecution = Date.now() - startTime > 5000;
+					if (!pending || maxExecution) {
+						clearInterval(interval);
+						onsuccess(supports);
+					}
+				}, 1);
+			} else {
+				onsuccess(supports);
+				return;
+			}
+		}
 	};
 
 })(MIDI);
 /*
 	----------------------------------------------------------
-	GeneralMIDI
+	GeneralMIDI : 2012-01-06
 	----------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
-	root.GM = (function(arr) {
-		var clean = function(name) {
-			return name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
-		};
-		var res = {
-			byName: { },
-			byId: { },
-			byCategory: { }
-		};
+	function asId(name) {
+		return name.replace(/[^a-z0-9_ ]/gi, '').
+				    replace(/[ ]/g, '_').
+				    toLowerCase();
+	};
+	
+	var GM = (function(arr) {
+		var res = {};
+		var byCategory = res.byCategory = {};
+		var byId = res.byId = {};
+		var byName = res.byName = {};
+		///
 		for (var key in arr) {
 			var list = arr[key];
 			for (var n = 0, length = list.length; n < length; n++) {
 				var instrument = list[n];
-				if (!instrument) continue;
-				var num = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
-				instrument = instrument.replace(num + ' ', '');
-				res.byId[--num] = 
-				res.byName[clean(instrument)] = 
-				res.byCategory[clean(key)] = {
-					id: clean(instrument),
-					instrument: instrument,
-					number: num,
-					category: key
-				};
+				if (instrument) {
+					var id = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
+					var name = instrument.replace(id + ' ', '');
+					var nameId = asId(name);
+					var categoryId = asId(key);
+					///
+					var spec = {
+						id: nameId,
+						name: name,
+						program: --id,
+						category: key
+					};
+					///
+					byId[id] = spec;
+					byName[nameId] = spec;
+					byCategory[categoryId] = byCategory[categoryId] || [];
+					byCategory[categoryId].push(spec);
+				}
 			}
 		}
 		return res;
@@ -152,86 +169,108 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
 		'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
 	});
-
-	/* get/setInstrument
-	--------------------------------------------------- */
-	root.getInstrument = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.instrument;
-	};
-
-	root.setInstrument = function(channelId, program, delay) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.instrument = program;
-			}, delay);
+	
+	GM.getProgramSpec = function(program) {
+		var spec;
+		if (typeof program === 'string') {
+			spec = GM.byName[asId(program)];
 		} else {
-			channel.instrument = program;
+			spec = GM.byId[program];
+		}
+		if (spec) {
+			return spec;
+		} else {
+			MIDI.handleError('invalid program', arguments);
 		}
 	};
 
-	/* get/setMono
+
+	/* getProgram | programChange
 	--------------------------------------------------- */
-	root.getMono = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.mono;
+	MIDI.getProgram = function(channelId) {
+		return getParam('program', channelId);
 	};
 
-	root.setMono = function(channelId, truthy, delay) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.mono = truthy;
-			}, delay);
-		} else {
-			channel.mono = truthy;
+	MIDI.programChange = function(channelId, program, delay) {
+		var spec = GM.getProgramSpec(program);
+		if (spec && isFinite(program = spec.program)) {
+			setParam('program', channelId, program, delay);
 		}
 	};
 
-	/* get/setOmni
+
+	/* getMono | setMono
 	--------------------------------------------------- */
-	root.getOmni = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.omni;
+	MIDI.getMono = function(channelId) {
+		return getParam('mono', channelId);
 	};
 
-	root.setOmni = function(channelId, truthy) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.omni = truthy;	
-			}, delay);
-		} else {
-			channel.omni = truthy;
+	MIDI.setMono = function(channelId, truthy, delay) {
+		if (isFinite(truthy)) {
+			setParam('mono', channelId, truthy, delay);
 		}
 	};
 
-	/* get/setSolo
+
+	/* getOmni | setOmni
 	--------------------------------------------------- */
-	root.getSolo = function(channelId) {
-		var channel = root.channels[channelId];
-		return channel && channel.solo;
+	MIDI.getOmni = function(channelId) {
+		return getParam('omni', channelId);
 	};
 
-	root.setSolo = function(channelId, truthy) {
-		var channel = root.channels[channelId];
-		if (delay) {
-			return setTimeout(function() {
-				channel.solo = truthy;	
-			}, delay);
-		} else {
-			channel.solo = truthy;
+	MIDI.setOmni = function(channelId, truthy, delay) {
+		if (isFinite(truthy)) {
+			setParam('omni', channelId, truthy, delay);
 		}
 	};
+
+
+	/* getSolo | setSolo
+	--------------------------------------------------- */
+	MIDI.getSolo = function(channelId) {
+		return getParam('solo', channelId);
+	};
+
+	MIDI.setSolo = function(channelId, truthy, delay) {
+		if (isFinite(truthy)) {
+			setParam('solo', channelId, truthy, delay);
+		}
+	};
+	
+	function getParam(param, channelId) {
+		var channel = channels[channelId];
+		if (channel) {
+			return channel[param];
+		}
+	};
+
+	function setParam(param, channelId, value, delay) {
+		var channel = channels[channelId];
+		if (channel) {
+			if (delay) {
+				setTimeout(function() { //- is there a better option?
+					channel[param] = value;
+				}, delay);
+			} else {
+				channel[param] = value;
+			}
+			///
+			var wrapper = MIDI.messageHandler[param] || messageHandler[param];
+			if (wrapper) {
+				wrapper(channelId, value, delay);
+			}
+		}
+	};
+
 
 	/* channels
 	--------------------------------------------------- */
-	root.channels = (function() { // 0 - 15 channels
-		var channels = {};
-		for (var i = 0; i < 16; i++) {
-			channels[i] = { // default values
-				instrument: i,
+	var channels = (function() {
+		var res = {};
+		for (var number = 0; number <= 15; number++) {
+			res[number] = {
+				number: number,
+				program: number,
 				pitchBend: 0,
 				mute: false,
 				mono: false,
@@ -239,13 +278,14 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				solo: false
 			};
 		}
-		return channels;
+		return res;
 	})();
+
 
 	/* note conversions
 	--------------------------------------------------- */
-	root.keyToNote = {}; // C8  == 108
-	root.noteToKey = {}; // 108 ==  C8
+	MIDI.keyToNote = {}; // C8  == 108
+	MIDI.noteToKey = {}; // 108 ==  C8
 
 	(function() {
 		var A0 = 0x15; // first note
@@ -254,15 +294,48 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		for (var n = A0; n <= C8; n++) {
 			var octave = (n - 12) / 12 >> 0;
 			var name = number2key[n % 12] + octave;
-			root.keyToNote[name] = n;
-			root.noteToKey[n] = name;
+			MIDI.keyToNote[name] = n;
+			MIDI.noteToKey[n] = name;
 		}
 	})();
+	
+
+	/* expose
+	--------------------------------------------------- */
+	MIDI.channels = channels;
+	MIDI.GM = GM;
+	
+
+	/* handle message
+	--------------------------------------------------- */
+	MIDI.messageHandler = {}; // overrides
+	
+	var messageHandler = { // defaults
+		program: function(channelId, program, delay) {
+			if (MIDI.__api) {
+				if (MIDI.player.isPlaying) {
+					MIDI.player.pause();
+					MIDI.loadProgram(program, MIDI.player.play);
+				} else {
+					MIDI.loadProgram(program);
+				}
+			}
+		}
+	};
+
+
+	/* handle errors
+	--------------------------------------------------- */
+	MIDI.handleError = function(type, args) {
+		if (console && console.error) {
+			console.error(type, args);
+		}
+	};
 
 })(MIDI);
 /*
 	----------------------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2015-03-26
+	MIDI.Plugin : 2015-06-04
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -280,34 +353,35 @@ if (typeof MIDI === 'undefined') MIDI = {};
 if (typeof MIDI === 'undefined') MIDI = {};
 
 MIDI.Soundfont = MIDI.Soundfont || {};
-MIDI.Player = MIDI.Player || {};
+MIDI.player = MIDI.player || {};
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
-	root.DEBUG = true;
-	root.USE_XHR = true;
-	root.soundfontUrl = './soundfont/';
+	if (typeof console !== 'undefined' && console.log) {
+		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
+	}
+
+	MIDI.DEBUG = true;
+	MIDI.USE_XHR = true;
+	MIDI.soundfontUrl = './soundfont/';
 
 	/*
 		MIDI.loadPlugin({
+			audioFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
 			onsuccess: function() { },
 			onprogress: function(state, percent) { },
-			targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
 			instrument: 'acoustic_grand_piano', // or 1 (default)
 			instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
 		});
 	*/
 
-	root.loadPlugin = function(opts) {
-		if (typeof opts === 'function') {
-			opts = {onsuccess: opts};
-		}
-
-		root.soundfontUrl = opts.soundfontUrl || root.soundfontUrl;
-
-		/// Detect the best type of audio to use
-		root.audioDetect(function(supports) {
-			var hash = window.location.hash;
+	MIDI.loadPlugin = function(opts, onsuccess, onerror, onprogress) {
+		if (typeof opts === 'function') opts = {onsuccess: opts};
+		opts = opts || {};
+		opts.api = opts.api || MIDI.__api;
+		
+		function onDetect(supports) {
+			var hash = location.hash;
 			var api = '';
 
 			/// use the most appropriate plugin if not specified
@@ -325,59 +399,84 @@ MIDI.Player = MIDI.Player || {};
 
 			if (connect[api]) {
 				/// use audio/ogg when supported
-				if (opts.targetFormat) {
-					var audioFormat = opts.targetFormat;
+				if (opts.audioFormat) {
+					var audioFormat = opts.audioFormat;
 				} else { // use best quality
 					var audioFormat = supports['audio/ogg'] ? 'ogg' : 'mp3';
 				}
 
 				/// load the specified plugin
-				root.__api = api;
-				root.__audioFormat = audioFormat;
-				root.supports = supports;
-				root.loadResource(opts);
+				MIDI.__api = api;
+				MIDI.__audioFormat = audioFormat;
+				MIDI.supports = supports;
+				MIDI.loadProgram(opts);
 			}
-		});
+		};
+
+		///		
+		if (opts.soundfontUrl) {
+			MIDI.soundfontUrl = opts.soundfontUrl;
+		}
+
+		/// Detect the best type of audio to use
+		if (MIDI.supports) {
+			onDetect(MIDI.supports);
+		} else {
+			MIDI.audioDetect(onDetect);
+		}
 	};
 
 	/*
-		root.loadResource({
-			onsuccess: function() { },
-			onprogress: function(state, percent) { },
-			instrument: 'banjo'
+		MIDI.loadProgram('banjo', onsuccess, onerror, onprogress);
+		MIDI.loadProgram({
+			instrument: 'banjo',
+			onsuccess: function(){},
+			onerror: function(){},
+			onprogress: function(state, percent){}
 		})
 	*/
 
-	root.loadResource = function(opts) {
-		var instruments = opts.instruments || opts.instrument || 'acoustic_grand_piano';
-		///
-		if (typeof instruments !== 'object') {
-			if (instruments || instruments === 0) {
-				instruments = [instruments];
-			} else {
-				instruments = [];
-			}
-		}
-		/// convert numeric ids into strings
-		for (var i = 0; i < instruments.length; i ++) {
-			var instrument = instruments[i];
-			if (instrument === +instrument) { // is numeric
-				if (root.GM.byId[instrument]) {
-					instruments[i] = root.GM.byId[instrument].id;
+	MIDI.loadProgram = (function() {
+
+		function asList(opts) {
+			var res = opts.instruments || opts.instrument || MIDI.channels[0].program;
+			if (typeof res !== 'object') {
+				if (res === undefined) {
+					res = [];
+				} else {
+					res = [res];
 				}
 			}
-		}
-		///
-		opts.format = root.__audioFormat;
-		opts.instruments = instruments;
-		///
-		connect[root.__api](opts);
-	};
+			/// program number -> id
+			for (var i = 0; i < res.length; i ++) {
+				var instrument = res[i];
+				if (instrument === +instrument) { // is numeric
+					if (MIDI.GM.byId[instrument]) {
+						res[i] = MIDI.GM.byId[instrument].id;
+					}
+				}
+			}
+			return res;
+		};
 
+		return function(opts, onsuccess, onerror, onprogress) {
+			opts = opts || {};
+			if (typeof opts !== 'object') opts = {instrument: opts};
+			if (onerror) opts.onerror = onerror;
+			if (onprogress) opts.onprogress = onprogress;
+			if (onsuccess) opts.onsuccess = onsuccess;
+			///
+			opts.format = MIDI.__audioFormat;
+			opts.instruments = asList(opts);
+			///
+			connect[MIDI.__api](opts);
+		};
+	})();
+	
 	var connect = {
 		webmidi: function(opts) {
 			// cant wait for this to be standardized!
-			root.WebMIDI.connect(opts);
+			MIDI.WebMIDI.connect(opts);
 		},
 		audiotag: function(opts) {
 			// works ok, kinda like a drunken tuna fish, across the board
@@ -391,7 +490,7 @@ MIDI.Player = MIDI.Player || {};
 		}
 	};
 
-	var requestQueue = function(opts, context) {
+	function requestQueue(opts, context) {
 		var audioFormat = opts.format;
 		var instruments = opts.instruments;
 		var onprogress = opts.onprogress;
@@ -399,31 +498,36 @@ MIDI.Player = MIDI.Player || {};
 		///
 		var length = instruments.length;
 		var pending = length;
-		var waitForEnd = function() {
-			if (!--pending) {
-				onprogress && onprogress('load', 1.0);
-				root[context].connect(opts);
-			}
+		///
+		function onEnd() {
+			onprogress && onprogress('load', 1.0);
+			MIDI[context].connect(opts);
 		};
 		///
-		for (var i = 0; i < length; i ++) {
-			var instrumentId = instruments[i];
-			if (MIDI.Soundfont[instrumentId]) { // already loaded
-				waitForEnd();
-			} else { // needs to be requested
-				sendRequest(instruments[i], audioFormat, function(evt, progress) {
-					onprogress && onprogress('load', fpoint + (pending - 1) / length, instrumentId);
-				}, function() {
-					waitForEnd();
-				}, onerror);
+		if (length) {
+			for (var i = 0; i < length; i ++) {
+				var programId = instruments[i];
+				if (MIDI.Soundfont[programId]) { // already loaded
+					!--pending && onEnd();
+				} else { // needs to be requested
+					sendRequest(instruments[i], audioFormat, function(evt, progress) {
+						var fileProgress = progress / length;
+						var queueProgress = (length - pending) / length;
+						onprogress && onprogress('load', fileProgress + queueProgress, programId);
+					}, function() {
+						!--pending && onEnd();
+					}, onerror);
+				}
 			}
-		};
+		} else {
+			onEnd();
+		}
 	};
 
-	var sendRequest = function(instrumentId, audioFormat, onprogress, onsuccess, onerror) {
-		var soundfontPath = root.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
-		if (root.USE_XHR) {
-			root.util.request({
+	function sendRequest(programId, audioFormat, onprogress, onsuccess, onerror) {
+		var soundfontPath = MIDI.soundfontUrl + programId + '-' + audioFormat + '.js';
+		if (MIDI.USE_XHR) {
+			galactic.util.request({
 				url: soundfontPath,
 				format: 'text',
 				onerror: onerror,
@@ -434,14 +538,13 @@ MIDI.Player = MIDI.Player || {};
 					script.type = 'text/javascript';
 					script.text = responseText;
 					document.body.appendChild(script);
-					///
 					onsuccess();
 				}
 			});
 		} else {
 			dom.loadScript.add({
 				url: soundfontPath,
-				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
+				verify: 'MIDI.Soundfont["' + programId + '"]',
 				onerror: onerror,
 				onsuccess: function() {
 					onsuccess();
@@ -450,390 +553,471 @@ MIDI.Player = MIDI.Player || {};
 		}
 	};
 
-	root.setDefaultPlugin = function(midi) {
+	MIDI.setDefaultPlugin = function(midi) {
 		for (var key in midi) {
-			root[key] = midi[key];
+			MIDI[key] = midi[key];
 		}
 	};
 
 })(MIDI);
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-03-26
+	MIDI.player : 2015-05-16
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
 */
 
 if (typeof MIDI === 'undefined') MIDI = {};
-if (typeof MIDI.Player === 'undefined') MIDI.Player = {};
+if (typeof MIDI.player === 'undefined') MIDI.player = {};
 
 (function() { 'use strict';
 
-var midi = MIDI.Player;
-midi.currentTime = 0;
-midi.endTime = 0; 
-midi.restart = 0; 
-midi.playing = false;
-midi.timeWarp = 1;
-midi.startDelay = 0;
-midi.BPM = 120;
+var player = MIDI.player;
+player.currentTime = 0; // current time within current song
+player.duration = 0; // duration of current song
+player.isPlaying = false;
+///
+player.BPM = null; // beats-per-minute override
+player.timeDelay = 0; // in seconds
+player.timeWarp = 1.0; // warp beats-per-minute
+player.transpose = 0; // transpose notes up or down
 
-midi.start =
-midi.resume = function(onsuccess) {
-    if (midi.currentTime < -1) {
-    	midi.currentTime = -1;
-    }
-    startAudio(midi.currentTime, null, onsuccess);
+
+/* Playback
+---------------------------------------------------------- */
+player.play =
+player.start = function(onsuccess) {
+	player.currentTime = clamp(0, player.duration, player.currentTime);
+    startAudio(player.currentTime, null, onsuccess);
 };
 
-midi.pause = function() {
-	var tmp = midi.restart;
+player.stop = function() {
 	stopAudio();
-	midi.restart = tmp;
+	player.currentTime = 0;
 };
 
-midi.stop = function() {
+player.pause = function() {
 	stopAudio();
-	midi.restart = 0;
-	midi.currentTime = 0;
 };
 
-midi.addListener = function(onsuccess) {
-	onMidiEvent = onsuccess;
-};
-
-midi.removeListener = function() {
-	onMidiEvent = undefined;
-};
-
-midi.clearAnimation = function() {
-	if (midi.animationFrameId)  {
-		cancelAnimationFrame(midi.animationFrameId);
-	}
-};
-
-midi.setAnimation = function(callback) {
-	var currentTime = 0;
-	var tOurTime = 0;
-	var tTheirTime = 0;
-	//
-	midi.clearAnimation();
-	///
-	var frame = function() {
-		midi.animationFrameId = requestAnimationFrame(frame);
-		///
-		if (midi.endTime === 0) {
-			return;
-		}
-		if (midi.playing) {
-			currentTime = (tTheirTime === midi.currentTime) ? tOurTime - Date.now() : 0;
-			if (midi.currentTime === 0) {
-				currentTime = 0;
-			} else {
-				currentTime = midi.currentTime - currentTime;
-			}
-			if (tTheirTime !== midi.currentTime) {
-				tOurTime = Date.now();
-				tTheirTime = midi.currentTime;
-			}
-		} else { // paused
-			currentTime = midi.currentTime;
-		}
-		///
-		var endTime = midi.endTime;
-		var percent = currentTime / endTime;
-		var total = currentTime / 1000;
-		var minutes = total / 60;
-		var seconds = total - (minutes * 60);
-		var t1 = minutes * 60 + seconds;
-		var t2 = (endTime / 1000);
-		///
-		if (t2 - t1 < -1.0) {
-			return;
-		} else {
-			callback({
-				now: t1,
-				end: t2,
-				events: noteRegistrar
-			});
-		}
-	};
-	///
-	requestAnimationFrame(frame);
-};
-
-// helpers
-
-midi.loadMidiFile = function(onsuccess, onprogress, onerror) {
-	try {
-		midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
-		midi.data = midi.replayer.getData();
-		midi.endTime = getLength();
-		///
-		MIDI.loadPlugin({
-// 			instruments: midi.getFileInstruments(),
-			onsuccess: onsuccess,
-			onprogress: onprogress,
-			onerror: onerror
-		});
-	} catch(event) {
-		onerror && onerror(event);
-	}
-};
-
-midi.loadFile = function(file, onsuccess, onprogress, onerror) {
-	midi.stop();
-	if (file.indexOf('base64,') !== -1) {
-		var data = window.atob(file.split(',')[1]);
-		midi.currentData = data;
-		midi.loadMidiFile(onsuccess, onprogress, onerror);
+player.toggle = function() {
+	if (player.isPlaying) {
+		player.pause();
 	} else {
-		var fetch = new XMLHttpRequest();
-		fetch.open('GET', file);
-		fetch.overrideMimeType('text/plain; charset=x-user-defined');
-		fetch.onreadystatechange = function() {
-			if (this.readyState === 4) {
-				if (this.status === 200) {
-					var t = this.responseText || '';
-					var ff = [];
-					var mx = t.length;
-					var scc = String.fromCharCode;
-					for (var z = 0; z < mx; z++) {
-						ff[z] = scc(t.charCodeAt(z) & 255);
-					}
-					///
-					var data = ff.join('');
-					midi.currentData = data;
-					midi.loadMidiFile(onsuccess, onprogress, onerror);
+		player.play();
+	}
+};
+
+
+/* Listeners
+---------------------------------------------------------- */
+player.on =
+player.addListener = function(onsuccess) {
+	onPacketListener = onsuccess;
+};
+
+player.off =
+player.removeListener = function() {
+	onPacketListener = undefined;
+};
+
+player.clearAnimation = function() {
+	player.frameId && cancelAnimationFrame(player.frameId);
+};
+
+player.setAnimation = function(callback) {
+	var currentTime = 0;
+	var nowSys = 0;
+	var nowMidi = 0;
+	//
+	player.clearAnimation();
+	///
+	requestAnimationFrame(function frame() {
+		player.frameId = requestAnimationFrame(frame);
+		///
+		if (player.duration) {
+			if (player.isPlaying) {
+				currentTime = (nowMidi === player.currentTime) ? nowSys - Date.now() : 0;
+				///
+				if (player.currentTime === 0) {
+					currentTime = 0;
 				} else {
-					onerror && onerror('Unable to load MIDI file');
+					currentTime = player.currentTime - currentTime;
+				}
+				if (nowMidi !== player.currentTime) {
+					nowSys = Date.now();
+					nowMidi = player.currentTime;
+				}
+			} else {
+				currentTime = player.currentTime;
+			}
+			///
+			var duration = player.duration;
+			var percent = currentTime / duration;
+			var total = currentTime / 1000;
+			var minutes = total / 60;
+			var seconds = total - (minutes * 60);
+			var t1 = minutes * 60 + seconds;
+			var t2 = (duration / 1000);
+			if (t2 - t1 < -1.0) {
+				return;
+			} else {
+				var progress = Math.min(1.0, t1 / t2);
+				if (progress !== callback.progress) {
+					callback.progress = progress;
+					callback({
+						progress: progress,
+						currentTime: t1,
+						duration: t2
+					});
 				}
 			}
-		};
-		fetch.send();
-	}
+		}
+	});
 };
 
-midi.getFileInstruments = function() {
-	var instruments = {};
-	var programs = {};
-	for (var n = 0; n < midi.data.length; n ++) {
-		var event = midi.data[n][0].event;
-		if (event.type !== 'channel') {
-			continue;
-		}
-		var channel = event.channel;
-		switch(event.subtype) {
-			case 'controller':
-//				console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
-				break;
-			case 'programChange':
-				programs[channel] = event.programNumber;
-				break;
-			case 'noteOn':
-				var program = programs[channel];
-				var gm = MIDI.GM.byId[isFinite(program) ? program : channel];
-				instruments[gm.id] = true;
-				break;
-		}
-	}
-	var ret = [];
-	for (var key in instruments) {
-		ret.push(key);
-	}
-	return ret;
-};
 
-// Playing the audio
+/* Load File - accepts base64 or url to MIDI File
+---------------------------------------------------------- */
+player.loadFile = (function() {
 
-var eventQueue = []; // hold events to be triggered
-var queuedTime; // 
-var startTime = 0; // to measure time elapse
-var noteRegistrar = {}; // get event for requested note
-var onMidiEvent = undefined; // listener
-var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
-	return setTimeout(function() {
-		var data = {
-			channel: channel,
-			note: note,
-			now: currentTime,
-			end: midi.endTime,
-			message: message,
-			velocity: velocity
-		};
-		//
-		if (message === 128) {
-			delete noteRegistrar[note];
+	function getInstrumentList() {
+		var GM = MIDI.GM;
+		var instruments = {};
+		var programChange = {};
+		var packets = player.packets;
+		for (var n = 0; n < packets.length; n ++) {
+			var event = packets[n][0].event;
+			if (event.type === 'channel') {
+				var channel = event.channel;
+				switch(event.subtype) {
+					case 'programChange':
+						programChange[channel] = event.programNumber;
+						break;
+					case 'noteOn':
+						var program = programChange[channel];
+						if (program === +program) {
+							if (handleEvent.programChange) {
+								var gm = GM.byId[program];
+							} else {
+								var channel = MIDI.channels[channel];
+								var gm = GM.byId[channel.program];
+							}
+							instruments[gm.id] = true;
+						}
+						break;
+				}
+			}
+		}
+		///
+		var res = [];
+		for (var key in instruments) {
+			res.push(key);
+		}
+		return res;
+	};
+
+	function loadFile(onsuccess, onprogress, onerror) {
+		try {
+			player.replayer = new Replayer(MidiFile(player.currentData), 1.0 / player.timeWarp, null, player.BPM);
+			player.packets = player.replayer.getData();
+			player.duration = getLength();
+			///
+			MIDI.loadPlugin({
+				instruments: getInstrumentList(),
+				onsuccess: onsuccess,
+				onprogress: onprogress,
+				onerror: onerror
+			});
+		} catch(err) {
+			onerror && onerror(err);
+		}
+	};
+	
+	function toBase64(data) {
+		var res = [];
+		var fromCharCode = String.fromCharCode;
+		for (var i = 0, length = data.length; i < length; i++) {
+			res[i] = fromCharCode(data.charCodeAt(i) & 255);
+		}
+		return res.join('');
+	};
+
+	return function(opts, onsuccess, onprogress, onerror) {
+		if (typeof opts === 'string') opts = {src: opts};
+		var src = opts.src;
+		var onsuccess = onsuccess || opts.onsuccess;
+		var onerror = onerror || opts.onerror;
+		var onprogress = onprogress || opts.onprogress;
+		///
+		player.stop();
+		///
+		if (src.indexOf('base64,') !== -1) {
+			player.currentData = atob(src.split(',')[1]);
+			loadFile(onsuccess, onprogress, onerror);
 		} else {
-			noteRegistrar[note] = data;
+			var fetch = new XMLHttpRequest();
+			fetch.open('GET', src);
+			fetch.overrideMimeType('text/plain; charset=x-user-defined');
+			fetch.onreadystatechange = function() {
+				if (this.readyState === 4) {
+					if (this.status === 200 && this.responseText) {
+						player.currentData = toBase64(this.responseText);
+						loadFile(onsuccess, onprogress, onerror);
+					} else {
+						onerror && onerror('Unable to load MIDI file.');
+					}
+				}
+			};
+			fetch.send();
 		}
-		if (onMidiEvent) {
-			onMidiEvent(data);
+	};
+})();
+
+
+/* Scheduling
+---------------------------------------------------------- */
+var packetQueue = []; // hold events to be triggered
+var packetOn = {};
+///
+var onPacketListener = undefined; // listener
+var startTime = 0; // to measure time elapse
+///
+player.packets = {}; // get event for requested note
+
+function scheduleTracking(event, note, currentTime, offset) {
+	return setTimeout(function() {
+		onPacketListener && onPacketListener(event);
+		///
+		player.currentTime = currentTime;
+		///
+		packetQueue.shift();
+		///
+		var sid = event.channel + 'x' + event.noteNumber;
+		var subtype = event.subtype;
+		if (subtype === 'noteOn') {
+			packetOn[sid] = event;
+		} else if (subtype === 'noteOff') {
+			delete packetOn[sid];
 		}
-		midi.currentTime = currentTime;
 		///
-		eventQueue.shift();
-		///
-		if (eventQueue.length < 1000) {
-			startAudio(queuedTime, true);
-		} else if (midi.currentTime === queuedTime && queuedTime < midi.endTime) { // grab next sequence
-			startAudio(queuedTime, true);
+		if (OFFSET < player.duration) {
+			if (packetQueue.length < 1000) { // fill queue
+				startAudio(OFFSET, true);
+			} else if (player.currentTime === OFFSET) { // grab next sequence
+				startAudio(OFFSET, true);
+			}
 		}
 	}, currentTime - offset);
 };
 
-var getContext = function() {
+
+/* Start Audio
+---------------------------------------------------------- */
+var IDX;
+var OFFSET;
+function startAudio(currentTime, isPlaying, onsuccess) {
+	if (!isPlaying) {
+		player.isPlaying && stopAudio();
+		player.isPlaying = true;
+		player.packets = player.replayer.getData();
+		player.duration = getLength();
+	}
+	///
+	var messages = 0;
+	var packets = player.packets;
+	var length = packets.length;
+	///
+	var interval = packetQueue[0] && packetQueue[0].interval || 0;
+	var foffset = currentTime - player.currentTime;
+	///
+	var now;
+	var ctx = getContext();
+	if (MIDI.api !== 'webaudio') {
+		now = getNow();
+		NOW = NOW || now;
+		ctx.currentTime = (now - NOW) / 1000;
+	}
+	///
+	startTime = ctx.currentTime;
+	///
+	if (isPlaying) {
+		var packetIdx = IDX;
+		var offset = OFFSET;
+	} else {
+		var obj = seekPacket(currentTime);
+		var packetIdx = obj.idx;
+		var offset = OFFSET = obj.offset;
+	}
+
+	while(packetIdx < length && messages <= 100) {
+		var packet = packets[packetIdx];
+		///
+		IDX = ++ packetIdx;
+		OFFSET += packet[1];
+		currentTime = OFFSET - offset;
+		///
+		var event = packet[0].event;
+		if (event.type === 'channel') {
+			var subtype = event.subtype;
+			if (!handleEvent[subtype]) {
+				continue;
+			}
+			///
+			var channelId = event.channel;
+			var channel = MIDI.channels[channelId];
+			var delay = ctx.currentTime + ((currentTime + foffset) / 1000);
+			var delayMIDI = Math.max(0, delay + player.timeDelay);
+			var queueTime = OFFSET - offset;
+			///
+			switch(subtype) {
+				case 'controller':
+					MIDI.setController(channelId, event.controllerType, event.value, delayMIDI);
+					break;
+				case 'programChange':
+					MIDI.programChange(channelId, event.programNumber, delayMIDI);
+					break;
+				case 'pitchBend':
+					MIDI.pitchBend(channelId, event.value, delayMIDI);
+					break;
+				case 'noteOn':
+					if (!channel.mute) {
+						var note = clamp(0, 127, event.noteNumber + player.transpose);
+						packetQueue.push({
+							event: event,
+							time: queueTime,
+							source: MIDI.noteOn(channelId, note, event.velocity, delayMIDI),
+							interval: scheduleTracking(event, note, OFFSET, offset - foffset)
+						});
+						messages++;
+					}
+					break;
+				case 'noteOff':
+					if (!channel.mute) {
+						var note = clamp(0, 127, event.noteNumber + player.transpose);
+						packetQueue.push({
+							event: event,
+							time: queueTime,
+							source: MIDI.noteOff(channelId, note, delayMIDI),
+							interval: scheduleTracking(event, note, OFFSET, offset - foffset)
+						});
+						messages++;
+					}
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	onsuccess && onsuccess(packetQueue);
+};
+
+function seekPacket(seekTime) {
+	var packets = player.packets;
+	var length = packets.length;
+	for (var idx = 0, offset = 0; idx < length; idx++) {
+		var packet = packets[idx];
+		var packetTime = packet[1];
+		if (offset + packetTime < seekTime) {
+			offset += packetTime;
+		} else {
+			break;
+		}
+	}
+	return {
+		idx: idx,
+		offset: offset
+	};
+};
+
+
+/* Stop Audio
+---------------------------------------------------------- */
+function stopAudio() {
+	if (player.isPlaying) {
+		player.isPlaying = false;
+		///
+		var ctx = getContext();
+		player.currentTime += (ctx.currentTime - startTime) * 1000;
+
+		/// stop the audio, and intervals
+		while(packetQueue.length) {
+			var packet = packetQueue.pop();
+			if (packet) {
+				if (packet.source) {
+					if (typeof packet.source === 'number') { // HTML5 Audio
+						clearTimeout(packet.source);
+					} else { // WebAudioAPI
+						packet.source.disconnect(0);
+					}
+				}
+				///
+				clearTimeout(packet.interval);
+			}
+		}
+		
+		for (var sid in packetOn) {
+			var event = packetOn[sid];
+			onPacketListener({
+				channel: event.channel,
+				noteNumber: event.noteNumber,
+				status: event.status - 16,
+				subtype: 'noteOff',
+				type: 'channel'
+			});
+		}
+	}
+};
+
+
+/* Helpers
+---------------------------------------------------------- */
+function clamp(min, max, value) {
+	return (value < min) ? min : ((value > max) ? max : value);
+};
+
+function getContext() {
 	if (MIDI.api === 'webaudio') {
 		return MIDI.WebAudio.getContext();
 	} else {
-		midi.ctx = {currentTime: 0};
+		player.ctx = {currentTime: 0};
 	}
-	return midi.ctx;
+	return player.ctx;
 };
 
-var getLength = function() {
-	var data =  midi.data;
-	var length = data.length;
-	var totalTime = 0.5;
+function getLength() {
+	var packets =  player.packets;
+	var length = packets.length;
+	var totalTime = 0.0;
 	for (var n = 0; n < length; n++) {
-		totalTime += data[n][1];
+		totalTime += packets[n][1];
 	}
 	return totalTime;
 };
 
-var __now;
-var getNow = function() {
-    if (window.performance && window.performance.now) {
-        return window.performance.now();
+var NOW;
+function getNow() {
+    if (window.performance && performance.now) {
+        return performance.now();
     } else {
 		return Date.now();
 	}
 };
 
-var startAudio = function(currentTime, fromCache, onsuccess) {
-	if (!midi.replayer) {
-		return;
-	}
-	if (!fromCache) {
-		if (typeof currentTime === 'undefined') {
-			currentTime = midi.restart;
-		}
-		///
-		midi.playing && stopAudio();
-		midi.playing = true;
-		midi.data = midi.replayer.getData();
-		midi.endTime = getLength();
-	}
-	///
-	var note;
-	var offset = 0;
-	var messages = 0;
-	var data = midi.data;
-	var ctx = getContext();
-	var length = data.length;
-	//
-	queuedTime = 0.5;
-	///
-	var interval = eventQueue[0] && eventQueue[0].interval || 0;
-	var foffset = currentTime - midi.currentTime;
-	///
-	if (MIDI.api !== 'webaudio') { // set currentTime on ctx
-		var now = getNow();
-		__now = __now || now;
-		ctx.currentTime = (now - __now) / 1000;
-	}
-	///
-	startTime = ctx.currentTime;
-	///
-	for (var n = 0; n < length && messages < 100; n++) {
-		var obj = data[n];
-		if ((queuedTime += obj[1]) <= currentTime) {
-			offset = queuedTime;
-			continue;
-		}
-		///
-		currentTime = queuedTime - offset;
-		///
-		var event = obj[0].event;
-		if (event.type !== 'channel') {
-			continue;
-		}
-		///
-		var channelId = event.channel;
-		var channel = MIDI.channels[channelId];
-		var delay = ctx.currentTime + ((currentTime + foffset + midi.startDelay) / 1000);
-		var queueTime = queuedTime - offset + midi.startDelay;
-		switch (event.subtype) {
-			case 'controller':
-				MIDI.setController(channelId, event.controllerType, event.value, delay);
-				break;
-			case 'programChange':
-				MIDI.programChange(channelId, event.programNumber, delay);
-				break;
-			case 'pitchBend':
-				MIDI.pitchBend(channelId, event.value, delay);
-				break;
-			case 'noteOn':
-				if (channel.mute) break;
-				note = event.noteNumber - (midi.MIDIOffset || 0);
-				eventQueue.push({
-				    event: event,
-				    time: queueTime,
-				    source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
-				    interval: scheduleTracking(channelId, note, queuedTime + midi.startDelay, offset - foffset, 144, event.velocity)
-				});
-				messages++;
-				break;
-			case 'noteOff':
-				if (channel.mute) break;
-				note = event.noteNumber - (midi.MIDIOffset || 0);
-				eventQueue.push({
-				    event: event,
-				    time: queueTime,
-				    source: MIDI.noteOff(channelId, event.noteNumber, delay),
-				    interval: scheduleTracking(channelId, note, queuedTime, offset - foffset, 128, 0)
-				});
-				break;
-			default:
-				break;
-		}
-	}
-	///
-	onsuccess && onsuccess(eventQueue);
+
+/* Toggle event handling
+---------------------------------------------------------- */
+var handleEvent = {
+    controller: true,
+    noteOff: true,
+    noteOn: true,
+    pitchBend: true,
+    programChange: true
 };
 
-var stopAudio = function() {
-	var ctx = getContext();
-	midi.playing = false;
-	midi.restart += (ctx.currentTime - startTime) * 1000;
-	// stop the audio, and intervals
-	while (eventQueue.length) {
-		var o = eventQueue.pop();
-		window.clearInterval(o.interval);
-		if (!o.source) continue; // is not webaudio
-		if (typeof(o.source) === 'number') {
-			window.clearTimeout(o.source);
-		} else { // webaudio
-			o.source.disconnect(0);
-		}
-	}
-	// run callback to cancel any notes still playing
-	for (var key in noteRegistrar) {
-		var o = noteRegistrar[key]
-		if (noteRegistrar[key].message === 144 && onMidiEvent) {
-			onMidiEvent({
-				channel: o.channel,
-				note: o.note,
-				now: o.now,
-				end: o.end,
-				message: 128,
-				velocity: o.velocity
-			});
-		}
-	}
-	// reset noteRegistrar
-	noteRegistrar = {};
+player.handleEvent = function(type, truthy) {
+	handleEvent[type] = truthy;
 };
 
 })();
@@ -845,10 +1029,10 @@ var stopAudio = function() {
 	----------------------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
 	window.Audio && (function() {
-		var midi = root.AudioTag = { api: 'audiotag' };
+		var midi = MIDI.AudioTag = { api: 'audiotag' };
 		var noteToKey = {};
 		var volume = 127; // floating point 
 		var buffer_nid = -1; // current channel
@@ -859,33 +1043,31 @@ var stopAudio = function() {
 			audioBuffers[nid] = new Audio();
 		}
 
-		var playChannel = function(channel, note) {
-			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].instrument;
-			var instrumentId = root.GM.byId[instrument].id;
+		function playChannel(channel, note) {
+			if (!MIDI.channels[channel]) return;
+			var instrument = MIDI.channels[channel].program;
+			var instrumentId = MIDI.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
 				var instrumentNoteId = instrumentId + '' + note.id;
 				var nid = (buffer_nid + 1) % audioBuffers.length;
 				var audio = audioBuffers[nid];
 				notesOn[ nid ] = instrumentNoteId;
-				if (!root.Soundfont[instrumentId]) {
-					if (root.DEBUG) {
-						console.log('404', instrumentId);
-					}
+				if (!MIDI.Soundfont[instrumentId]) {
+					MIDI.DEBUG && console.log('404', instrumentId);
 					return;
 				}
-				audio.src = root.Soundfont[instrumentId][note.id];
+				audio.src = MIDI.Soundfont[instrumentId][note.id];
 				audio.volume = volume / 127;
 				audio.play();
 				buffer_nid = nid;
 			}
 		};
 
-		var stopChannel = function(channel, note) {
-			if (!root.channels[channel]) return;
-			var instrument = root.channels[channel].instrument;
-			var instrumentId = root.GM.byId[instrument].id;
+		function stopChannel(channel, note) {
+			if (!MIDI.channels[channel]) return;
+			var instrument = MIDI.channels[channel].program;
+			var instrumentId = MIDI.GM.byId[instrument].id;
 			var note = notes[note];
 			if (note) {
 				var instrumentNoteId = instrumentId + '' + note.id;
@@ -900,49 +1082,21 @@ var stopAudio = function() {
 				}
 			}
 		};
-	
+		///
 		midi.audioBuffers = audioBuffers;
+		midi.messageHandler = {};
+		///
 		midi.send = function(data, delay) { };
 		midi.setController = function(channel, type, value, delay) { };
 		midi.setVolume = function(channel, n) {
 			volume = n; //- should be channel specific volume
 		};
 
-		midi.programChange = function(channel, program) {
-			root.channels[channel].instrument = program;
-		};
-
 		midi.pitchBend = function(channel, program, delay) { };
 
 		midi.noteOn = function(channel, note, velocity, delay) {
 			var id = noteToKey[note];
-			if (!notes[id]) return;
-			if (delay) {
-				return setTimeout(function() {
-					playChannel(channel, id);
-				}, delay * 1000);
-			} else {
-				playChannel(channel, id);
-			}
-		};
-	
-		midi.noteOff = function(channel, note, delay) {
-// 			var id = noteToKey[note];
-// 			if (!notes[id]) return;
-// 			if (delay) {
-// 				return setTimeout(function() {
-// 					stopChannel(channel, id);
-// 				}, delay * 1000)
-// 			} else {
-// 				stopChannel(channel, id);
-// 			}
-		};
-	
-		midi.chordOn = function(channel, chord, velocity, delay) {
-			for (var idx = 0; idx < chord.length; idx ++) {
-				var n = chord[idx];
-				var id = noteToKey[n];
-				if (!notes[id]) continue;
+			if (notes[id]) {
 				if (delay) {
 					return setTimeout(function() {
 						playChannel(channel, id);
@@ -953,17 +1107,47 @@ var stopAudio = function() {
 			}
 		};
 	
+		midi.noteOff = function(channel, note, delay) {
+// 			var id = noteToKey[note];
+// 			if (notes[id]) {
+// 				if (delay) {
+// 					return setTimeout(function() {
+// 						stopChannel(channel, id);
+// 					}, delay * 1000)
+// 				} else {
+// 					stopChannel(channel, id);
+// 				}
+// 			}
+		};
+	
+		midi.chordOn = function(channel, chord, velocity, delay) {
+			for (var idx = 0; idx < chord.length; idx ++) {
+				var n = chord[idx];
+				var id = noteToKey[n];
+				if (notes[id]) {
+					if (delay) {
+						return setTimeout(function() {
+							playChannel(channel, id);
+						}, delay * 1000);
+					} else {
+						playChannel(channel, id);
+					}
+				}
+			}
+		};
+	
 		midi.chordOff = function(channel, chord, delay) {
 			for (var idx = 0; idx < chord.length; idx ++) {
 				var n = chord[idx];
 				var id = noteToKey[n];
-				if (!notes[id]) continue;
-				if (delay) {
-					return setTimeout(function() {
+				if (notes[id]) {
+					if (delay) {
+						return setTimeout(function() {
+							stopChannel(channel, id);
+						}, delay * 1000);
+					} else {
 						stopChannel(channel, id);
-					}, delay * 1000);
-				} else {
-					stopChannel(channel, id);
+					}
 				}
 			}
 		};
@@ -975,10 +1159,10 @@ var stopAudio = function() {
 		};
 	
 		midi.connect = function(opts) {
-			root.setDefaultPlugin(midi);
+			MIDI.setDefaultPlugin(midi);
 			///
-			for (var key in root.keyToNote) {
-				noteToKey[root.keyToNote[key]] = key;
+			for (var key in MIDI.keyToNote) {
+				noteToKey[MIDI.keyToNote[key]] = key;
 				notes[key] = {id: key};
 			}
 			///
@@ -989,18 +1173,19 @@ var stopAudio = function() {
 })(MIDI);
 /*
 	----------------------------------------------------------
-	Web Audio API - OGG or MPEG Soundbank
+	Web Audio API - OGG | MPEG Soundbank
 	----------------------------------------------------------
 	http://webaudio.github.io/web-audio-api/
 	----------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
 	window.AudioContext && (function() {
+
 		var audioContext = null; // new AudioContext();
 		var useStreamingBuffer = false; // !!audioContext.createMediaElementSource;
-		var midi = root.WebAudio = {api: 'webaudio'};
+		var midi = MIDI.WebAudio = {api: 'webaudio'};
 		var ctx; // audio context
 		var sources = {};
 		var effects = {};
@@ -1008,8 +1193,15 @@ var stopAudio = function() {
 		var audioBuffers = {};
 		///
 		midi.audioBuffers = audioBuffers;
-		midi.send = function(data, delay) { };
-		midi.setController = function(channelId, type, value, delay) { };
+		midi.messageHandler = {};
+		///
+		midi.send = function(data, delay) {
+		
+		};
+
+		midi.setController = function(channelId, type, value, delay) {
+		
+		};
 
 		midi.setVolume = function(channelId, volume, delay) {
 			if (delay) {
@@ -1021,107 +1213,95 @@ var stopAudio = function() {
 			}
 		};
 
-		midi.programChange = function(channelId, program, delay) {
-// 			if (delay) {
-// 				return setTimeout(function() {
-// 					var channel = root.channels[channelId];
-// 					channel.instrument = program;
-// 				}, delay);
-// 			} else {
-				var channel = root.channels[channelId];
-				channel.instrument = program;
-// 			}
-		};
-
-		midi.pitchBend = function(channelId, program, delay) {
-// 			if (delay) {
-// 				setTimeout(function() {
-// 					var channel = root.channels[channelId];
-// 					channel.pitchBend = program;
-// 				}, delay);
-// 			} else {
-				var channel = root.channels[channelId];
-				channel.pitchBend = program;
-// 			}
+		midi.pitchBend = function(channelId, bend, delay) {
+			var channel = MIDI.channels[channelId];
+			if (channel) {
+				if (delay) {
+					setTimeout(function() {
+						channel.pitchBend = bend;
+					}, delay);
+				} else {
+					channel.pitchBend = bend;
+				}
+			}
 		};
 
 		midi.noteOn = function(channelId, noteId, velocity, delay) {
 			delay = delay || 0;
 
 			/// check whether the note exists
-			var channel = root.channels[channelId];
-			var instrument = channel.instrument;
-			var bufferId = instrument + '' + noteId;
+			var channel = MIDI.channels[channelId];
+			var instrument = channel.program;
+			var bufferId = instrument + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
-			if (!buffer) {
-// 				console.log(MIDI.GM.byId[instrument].id, instrument, channelId);
-				return;
-			}
-
-			/// convert relative delay to absolute delay
-			if (delay < ctx.currentTime) {
-				delay += ctx.currentTime;
-			}
-		
-			/// create audio buffer
-			if (useStreamingBuffer) {
-				var source = ctx.createMediaElementSource(buffer);
-			} else { // XMLHTTP buffer
-				var source = ctx.createBufferSource();
-				source.buffer = buffer;
-			}
-
-			/// add effects to buffer
-			if (effects) {
-				var chain = source;
-				for (var key in effects) {
-					chain.connect(effects[key].input);
-					chain = effects[key];
+			if (buffer) {
+				/// convert relative delay to absolute delay
+				if (delay < ctx.currentTime) {
+					delay += ctx.currentTime;
 				}
-			}
+		
+				/// create audio buffer
+				if (useStreamingBuffer) {
+					var source = ctx.createMediaElementSource(buffer);
+				} else { // XMLHTTP buffer
+					var source = ctx.createBufferSource();
+					source.buffer = buffer;
+				}
 
-			/// add gain + pitchShift
-			var gain = (velocity / 127) * (masterVolume / 127) * 2 - 1;
-			source.connect(ctx.destination);
-			source.playbackRate.value = 1; // pitch shift 
-			source.gainNode = ctx.createGain(); // gain
-			source.gainNode.connect(ctx.destination);
-			source.gainNode.gain.value = Math.min(1.0, Math.max(-1.0, gain));
-			source.connect(source.gainNode);
-			///
-			if (useStreamingBuffer) {
-				if (delay) {
-					return setTimeout(function() {
+				/// add effects to buffer
+				if (effects) {
+					var chain = source;
+					for (var key in effects) {
+						chain.connect(effects[key].input);
+						chain = effects[key];
+					}
+				}
+
+				/// add gain + pitchShift
+				var gain = (velocity / 127) * (masterVolume / 127) * 2 - 1;
+				source.connect(ctx.destination);
+				source.playbackRate.value = 1; // pitch shift 
+				source.gainNode = ctx.createGain(); // gain
+				source.gainNode.connect(ctx.destination);
+				source.gainNode.gain.value = Math.min(1.0, Math.max(-1.0, gain));
+				source.connect(source.gainNode);
+				///
+				if (useStreamingBuffer) {
+					if (delay) {
+						return setTimeout(function() {
+							buffer.currentTime = 0;
+							buffer.play()
+						}, delay * 1000);
+					} else {
 						buffer.currentTime = 0;
 						buffer.play()
-					}, delay * 1000);
+					}
 				} else {
-					buffer.currentTime = 0;
-					buffer.play()
+					source.start(delay || 0);
 				}
+				///
+				sources[channelId + 'x' + noteId] = source;
+				///
+				return source;
 			} else {
-				source.start(delay || 0);
+				MIDI.handleError('no buffer', arguments);
 			}
-			///
-			sources[channelId + '' + noteId] = source;
-			///
-			return source;
 		};
 
 		midi.noteOff = function(channelId, noteId, delay) {
 			delay = delay || 0;
 
 			/// check whether the note exists
-			var channel = root.channels[channelId];
-			var instrument = channel.instrument;
-			var bufferId = instrument + '' + noteId;
+			var channel = MIDI.channels[channelId];
+			var instrument = channel.program;
+			var bufferId = instrument + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
 			if (buffer) {
 				if (delay < ctx.currentTime) {
 					delay += ctx.currentTime;
 				}
 				///
-				var source = sources[channelId + '' + noteId];
+				var source = sources[channelId + 'x' + noteId];
 				if (source) {
 					if (source.gainNode) {
 						// @Miranet: 'the values of 0.2 and 0.3 could of course be used as 
@@ -1148,7 +1328,7 @@ var stopAudio = function() {
 						}
 					}
 					///
-					delete sources[channelId + '' + noteId];
+					delete sources[channelId + 'x' + noteId];
 					///
 					return source;
 				}
@@ -1198,12 +1378,13 @@ var stopAudio = function() {
 					effects[data.type] = effect;
 				}
 			} else {
-				return console.log('Effects module not installed.');
+				MIDI.handleError('effects not installed.', arguments);
+				return;
 			}
 		};
 
 		midi.connect = function(opts) {
-			root.setDefaultPlugin(midi);
+			MIDI.setDefaultPlugin(midi);
 			midi.setContext(ctx || createAudioContext(), opts.onsuccess);
 		};
 	
@@ -1211,75 +1392,84 @@ var stopAudio = function() {
 			return ctx;
 		};
 	
-		midi.setContext = function(newCtx, onload, onprogress, onerror) {
+		midi.setContext = function(newCtx, onsuccess, onprogress, onerror) {
 			ctx = newCtx;
 
 			/// tuna.js effects module - https://github.com/Dinahmoe/tuna
-			if (typeof Tuna !== 'undefined' && !ctx.tunajs) {
-				ctx.tunajs = new Tuna(ctx);
+			if (typeof Tuna !== 'undefined') {
+				if (!(ctx.tunajs instanceof Tuna)) {
+					ctx.tunajs = new Tuna(ctx);
+				}
 			}
 		
 			/// loading audio files
 			var urls = [];
-			var notes = root.keyToNote;
-			for (var key in notes) urls.push(key);
+			var notes = MIDI.keyToNote;
+			for (var key in notes) {
+				urls.push(key);
+			}
 			///
-			var waitForEnd = function(instrument) {
+			function waitForEnd(instrument) {
 				for (var key in bufferPending) { // has pending items
-					if (bufferPending[key]) return;
+					if (bufferPending[key]) {
+						return;
+					}
 				}
-				///
-				if (onload) { // run onload once
-					onload();
-					onload = null;
+				if (onsuccess) { // run onsuccess once
+					onsuccess();
+					onsuccess = null;
 				}
 			};
-			///
-			var requestAudio = function(soundfont, instrumentId, index, key) {
+
+			function requestAudio(soundfont, programId, index, key) {
 				var url = soundfont[key];
 				if (url) {
-					bufferPending[instrumentId] ++;
+					bufferPending[programId] ++;
 					loadAudio(url, function(buffer) {
 						buffer.id = key;
-						var noteId = root.keyToNote[key];
-						audioBuffers[instrumentId + '' + noteId] = buffer;
+						var noteId = MIDI.keyToNote[key];
+						audioBuffers[programId + 'x' + noteId] = buffer;
 						///
-						if (-- bufferPending[instrumentId] === 0) {
+						if (--bufferPending[programId] === 0) {
 							var percent = index / 87;
-// 							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
 							soundfont.isLoaded = true;
+							MIDI.DEBUG && console.log('loaded: ', instrument);
 							waitForEnd(instrument);
 						}
-					}, function(err) {
-		// 				console.log(err);
+					}, function() {
+						MIDI.handleError('audio could not load', arguments);
 					});
 				}
 			};
 			///
 			var bufferPending = {};
-			for (var instrument in root.Soundfont) {
-				var soundfont = root.Soundfont[instrument];
+			var soundfonts = MIDI.Soundfont;
+			for (var instrument in soundfonts) {
+				var soundfont = soundfonts[instrument];
 				if (soundfont.isLoaded) {
 					continue;
-				}
-				///
-				var synth = root.GM.byName[instrument];
-				var instrumentId = synth.number;
-				///
-				bufferPending[instrumentId] = 0;
-				///
-				for (var index = 0; index < urls.length; index++) {
-					var key = urls[index];
-					requestAudio(soundfont, instrumentId, index, key);
+				} else {
+					var spec = MIDI.GM.byName[instrument];
+					if (spec) {
+						var programId = spec.program;
+						///
+						bufferPending[programId] = 0;
+						///
+						for (var index = 0; index < urls.length; index++) {
+							var key = urls[index];
+							requestAudio(soundfont, programId, index, key);
+						}
+					}
 				}
 			}
 			///
 			setTimeout(waitForEnd, 1);
 		};
 
+
 		/* Load audio file: streaming | base64 | arraybuffer
 		---------------------------------------------------------------------- */
-		function loadAudio(url, onload, onerror) {
+		function loadAudio(url, onsuccess, onerror) {
 			if (useStreamingBuffer) {
 				var audio = new Audio();
 				audio.src = url;
@@ -1287,7 +1477,7 @@ var stopAudio = function() {
 				audio.autoplay = false;
 				audio.preload = false;
 				audio.addEventListener('canplay', function() {
-					onload && onload(audio);
+					onsuccess && onsuccess(audio);
 				});
 				audio.addEventListener('error', function(err) {
 					onerror && onerror(err);
@@ -1296,13 +1486,13 @@ var stopAudio = function() {
 			} else if (url.indexOf('data:audio') === 0) { // Base64 string
 				var base64 = url.split(',')[1];
 				var buffer = Base64Binary.decodeArrayBuffer(base64);
-				ctx.decodeAudioData(buffer, onload, onerror);
+				ctx.decodeAudioData(buffer, onsuccess, onerror);
 			} else { // XMLHTTP buffer
 				var request = new XMLHttpRequest();
 				request.open('GET', url, true);
 				request.responseType = 'arraybuffer';
 				request.onload = function() {
-					ctx.decodeAudioData(request.response, onload, onerror);
+					ctx.decodeAudioData(request.response, onsuccess, onerror);
 				};
 				request.send();
 			}
@@ -1321,69 +1511,71 @@ var stopAudio = function() {
 	----------------------------------------------------------------------
 */
 
-(function(root) { 'use strict';
+(function(MIDI) { 'use strict';
 
-	var plugin = null;
 	var output = null;
 	var channels = [];
-	var midi = root.WebMIDI = {api: 'webmidi'};
-	midi.send = function(data, delay) { // set channel volume
+	var midi = MIDI.WebMIDI = {api: 'webmidi'};
+
+	midi.messageHandler = {};
+	midi.messageHandler.program = function(channelId, program, delay) { // change patch (instrument)
+		output.send([0xC0 + channelId, program], delay * 1000);
+	};
+
+	midi.send = function(data, delay) {
 		output.send(data, delay * 1000);
 	};
 
-	midi.setController = function(channel, type, value, delay) {
-		output.send([channel, type, value], delay * 1000);
+	midi.setController = function(channelId, type, value, delay) {
+		output.send([channelId, type, value], delay * 1000);
 	};
 
-	midi.setVolume = function(channel, volume, delay) { // set channel volume
-		output.send([0xB0 + channel, 0x07, volume], delay * 1000);
+	midi.setVolume = function(channelId, volume, delay) { // set channel volume
+		output.send([0xB0 + channelId, 0x07, volume], delay * 1000);
 	};
 
-	midi.programChange = function(channel, program, delay) { // change patch (instrument)
-		output.send([0xC0 + channel, program], delay * 1000);
+	midi.pitchBend = function(channelId, program, delay) { // pitch bend
+		output.send([0xE0 + channelId, program], delay * 1000);
 	};
 
-	midi.pitchBend = function(channel, program, delay) { // pitch bend
-		output.send([0xE0 + channel, program], delay * 1000);
+	midi.noteOn = function(channelId, note, velocity, delay) {
+		output.send([0x90 + channelId, note, velocity], delay * 1000);
 	};
 
-	midi.noteOn = function(channel, note, velocity, delay) {
-		output.send([0x90 + channel, note, velocity], delay * 1000);
+	midi.noteOff = function(channelId, note, delay) {
+		output.send([0x80 + channelId, note, 0], delay * 1000);
 	};
 
-	midi.noteOff = function(channel, note, delay) {
-		output.send([0x80 + channel, note, 0], delay * 1000);
-	};
-
-	midi.chordOn = function(channel, chord, velocity, delay) {
+	midi.chordOn = function(channelId, chord, velocity, delay) {
 		for (var n = 0; n < chord.length; n ++) {
 			var note = chord[n];
-			output.send([0x90 + channel, note, velocity], delay * 1000);
+			output.send([0x90 + channelId, note, velocity], delay * 1000);
 		}
 	};
 
-	midi.chordOff = function(channel, chord, delay) {
+	midi.chordOff = function(channelId, chord, delay) {
 		for (var n = 0; n < chord.length; n ++) {
 			var note = chord[n];
-			output.send([0x80 + channel, note, 0], delay * 1000);
+			output.send([0x80 + channelId, note, 0], delay * 1000);
 		}
 	};
 
 	midi.stopAllNotes = function() {
 		output.cancel();
-		for (var channel = 0; channel < 16; channel ++) {
-			output.send([0xB0 + channel, 0x7B, 0]);
+		for (var channelId = 0; channelId < 16; channelId ++) {
+			output.send([0xB0 + channelId, 0x7B, 0]);
 		}
 	};
 
 	midi.connect = function(opts) {
-		root.setDefaultPlugin(midi);
+		var onsuccess = opts.onsuccess;
+		var onerror = opts.onerror;
 		///
-		navigator.requestMIDIAccess().then(function(access) {
-			plugin = access;
-			output = plugin.outputs()[0];
-			opts.onsuccess && opts.onsuccess();
-		}, function(err) { // well at least we tried!
+		MIDI.setDefaultPlugin(midi);
+		///
+		function errFunction(err) { // well at least we tried!
+			onerror && onerror(err);
+			///
 			if (window.AudioContext) { // Chrome
 				opts.api = 'webaudio';
 			} else if (window.Audio) { // Firefox
@@ -1391,19 +1583,37 @@ var stopAudio = function() {
 			} else { // no support
 				return;
 			}
-			root.loadPlugin(opts);
-		});
+			///
+			MIDI.loadPlugin(opts);
+		};
+		///
+		navigator.requestMIDIAccess().then(function(access) {
+			var pluginOutputs = access.outputs;
+			if (typeof pluginOutputs == 'function') { // Chrome pre-43
+				output = pluginOutputs()[0];
+			} else { // Chrome post-43
+				output = pluginOutputs[0];
+			}
+			if (output === undefined) { // no outputs
+				errFunction();
+			} else {
+				onsuccess && onsuccess();
+			}
+		}, onerror);
 	};
 
 })(MIDI);
 /*
 	----------------------------------------------------------
-	util/Request : 0.1.1 : 2015-03-26
+	util.request : 0.1.1 : 2015-04-12 : https://mudcu.be
+	----------------------------------------------------------
+	XMLHttpRequest - IE7+ | Chrome 1+ | Firefox 1+ | Safari 1.2+
+	CORS - IE10+ | Chrome 3+ | Firefox 3.5+ | Safari 4+
 	----------------------------------------------------------
 	util.request({
 		url: './dir/something.extension',
 		data: 'test!',
-		format: 'text', // text | xml | json | binary
+		format: 'text', // text | xml | json
 		responseType: 'text', // arraybuffer | blob | document | json | text
 		headers: {},
 		withCredentials: true, // true | false
@@ -1419,9 +1629,13 @@ var stopAudio = function() {
 			loader.create('thread', 'loading... ', percent);
 		}
 	});
+	
+	
+	https://mathiasbynens.be/demo/xhr-responsetype //- shim for responseType='json'
+	
 */
 
-if (typeof MIDI === 'undefined') MIDI = {};
+if (typeof galactic === 'undefined') galactic = {};
 
 (function(root) {
 
@@ -1438,9 +1652,9 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		var responseType = opts.responseType;
 		var withCredentials = opts.withCredentials || false;
 		///
+		var onprogress = onprogress || opts.onprogress;
 		var onsuccess = onsuccess || opts.onsuccess;
 		var onerror = onerror || opts.onerror;
-		var onprogress = onprogress || opts.onprogress;
 		///
 		if (typeof NodeFS !== 'undefined' && root.loc.isLocalUrl(url)) {
 			NodeFS.readFile(url, 'utf8', function(err, res) {
@@ -1463,16 +1677,11 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		} else if (data) { // set the default headers for POST
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		}
-		if (format === 'binary') { //- default to responseType="blob" when supported
-			if (xhr.overrideMimeType) {
-				xhr.overrideMimeType('text/plain; charset=x-user-defined');
-			}
-		}
 		if (responseType) {
 			xhr.responseType = responseType;
 		}
 		if (withCredentials) {
-			xhr.withCredentials = 'true';
+			xhr.withCredentials = true;
 		}
 		if (onerror && 'onerror' in xhr) {
 			xhr.onerror = onerror;
@@ -1501,7 +1710,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				});
 			}
 		}
-		///
+
 		xhr.onreadystatechange = function(evt) {
 			if (xhr.readyState === 4) { // The request is complete
 				if (xhr.status === 200 || // Response OK
@@ -1511,16 +1720,18 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				) {
 					if (onsuccess) {
 						var res;
-						if (format === 'xml') {
-							res = evt.target.responseXML;
-						} else if (format === 'text') {
-							res = evt.target.responseText;
-						} else if (format === 'json') {
+						if (format === 'json') {
 							try {
 								res = JSON.parse(evt.target.response);
 							} catch(err) {
 								onerror && onerror.call(xhr, evt);
 							}
+						} else if (format === 'xml') {
+							res = evt.target.responseXML;
+						} else if (format === 'text') {
+							res = evt.target.responseText;
+						} else {
+							res = evt.target.response;
 						}
 						///
 						onsuccess.call(xhr, evt, res);
@@ -1541,7 +1752,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 		module.exports = root.util.request;
 	}
 
-})(MIDI);
+})(galactic);
 /*
 	-----------------------------------------------------------
 	dom.loadScript.js : 0.1.4 : 2014/02/12 : http://mudcu.be
@@ -1741,7 +1952,7 @@ dom.loadScript.prototype.add = function(config) {
 
 dom.loadScript = new dom.loadScript();
 
-var globalExists = function(path, root) {
+function globalExists(path, root) {
 	try {
 		path = path.split('"').join('').split("'").join('').split(']').join('').split('[').join('.');
 		var parts = path.split(".");
