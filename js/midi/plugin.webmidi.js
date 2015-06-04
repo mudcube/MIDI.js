@@ -63,12 +63,7 @@
 
 	midi.connect = function(opts) {
 		root.setDefaultPlugin(midi);
-		///
-		navigator.requestMIDIAccess().then(function(access) {
-			plugin = access;
-			output = plugin.outputs()[0];
-			opts.onsuccess && opts.onsuccess();
-		}, function(err) { // well at least we tried!
+		var errFunction = function(err) { // well at least we tried!
 			if (window.AudioContext) { // Chrome
 				opts.api = 'webaudio';
 			} else if (window.Audio) { // Firefox
@@ -77,7 +72,22 @@
 				return;
 			}
 			root.loadPlugin(opts);
-		});
+		};
+		///
+		navigator.requestMIDIAccess().then(function(access) {
+			plugin = access;
+			var pluginOutputs = plugin.outputs;
+			if (typeof pluginOutputs == 'function') { // Chrome pre-43
+				output = pluginOutputs()[0];
+			} else { // Chrome post-43
+				output = pluginOutputs[0];
+			}
+			if (output === undefined) { // nothing there...
+				errFunction();
+			} else {
+				opts.onsuccess && opts.onsuccess();			
+			}
+		}, errFunction);
 	};
 
 })(MIDI);
