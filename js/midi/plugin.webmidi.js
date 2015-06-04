@@ -63,9 +63,14 @@
 	};
 
 	midi.connect = function(opts) {
+		var onsuccess = opts.onsuccess;
+		var onerror = opts.onerror;
+		///
 		MIDI.setDefaultPlugin(midi);
 		///
-		function onerror(err) { // well at least we tried!
+		function errFunction(err) { // well at least we tried!
+			onerror && onerror(err);
+			///
 			if (window.AudioContext) { // Chrome
 				opts.api = 'webaudio';
 			} else if (window.Audio) { // Firefox
@@ -73,15 +78,21 @@
 			} else { // no support
 				return;
 			}
+			///
 			MIDI.loadPlugin(opts);
 		};
 		///
 		navigator.requestMIDIAccess().then(function(access) {
-			if (access.outputs.size) {
-				output = access.outputs[0];
-				opts.onsuccess && opts.onsuccess();
+			var pluginOutputs = access.outputs;
+			if (typeof pluginOutputs == 'function') { // Chrome pre-43
+				output = pluginOutputs()[0];
+			} else { // Chrome post-43
+				output = pluginOutputs[0];
+			}
+			if (output === undefined) { // no outputs
+				errFunction();
 			} else {
-				onerror();
+				onsuccess && onsuccess();
 			}
 		}, onerror);
 	};
