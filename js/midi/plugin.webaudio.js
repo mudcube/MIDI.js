@@ -69,8 +69,8 @@
 
 			/// check whether the note exists
 			var channel = MIDI.channels[channelId];
-			var instrument = channel.program;
-			var bufferId = instrument + 'x' + noteId;
+			var instrumentId = channel.program;
+			var bufferId = instrumentId + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
 			if (buffer) {
 				/// convert relative delay to absolute delay
@@ -86,24 +86,22 @@
 					source.buffer = buffer;
 				}
 
-				/// add effects to buffer
-				if (effects) {
-					var chain = source;
-					for (var key in effects) {
-						chain.connect(effects[key].input);
-						chain = effects[key];
-					}
-				}
-
 				/// add gain + pitchShift
-				var gain = (velocity / 127) * (channelVolume[channelId] / 127) * 2 - 1;
-				source.connect(ctx.destination);
+				var gain = (velocity / 127) * (channelVolume[channelId] / 127) * 2.0;
 				source.playbackRate.value = 1; // pitch shift 
 				source.gainNode = ctx.createGain(); // gain
 				source.gainNode.connect(ctx.destination);
 				source.gainNode.gain.value = Math.min(1.0, Math.max(-1.0, gain));
 				source.connect(source.gainNode);
-				///
+				
+				/// add effects to buffer
+				if (effects) {
+					var chain = source.gainNode;
+					for (var key in effects) {
+						chain.connect(effects[key].input);
+						chain = effects[key];
+					}
+				}
 				if (useStreamingBuffer) {
 					if (delay) {
 						return setTimeout(function() {
@@ -118,8 +116,8 @@
 					source.start(delay || 0);
 				}
 				///
-				sources[channelId + 'x' + noteId] = source;
-				///
+				var sourceId = channelId + 'x' + noteId;
+				sources[sourceId] = source;
 				return source;
 			} else {
 				MIDI.handleError('no buffer', arguments);
@@ -131,15 +129,16 @@
 
 			/// check whether the note exists
 			var channel = MIDI.channels[channelId];
-			var instrument = channel.program;
-			var bufferId = instrument + 'x' + noteId;
+			var instrumentId = channel.program;
+			var bufferId = instrumentId + 'x' + noteId;
 			var buffer = audioBuffers[bufferId];
 			if (buffer) {
 				if (delay < ctx.currentTime) {
 					delay += ctx.currentTime;
 				}
 				///
-				var source = sources[channelId + 'x' + noteId];
+				var sourceId = channelId + 'x' + noteId;
+				var source = sources[sourceId];
 				if (source) {
 					if (source.gainNode) {
 						// @Miranet: 'the values of 0.2 and 0.3 could of course be used as 
@@ -147,9 +146,8 @@
 						// add { 'metadata': { release: 0.3 } } to soundfont files
 						var gain = source.gainNode.gain;
 						gain.linearRampToValueAtTime(gain.value, delay);
-						gain.linearRampToValueAtTime(-1.0, delay + 0.3);
+						gain.linearRampToValueAtTime(0.0, delay + 0.3);
 					}
-					///
 					if (useStreamingBuffer) {
 						if (delay) {
 							setTimeout(function() {
@@ -166,8 +164,7 @@
 						}
 					}
 					///
-					delete sources[channelId + 'x' + noteId];
-					///
+					delete sources[sourceId];
 					return source;
 				}
 			}
