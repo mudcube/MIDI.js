@@ -206,3 +206,6 @@ MIDI.setEffects([
 * Flash package: [SoundManager2](http://www.schillmania.com/projects/soundmanager2/) by [Scott Schiller](http://schillmania.com)
 * [jasmid](https://github.com/gasman/jasmid): Reads MIDI file byte-code, and translats into a Javascript array.
 * [base642binary.js](http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/): Cleans up XML base64-requests for Web Audio API.
+
+## Similar projects
+* [Wild Web MIDI](http://zz85.github.io/wild-web-midi/) by [@BlurSpline](https://twitter.com/BlurSpline)
