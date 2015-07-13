@@ -15,6 +15,8 @@ module.exports = function (grunt) {
 	grunt.initConfig({
 		concat: {
 			'build/MIDI.js': [
+				'inc/shim/Base64.js',
+				'inc/shim/Base64binary.js',
 //				'js/color/spaceW3.js', // optional
 				'js/midi/audioDetect.js',
 				'js/midi/gm.js',
@@ -27,8 +29,6 @@ module.exports = function (grunt) {
 				'js/util/dom_request_xhr.js', // req when using XHR
 				'js/util/dom_request_script.js', // req otherwise
 //				'js/widget/loader.js', // optional
-				'inc/polyfill/Base64.js',
-				'inc/polyfill/base64binary.js'
 			]
 		},
 		uglify: {
