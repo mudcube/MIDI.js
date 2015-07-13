@@ -17,7 +17,7 @@
 * [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
 * [VexFlow](http://my.vexflow.com/articles/53) by Mohit Muthanna @11111110b
 
-## Related respositories
+## Related repositories
 
 * [MIDI Pictures](https://github.com/andruo11/midi-pictures): Pictures of the 128 standard instruments on MIDI piano keyboards
 * [MIDI Soundfonts](https://github.com/gleitz/midi-js-soundfonts): Pre-rendered General MIDI soundfonts that can be used immediately with MIDI.js
