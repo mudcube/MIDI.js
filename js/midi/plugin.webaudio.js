@@ -70,9 +70,7 @@
 			}
 
 			/// convert relative delay to absolute delay
-			if (delay < ctx.currentTime) {
-				delay += ctx.currentTime;
-			}
+			delay += ctx.currentTime;
 		
 			/// create audio buffer
 			if (useStreamingBuffer) {
@@ -128,9 +126,7 @@
 			var bufferId = instrument + '' + noteId;
 			var buffer = audioBuffers[bufferId];
 			if (buffer) {
-				if (delay < ctx.currentTime) {
-					delay += ctx.currentTime;
-				}
+				delay += ctx.currentTime;
 				///
 				var source = sources[channelId + '' + noteId];
 				if (source) {
@@ -185,9 +181,7 @@
 		midi.stopAllNotes = function() {
 			for (var sid in sources) {
 				var delay = 0;
-				if (delay < ctx.currentTime) {
-					delay += ctx.currentTime;
-				}
+				delay += ctx.currentTime;
 				var source = sources[sid];
 				source.gain.linearRampToValueAtTime(1, delay);
 				source.gain.linearRampToValueAtTime(0, delay + 0.3);
