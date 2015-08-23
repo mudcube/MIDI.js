@@ -2,21 +2,25 @@
 
 * [Basic](./examples/Basic.html) - the most basic implementation.
 * [MIDIPlayer](./examples/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
-* [MultipleInstruments](./examples/MultipleInstruments.html) - synth drum and piano playing together
 * [WhitneyMusicBox](./examples/WhitneyMusicBox.html) - a audio/visual experiment by Jim Bumgardner
 
 ## Demos
 
-* [Color Piano](http://mudcu.be/piano) by Michael Deal @mudcube
 * [3D Piano Player w/ Three.js](http://www.rgba.org/r3d/3d-piano-player/) by Borja Morales @reality3d
-* [Simon Says](http://labs.uxmonk.com/simon-says/) by Daniel Christopher @uxmonk
 * [Brite Lite](http://labs.uxmonk.com/brite-lite/) by Daniel Christopher @uxmonk
+* [Color Piano](http://mudcu.be/piano) by Michael Deal @mudcube
 * [Euphony 3D Piano](http://qiao.github.com/euphony/) by Xueqiao Xu @qiao
-* [VexFlow](http://my.vexflow.com/articles/53) by Mohit Muthanna @11111110b
-* [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
-* [Ragamroll](http://online-compute.rhcloud.com/ragamroll/) by Mani Balasubramanian
 * [Gbloink!](http://gbloink.com/alpha/) by Phil Jones
-* [Watch & Repeat](http://watchandrepeat.com/) by Etay Luz
+* [Piano Typewriter](http://www.picatino.com/piano_typewriter/) by Andrew Levine
+* [Ragamroll](http://online-compute.rhcloud.com/ragamroll/) by Mani Balasubramanian
+* [Simon Says](http://labs.uxmonk.com/simon-says/) by Daniel Christopher @uxmonk
+* [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
+* [VexFlow](http://my.vexflow.com/articles/53) by Mohit Muthanna @11111110b
+
+## Related repositories
+
+* [MIDI Pictures](https://github.com/andruo11/midi-pictures): Pictures of the 128 standard instruments on MIDI piano keyboards
+* [MIDI Soundfonts](https://github.com/gleitz/midi-js-soundfonts): Pre-rendered General MIDI soundfonts that can be used immediately with MIDI.js
 
 ## Generating Base64 Soundfonts
 
@@ -29,7 +33,7 @@ To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sou
 
 ## API
 
-### [MIDI.loadPlugin.js](./js/midi/LoadPlugin.js) - Decides which framework is best to use
+### [MIDI.loadPlugin.js](./js/midi/loader.js) - Decides which framework is best to use
 
 ```javascript
 // interface to download soundfont, then execute callback;
@@ -42,7 +46,7 @@ MIDI.loadPlugin({
 });
 ```
 
-### [MIDI.Plugin.js](./js/midi/plugin.js) - Controls MIDI output
+### [MIDI.Plugin.js](./js/midi/plugin.webaudio.js) - Controls MIDI output
 
 ```javascript
 MIDI.noteOn(channel, note, velocity, delay);
@@ -192,7 +196,7 @@ MIDI.setEffects([
 
 ## Libraries
 
-* [colorspace.js](./js/color/spaceW3.js): Color conversions, music isn&rsquo;t complete without!
+* [colorspace.js](./examples/inc/colorspace.js): Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
 * [dom_request_script.js](./js/util/dom_request_script.js): Loads scripts in synchronously, or asynchronously.
 <pre>DOMLoader.script.add(src, onsuccess);</pre>
@@ -208,3 +212,6 @@ MIDI.setEffects([
 * Flash package: [SoundManager2](http://www.schillmania.com/projects/soundmanager2/) by [Scott Schiller](http://schillmania.com)
 * [jasmid](https://github.com/gasman/jasmid): Reads MIDI file byte-code, and translats into a Javascript array.
 * [base642binary.js](http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/): Cleans up XML base64-requests for Web Audio API.
+
+## Similar projects
+* [Wild Web MIDI](http://zz85.github.io/wild-web-midi/) by [@BlurSpline](https://twitter.com/BlurSpline)

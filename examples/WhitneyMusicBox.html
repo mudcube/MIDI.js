@@ -34,7 +34,7 @@
 <body>
 Whitney Music Box animation in HTML5.<br>
 Graphics code by <a href="https://github.com/jbum/Whitney-Music-Box-Examples">Jim Bumgardner</a>.<br>
-Audio created with <a href="https://github.com/mudx/MIDI.js">MIDI.js</a><br>
+Audio created with <a href="https://github.com/mudcube/MIDI.js">MIDI.js</a><br>
 <canvas id="mycanvas" />
 <script type="text/javascript">
 
@@ -102,7 +102,7 @@ window.onload = function () {
 		onsuccess: function() {
 			var canvas = document.getElementById('mycanvas');
 			canvas.style.width = gw + "px";
-			canvas.style.width = gw + "px";
+			canvas.style.height = gh + "px";
 			canvas.width = gw;
 			canvas.height = gh;
 			dc = canvas.getContext('2d');
