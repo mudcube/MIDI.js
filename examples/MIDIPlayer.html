@@ -136,6 +136,9 @@
 			onprogress: function(state, progress) {
 				MIDI.loader.setValue(progress * 100);
 			},
+			onerror: function(err) {
+			    console.warn(err);  
+			},
 			onsuccess: function() {
 				/// this is the language we are running in
 				var title = document.getElementById("title");
@@ -144,7 +147,14 @@
 				/// this sets up the MIDI.Player and gets things going...
 				player = MIDI.Player;
 				player.timeWarp = 1; // speed the song is played back
-				player.loadFile(song[songid++ % song.length], player.start);
+				player.loadFile(song[songid++ % song.length], 
+				        player.start, // onsuccess      
+				        undefined, // onprogress
+				        function (err) { // onerror
+				             console.warn("An error occurred while loading...");
+				             console.warn(err);
+				        }
+				);
 
 				/// control the piano keys colors
 				var colorMap = MIDI.Synesthesia.map();

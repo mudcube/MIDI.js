@@ -16,3 +16,5 @@ npm-debug.log
 *.gz
 *.DS_Store
 
+
+.project
