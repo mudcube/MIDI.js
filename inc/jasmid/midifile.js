@@ -2,6 +2,7 @@
 class to parse the .mid file format
 (depends on stream.js)
 */
+
 function MidiFile(data) {
 	function readChunk(stream) {
 		var id = stream.read(4);
@@ -10,7 +11,7 @@ function MidiFile(data) {
 			'id': id,
 			'length': length,
 			'data': stream.read(length)
-		};
+		}
 	}
 	
 	var lastEventTypeByte;

@@ -478,7 +478,7 @@ MIDI.player = new function () { 'use strict';
 				try {
 					readMidiFile();
 					readMetadata();
-					
+
 					MIDI.setup({
 						instruments: player.instruments,
 						onprogress: onprogress
