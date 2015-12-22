@@ -3,23 +3,32 @@
 <head>
 	<title>Whitney Music Box in HTML5</title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
 	<!-- shims -->
 	<script src="../inc/shim/Base64.js"></script>
-	<script src="../inc/shim/Base64binary.js"></script>
 	<script src="../inc/shim/WebAudioAPI.js"></script>
-	<!-- midi.js package -->
-	<script src="../js/midi/audioDetect.js"></script>
-	<script src="../js/midi/gm.js"></script>
-	<script src="../js/midi/loader.js"></script>
-	<script src="../js/midi/plugin.audiotag.js"></script>
-	<script src="../js/midi/plugin.webaudio.js"></script>
-	<script src="../js/midi/plugin.webmidi.js"></script>
-	<script src="../js/midi/player.js"></script>
+	<script src="../inc/shim/WebMIDIAPI.js"></script>
+
 	<!-- utils -->
-	<script src="../js/util/dom_request_xhr.js"></script>
-	<script src="../js/util/dom_request_script.js"></script>
+	<script src="../inc/dom/request_script.js"></script>
+	<script src="../inc/dom/request_xhr.js"></script>
+	<script src="../inc/AudioSupports.js"></script>
+	<script src="../inc/EventEmitter.js"></script>
+
+	<!-- midi.js -->
+	<script src="../js/midi/loader.js"></script>
+	<script src="../js/midi/adaptors.js"></script>
+	<script src="../js/midi/adaptors-Audio.js"></script>
+	<script src="../js/midi/adaptors-AudioAPI.js"></script>
+	<script src="../js/midi/adaptors-MIDI.js"></script>
+	<script src="../js/midi/channels.js"></script>
+	<script src="../js/midi/gm.js"></script>
+	<script src="../js/midi/player.js"></script>
+	<script src="../js/midi/synesthesia.js"></script>
+
 	<!-- includes -->
 	<script src="./inc/ui/timer.js"></script>
+
 	<!-- font -->
 	<link href="http://fonts.googleapis.com/css?family=Andada" rel="stylesheet" type="text/css" />
 	<style>
@@ -52,7 +61,7 @@ var PI2 = PI * 2;
 var tines = [];
 var lastSound = [];
 
-RefreshFrame = function () {
+function RefreshFrame() {
 	dc.clearRect(0, 0, gw, gh);
 	dc.lineWidth = 3;
 	dc.strokeStyle = '#333';
@@ -76,8 +85,8 @@ RefreshFrame = function () {
 			MIDI.noteOff(0, i + 21 + 36, 0.1);
 			lastSound[i] = ms;
 		}
-		var x = (cx + Math.cos(a) * len);
-		var y = (cy + Math.sin(a) * len);
+		var x = cx + Math.cos(a) * len;
+		var y = cy + Math.sin(a) * len;
 		var radv = minRad + (maxRad - minRad) * (1 - r);
 		radv = Math.max((radv + 6) - 6 * (ms - lastSound[i]) / 500.0, radv);
 		var huev = r * 360;
@@ -89,31 +98,30 @@ RefreshFrame = function () {
 		dc.fill();
 		tines[i] = a;
 	}
-};
+}
 
 window.onload = function () {
 	MIDI.loader = new sketch.ui.Timer;
-	MIDI.loadPlugin({
+	MIDI.setup({
 		soundfontUrl: "./soundfont/",
 		instrument: "acoustic_grand_piano", // or multiple instruments
-		onprogress: function(state, progress) {
+		onprogress: function (state, progress) {
 			MIDI.loader.setValue(progress * 100);
-		},
-		onsuccess: function() {
-			var canvas = document.getElementById('mycanvas');
-			canvas.style.width = gw + "px";
-			canvas.style.height = gh + "px";
-			canvas.width = gw;
-			canvas.height = gh;
-			dc = canvas.getContext('2d');
-			for (var i = 0; i < nbrPoints; ++i) {
-				if (i % 7 === 0) MIDI.noteOn(0, i + 21, 100, 0);
-				lastSound[i] = 0;
-				tines[i] = 0;
-			}
-			startTime = (new Date()).getTime();
-			setInterval(RefreshFrame, 1000 / 30);
 		}
+	}).then(function () {
+		var canvas = document.getElementById('mycanvas');
+		canvas.style.width = gw + "px";
+		canvas.style.height = gh + "px";
+		canvas.width = gw;
+		canvas.height = gh;
+		dc = canvas.getContext('2d');
+		for (var i = 0; i < nbrPoints; ++i) {
+			if (i % 7 === 0) MIDI.noteOn(0, i + 21, 100, 0);
+			lastSound[i] = 0;
+			tines[i] = 0;
+		}
+		startTime = (new Date()).getTime();
+		setInterval(RefreshFrame, 1000 / 30);
 	});
 };
 

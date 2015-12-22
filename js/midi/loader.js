@@ -1,226 +1,159 @@
 /*
 	----------------------------------------------------------
-	MIDI.Plugin : 2015-06-04
+	MIDI/loader : 2015-12-22 : https://mudcu.be
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
-	----------------------------------------------------------
-	Inspired by javax.sound.midi (albeit a super simple version): 
-		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
-	----------------------------------------------------------
-	Technologies
-	----------------------------------------------------------
-		Web MIDI API - no native support yet (jazzplugin)
-		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
-		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
 	----------------------------------------------------------
 */
 
 if (typeof MIDI === 'undefined') MIDI = {};
 
-MIDI.Soundfont = MIDI.Soundfont || {};
-MIDI.player = MIDI.player || {};
+(function (MIDI) { 'use strict';
 
-(function(MIDI) { 'use strict';
-
-	if (typeof console !== 'undefined' && console.log) {
+	if (console && console.log) {
 		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
 	}
 
-	MIDI.DEBUG = true;
+	/** globals **/
+	MIDI.DEBUG = false;
 	MIDI.USE_XHR = true;
-	MIDI.soundfontUrl = './soundfont/';
+	MIDI.PATH = './soundfont/';
 
-	/*
-		MIDI.loadPlugin({
-			audioFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
-			onsuccess: function() { },
-			onprogress: function(state, percent) { },
-			instrument: 'acoustic_grand_piano', // or 1 (default)
-			instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
-		});
-	*/
-
-	MIDI.loadPlugin = function(opts, onsuccess, onerror, onprogress) {
-		if (typeof opts === 'function') opts = {onsuccess: opts};
-		opts = opts || {};
-		opts.api = opts.api || MIDI.__api;
-		
-		function onDetect(supports) {
-			var hash = location.hash;
-			var api = '';
-
-			/// use the most appropriate plugin if not specified
-			if (supports[opts.api]) {
-				api = opts.api;
-			} else if (supports[hash.substr(1)]) {
-				api = hash.substr(1);
-			} else if (supports.webmidi) {
-				api = 'webmidi';
-			} else if (window.AudioContext) { // Chrome
-				api = 'webaudio';
-			} else if (window.Audio) { // Firefox
-				api = 'audiotag';
-			}
-
-			if (connect[api]) {
-				/// use audio/ogg when supported
-				if (opts.audioFormat) {
-					var audioFormat = opts.audioFormat;
-				} else { // use best quality
-					var audioFormat = supports['audio/ogg'] ? 'ogg' : 'mp3';
-				}
-
-				/// load the specified plugin
-				MIDI.__api = api;
-				MIDI.__audioFormat = audioFormat;
-				MIDI.supports = supports;
-				MIDI.loadProgram(opts);
-			}
-		};
-
-		///		
-		if (opts.soundfontUrl) {
-			MIDI.soundfontUrl = opts.soundfontUrl;
-		}
-
-		/// Detect the best type of audio to use
-		if (MIDI.supports) {
-			onDetect(MIDI.supports);
-		} else {
-			MIDI.audioDetect(onDetect);
-		}
+	/** priorities **/
+	var _adaptorPriority = {
+		'midiapi': 0,
+		'audioapi': 1,
+		'audio': 2
 	};
 
-	/*
-		MIDI.loadProgram('banjo', onsuccess, onerror, onprogress);
-		MIDI.loadProgram({
-			instrument: 'banjo',
-			onsuccess: function(){},
-			onerror: function(){},
-			onprogress: function(state, percent){}
-		})
-	*/
+	var _formatPriority = {
+		'ogg': 0,
+		'mp3': 1
+	};
 
-	MIDI.loadProgram = (function() {
+	/** setup **/
+	MIDI.setup = function (args) {
+		return new Promise(function (resolve, reject) {
+			args = args || {};
+			if (typeof args === 'function') args = {onsuccess: args};
 
-		function asList(opts) {
-			var res = opts.instruments || opts.instrument || MIDI.channels[0].program;
-			if (typeof res !== 'object') {
-				if (res === undefined) {
-					res = [];
+			if (isFinite(args.debug)) {
+				MIDI.DEBUG = !!args.debug;
+			}
+
+			/* custom paths */
+			if (args.soundfontUrl) {
+				MIDI.PATH = args.soundfontUrl;
+			}
+
+			/* choose adaptor */
+			AudioSupports().then(function (supports) {
+				if (chooseFormat()) {
+					chooseAdaptor();
 				} else {
-					res = [res];
+					reject({
+						message: 'MIDIJS: Browser does not have necessary audio support.'
+					});
+				}
+
+				function chooseFormat() {
+
+					/* empty object */
+					for (var key in MIDI.adaptor) {
+						delete MIDI.adaptor[key];
+					}
+
+					/* choose format based on priority */
+					for (var format in _formatPriority) {
+						if (supports[format]) {
+							MIDI.adaptor.format = format;
+							return true; // yay!
+						}
+					}
+				}
+
+				function chooseAdaptor() {
+					if (supports[location.hash.substr(1)]) {
+						loadAdaptor(location.hash.substr(1));
+					} else if (supports.midi_api) {
+						loadAdaptor('midiapi');
+					} else if (window.AudioContext) {
+						loadAdaptor('audioapi');
+					} else if (window.Audio) {
+						loadAdaptor('Audio');
+					}
+				}
+
+				function loadAdaptor(tech) {
+					var format = MIDI.adaptor.format;
+					var canPlayThrough = supports[tech];
+					if (!canPlayThrough[format]) {
+						handleError();
+						return;
+					}
+
+					args.tech = tech;
+
+					MIDI.loadProgram(args).then(function () {
+						resolve();
+					}).catch(function (err) {
+						MIDI.DEBUG && console.error(tech, err);
+						handleError(err);
+					});
+
+					function handleError(err) {
+						var idx = parseInt(_adaptorPriority[tech]) + 1;
+						var nextAdaptor = Object.keys(_adaptorPriority)[idx];
+						if (nextAdaptor) {
+							loadAdaptor(nextAdaptor);
+						} else {
+							reject && reject({
+								message: 'All plugins failed.'
+							});
+						}
+					}
+				}
+			}, reject);
+		});
+	};
+
+
+	/** loadProgram **/
+	MIDI.loadProgram = function (args) {
+		args || (args = {});
+		typeof args === 'object' || (args = {instrument: args});
+		args.instruments = instrumentList();
+		args.tech = args.tech || MIDI.adaptor.id;
+
+		return MIDI.adaptors._load(args);
+
+		/* helpers */
+		function instrumentList() {
+			var programs = args.instruments || args.instrument || MIDI.channels[0].program;
+			if (typeof programs === 'object') {
+				Array.isArray(programs) || (programs = Object.keys(programs));
+			} else {
+				if (programs === undefined) {
+					programs = [];
+				} else {
+					programs = [programs];
 				}
 			}
-			/// program number -> id
-			for (var i = 0; i < res.length; i ++) {
-				var instrument = res[i];
-				if (instrument === +instrument) { // is numeric
-					if (MIDI.GM.byId[instrument]) {
-						res[i] = MIDI.GM.byId[instrument].id;
+
+			/* program number -> id */
+			for (var n = 0; n < programs.length; n ++) {
+				var programId = programs[n];
+				if (programId >= 0) {
+					var program = MIDI.getProgram(programId);
+					if (program) {
+						programs[n] = program.nameId;
 					}
 				}
 			}
-			return res;
-		};
-
-		return function(opts, onsuccess, onerror, onprogress) {
-			opts = opts || {};
-			if (typeof opts !== 'object') opts = {instrument: opts};
-			if (onerror) opts.onerror = onerror;
-			if (onprogress) opts.onprogress = onprogress;
-			if (onsuccess) opts.onsuccess = onsuccess;
-			///
-			opts.format = MIDI.__audioFormat;
-			opts.instruments = asList(opts);
-			///
-			connect[MIDI.__api](opts);
-		};
-	})();
-	
-	var connect = {
-		webmidi: function(opts) {
-			// cant wait for this to be standardized!
-			MIDI.WebMIDI.connect(opts);
-		},
-		audiotag: function(opts) {
-			// works ok, kinda like a drunken tuna fish, across the board
-			// http://caniuse.com/audio
-			requestQueue(opts, 'AudioTag');
-		},
-		webaudio: function(opts) {
-			// works awesome! safari, chrome and firefox support
-			// http://caniuse.com/web-audio
-			requestQueue(opts, 'WebAudio');
-		}
-	};
-
-	function requestQueue(opts, context) {
-		var audioFormat = opts.format;
-		var instruments = opts.instruments;
-		var onprogress = opts.onprogress;
-		var onerror = opts.onerror;
-		///
-		var length = instruments.length;
-		var pending = length;
-		///
-		function onEnd() {
-			onprogress && onprogress('load', 1.0);
-			MIDI[context].connect(opts);
-		};
-		///
-		if (length) {
-			for (var i = 0; i < length; i ++) {
-				var programId = instruments[i];
-				if (MIDI.Soundfont[programId]) { // already loaded
-					!--pending && onEnd();
-				} else { // needs to be requested
-					sendRequest(instruments[i], audioFormat, function(evt, progress) {
-						var fileProgress = progress / length;
-						var queueProgress = (length - pending) / length;
-						onprogress && onprogress('load', fileProgress + queueProgress, programId);
-					}, function() {
-						!--pending && onEnd();
-					}, onerror);
-				}
+			if (programs.length === 0) {
+				programs = ['acoustic_grand_piano'];
 			}
-		} else {
-			onEnd();
-		}
-	};
-
-	function sendRequest(programId, audioFormat, onprogress, onsuccess, onerror) {
-		var soundfontPath = MIDI.soundfontUrl + programId + '-' + audioFormat + '.js';
-		if (MIDI.USE_XHR) {
-			galactic.util.request({
-				url: soundfontPath,
-				format: 'text',
-				onerror: onerror,
-				onprogress: onprogress,
-				onsuccess: function(event, responseText) {
-					var script = document.createElement('script');
-					script.language = 'javascript';
-					script.type = 'text/javascript';
-					script.text = responseText;
-					document.body.appendChild(script);
-					onsuccess();
-				}
-			});
-		} else {
-			dom.loadScript.add({
-				url: soundfontPath,
-				verify: 'MIDI.Soundfont["' + programId + '"]',
-				onerror: onerror,
-				onsuccess: function() {
-					onsuccess();
-				}
-			});
-		}
-	};
-
-	MIDI.setDefaultPlugin = function(midi) {
-		for (var key in midi) {
-			MIDI[key] = midi[key];
+			return programs;
 		}
 	};
 
