@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>MIDI JS : Interactive Documentation</title>
+
+	<link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
+
+    <!-- build:js js/combined.js -->
+	<!-- shims -->
+	<script src="../inc/shim/Base64.js"></script>
+	<script src="../inc/shim/WebAudioAPI.js"></script>
+	<script src="../inc/shim/WebMIDIAPI.js"></script>
+
+	<!-- jasmid -->
+	<script src="../inc/jasmid/stream.js"></script>
+	<script src="../inc/jasmid/midifile.js"></script>
+	<script src="../inc/jasmid/replayer.js"></script>
+
+	<!-- audio-supports -->
+	<script src="../inc/AudioSupports.js"></script>
+	<script src="../inc/AudioFX/tuna.js"></script>
+
+	<!-- event -->
+	<script src="./inc/Event.js"></script>
+	<script src="../inc/EventEmitter.js"></script>
+
+	<!-- midi -->
+	<script src="../js/loader.js"></script>
+	<script src="../js/adaptors.js"></script>
+	<script src="../js/adaptors-Audio.js"></script>
+	<script src="../js/adaptors-AudioAPI.js"></script>
+	<script src="../js/adaptors-MIDI.js"></script>
+	<script src="../js/channels.js"></script>
+	<script src="../js/gm.js"></script>
+	<script src="../js/player.js"></script>
+	<script src="../js/synesthesia.js"></script>
+
+	<!-- dom -->
+	<script src="../inc/dom/request_script.js"></script>
+	<script src="../inc/dom/request_xhr.js"></script>
+	<script src="../inc/dom/util.js"></script>
+
+    <!-- endbuild -->
+</head>
+<style>
+body {padding: 20px; line-height: 2em; }
+body, button { font-size: 16px; border-radius: 3px; border: 0; margin: 2px 0; }
+input[type=number] { border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); background: transparent; margin: 0 3px; text-align: center; width: 45px; padding: 3px; }
+h2 { margin: 30px 0 1px; }
+</style>
+<body>
+	<h2>PLAYBACK</h2>
+	player.load <button onclick="load('./midi/chopin_etudes_No. 12 - Revolutionary.mid')">piano</button> <button onclick="load()">multi-instrumental</button><br>
+	player.start <button onclick="start()">▶</button><br>
+	player.stop <button onclick="MIDI.player.stop();">▶</button><br>
+	player.pause <button onclick="MIDI.player.pause();">▶</button><br>
+	<h2>MASTER</h2>
+	<form name="MASTER.volume" onsubmit="return false;">MIDI.volume = <input name=volume type=range min=0 max=2 step=0.01 value="1.0" oninput="MASTER.volume()" />;</form>
+	<form name="MASTER.mute" onsubmit="return false;">MIDI.mute = <input name=mute type=checkbox onclick="MASTER.mute()">;</form>
+	<form name="MASTER.detune" onsubmit="return false;">MIDI.detune  = <input type=number value="0" type=range min=-1200 max=1200 step=100 name="detune" onchange="MASTER.detune()" />;</form>
+	<form name="MASTER.fx" onsubmit="return false;">MIDI.fx = <button onclick="setConvolver(MIDI)">convolver</button> <button onclick="setDelay(MIDI)">delay</button> <button onclick="setWahWah(MIDI)">wahwah</button>;</form>
+	<h2>CHANNEL[0]</h2>
+	<form name="channel.noteOn" onsubmit="return false;">channel.start(<input type=number value="65" name="note" title="Integer between 0-88 or note name like A1, D7, ect..." />, <input type=number value="1.0" name="velocity" />); <button onclick="CHANNEL.noteOn()">▶</button></form>
+	<form name="channel.noteOn3" onsubmit="return false;">channel.start([<input type=number value="65" name="note1" />, <input type=number value="70" name="note2" />, <input type=number value="75" name="note3" />], <input type=number value="1.0" name="velocity" />); <button onclick="CHANNEL.noteOn3();">▶</button></form>
+	<form name="channel.noteOff" onsubmit="return false;">channel.stop(<input type=number value="65" name="note" />); <button onclick="CHANNEL.noteOff()">▶</button></form>
+	<form name="channel.noteOff3" onsubmit="return false;">channel.stop([<input type=number value="65" name="note1" />, <input type=number value="70" name="note2" />, <input type=number value="75" name="note3" />]); <button onclick="CHANNEL.noteOff3();">▶</button></form>
+	<form name="channel.cancelNotes" onsubmit="return false;">channel.cancel(); <button onclick="CHANNEL.cancelNotes();">▶</button></form>
+	—————————————————<br>
+	channel.program = <button onclick="MIDI.channels[0].program = 40;">violin</button>;<br>
+	<form name="CHANNEL.volume" onsubmit="return false;">channel.volume = <input name=volume type=range min=0 max=2 step=0.01 value="1.0" oninput="CHANNEL.volume()" />;</form>
+	<form name="CHANNEL.mute" onsubmit="return false;">channel.mute = <input name=mute type=checkbox onclick="CHANNEL.mute()">;</form>
+	<form name="CHANNEL.detune" onsubmit="return false;">channel.detune  = <input type=number value="0" type=range min=-1200 max=1200 step=100 name="detune" onchange="CHANNEL.detune()" />;</form>
+	channel.fx = <button onclick="setWahWah(MIDI.channels[0]);">wahwah</button> <button onclick="setConvolver(MIDI.channels[0])">convolver</button>;<br>
+	<form name="CHANNEL.mono" onsubmit="return false;">channel.mono = <input name=mono type=checkbox onclick="CHANNEL.mono()">;</form>
+	<form name="CHANNEL.omni" onsubmit="return false;">channel.omni = <input name=omni type=checkbox onclick="CHANNEL.omni()">;</form>
+	<form name="CHANNEL.solo" onsubmit="return false;">channel.solo = <input name=solo type=checkbox onclick="CHANNEL.solo()">;</form>
+	<br>
+<script>
+
+/*
+	* use tree view of MIDI{} to document how to use the API
+	* hover inputs; shows supported arguments	
+*/
+
+var MASTER = {
+	mute: function () {
+		MIDI.mute = !MIDI.mute;
+	},
+	detune: function () {
+		var form = document.forms['MASTER.detune'];
+		MIDI.detune = +form.detune.value;
+	},
+	volume: function () {
+		var form = document.forms['MASTER.volume'];
+		MIDI.volume = +form.volume.value;
+	}
+};
+
+/* channel */
+
+var channel0 = MIDI.channels[0];
+
+var CHANNEL = {
+	mute: function () {
+		channel0.mute = !channel0.mute;
+	},
+	mono: function () {
+		channel0.mono = !channel0.mono;
+	},
+	omni: function () {
+		channel0.omni = !channel0.omni;
+	},
+	solo: function () {
+		channel0.solo = !channel0.solo;
+	},
+	detune: function () {
+		var form = document.forms['CHANNEL.detune'];
+		MIDI.detune = +form.detune.value;
+	},
+	volume: function () {
+		var form = document.forms['CHANNEL.volume'];
+		channel0.volume = +form.volume.value;
+	},
+	noteOn: function () {
+		var form = document.forms['channel.noteOn'];
+		channel0.noteOn(+form.note.value, +form.velocity.value);
+	},
+	noteOff: function () {
+		var form = document.forms['channel.noteOff'];
+		channel0.noteOff(+form.note.value);
+	},
+	noteOn3: function () {
+		var form = document.forms['channel.noteOn3'];
+		channel0.noteOn([+form.note1.value, +form.note2.value, +form.note3.value], +form.velocity.value);
+	},
+	noteOff3: function () {
+		var form = document.forms['channel.noteOff3'];
+		channel0.noteOff([+form.note1.value, +form.note2.value, +form.note3.value]);
+	},
+	cancelNotes: function () {
+		channel0.cancelNotes();
+	}
+};
+
+/* player */
+
+function start() {
+	MIDI.iOSUnlock();
+	MIDI.player.start();
+};
+
+function load(src) {
+	MIDI.player.load({
+		src: src
+	}).then(function () {
+		MIDI.noteOn(0, 88, 127);
+	}).catch(function (err) {
+		console.error(err);
+	})
+};
+
+function setConvolver(channel) {
+	channel.fx = channel.fx && channel.fx.length ? [] : [{
+        type: 'Convolver',
+        highCut: 22050, // 20 to 22050
+        lowCut: 20, // 20 to 22050
+        dryLevel: 1, // 0 to 1+
+        wetLevel: 1, // 0 to 1+
+        level: 1, // 0 to 1+, adjusts total output of both wet and dry
+        impulse: './inc/AudioFX/impulses/impulse_rev.wav', // the path to your impulse response
+        bypass: 0
+    }];
+};
+
+function setWahWah(channel) {
+	channel.fx = channel.fx && channel.fx.length ? [] : [{
+        type: 'WahWah',
+        automode: true, // true/false
+        baseFrequency: 0.5, // 0 to 1
+        excursionOctaves: 2, // 1 to 6
+        sweep: 0.2, // 0 to 1
+        resonance: 10, // 1 to 100
+        sensitivity: 0.5, // -1 to 1
+        bypass: 0
+    }];
+};
+
+(function () { 'use strict';
+
+function onPageReady() {
+	MIDI.setup({
+		debug: true,
+		onprogress: function (state, progress) {
+			console.log(state + ': ', progress * 100 >> 0);
+		}
+	}).then(function (res) {
+		MIDI.noteOn(0, 90, 1);
+// 		load('./midi/death-waltz.mid');
+		load('./midi/chopin_etudes_No. 12 - Revolutionary.mid');
+// 		exportWebSF();
+	}).catch(function (err) {
+		console.error(err);
+	})
+}
+
+function exportWebSF() {
+	var codec = 'vorbis';
+	for (var programId in MIDI.Soundfont) {
+		var buffers = [];
+		buffers.push(encodeString('WEBSF')); // magicNumber
+		buffers.push(new Uint8Array([1])); // version
+		buffers.push(new Uint8Array([programId.length])); // programId length
+		buffers.push(encodeString(programId)); // programId
+		buffers.push(new Uint8Array([codec.length])); // codec length
+		buffers.push(encodeString(codec)); // codec
+		
+		var program = MIDI.Soundfont[programId];
+		for (var key in program) {
+			if (key.startsWith('is')) {
+				continue;
+			}
+			
+			var item = program[key];
+			var base64 = program[key].split(',')[1];
+			var buffer = Base64Binary.decodeArrayBuffer(base64);
+			
+			buffers.push(new Uint8Array([key.length])); // keyId length
+			buffers.push(encodeString(key)); // keyId
+			buffers.push(new Uint32Array([buffer.byteLength])); // buffer length
+			buffers.push(buffer); // buffer
+		}
+		
+		var blob = new Blob(buffers, {type: 'audio/websf'});
+		saveAs(blob, programId + '-ogg.websf')
+	}
+
+	function encodeString(string) {
+		return new Uint8Array(string.split('').map(function (x) {
+			return x.charCodeAt(0);
+		}))
+	}
+}
+
+if (window.cordova) {
+	document.addEventListener('deviceready', onPageReady, false);
+} else {
+	eventjs.add(window, 'load', onPageReady);
+}
+
+// eventjs.add(window, 'blur', function () {
+// 	MIDI.player.stop();
+// });
+
+})();
+
+</script>
+</body>
+</html>
