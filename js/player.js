@@ -373,7 +373,9 @@ MIDI.player = new function () { 'use strict';
 
 	/* read data */
 	function readMidiFile() {
-		_midiEvents = Replayer(MidiFile(_midiFile), player.bpm);
+		// PER: handle the case where the caller already has the midi events. Don't need to load anything here.
+		if (_midiFile)
+			_midiEvents = Replayer(MidiFile(_midiFile), player.bpm);
 		player.duration = getLength();
 
 		function getLength() {
@@ -456,8 +458,13 @@ MIDI.player = new function () { 'use strict';
 			var onprogress = args.onprogress;
 			
 			player.stop();
-			
-			if (src.indexOf('base64,') !== -1) {
+
+			// PER: Handle the case where the caller already has the events in an array
+			if (args.events) {
+				_midiEvents = args.events;
+				_midiFile = undefined;
+				load();
+			} else if (src.indexOf('base64,') !== -1) {
 				_midiFile = atob(src.split(',')[1]);
 				load();
 			} else {
