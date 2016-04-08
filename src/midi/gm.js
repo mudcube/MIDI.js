@@ -1,9 +1,3 @@
-/*
-	----------------------------------------------------------
-	GeneralMIDI
-	----------------------------------------------------------
-*/
-
 (function(root) { 'use strict';
 
 	root.GM = (function(arr) {
@@ -22,8 +16,8 @@
 				if (!instrument) continue;
 				var num = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
 				instrument = instrument.replace(num + ' ', '');
-				res.byId[--num] = 
-				res.byName[clean(instrument)] = 
+				res.byId[--num] =
+				res.byName[clean(instrument)] =
 				res.byCategory[clean(key)] = {
 					id: clean(instrument),
 					instrument: instrument,
@@ -99,7 +93,7 @@
 		var channel = root.channels[channelId];
 		if (delay) {
 			return setTimeout(function() {
-				channel.omni = truthy;	
+				channel.omni = truthy;
 			}, delay);
 		} else {
 			channel.omni = truthy;
@@ -117,7 +111,7 @@
 		var channel = root.channels[channelId];
 		if (delay) {
 			return setTimeout(function() {
-				channel.solo = truthy;	
+				channel.solo = truthy;
 			}, delay);
 		} else {
 			channel.solo = truthy;
