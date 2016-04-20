@@ -139,7 +139,7 @@ widgets.Loader = function (configure) {
 		if (typeof(percent) === "number") item.span.innerHTML = percent + "%";
 		if (message.substr(-3) === "...") { // animated dots
 			item._message = message.substr(0, message.length - 3);
-			item.messageAnimate = [".&nbsp;&nbsp;", "..&nbsp;", "..."].reverse();
+			item.messageAnimate = [".&#160;&#160;", "..&#160;", "..."].reverse();
 		} else { // normal
 			item._message = message;
 			item.messageAnimate = false;

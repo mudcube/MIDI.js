@@ -53,7 +53,7 @@
  <p><a href="https://www.google.com/chrome">Google Chrome</a> is recommended for best listening experience, it&rsquo;s timing perfection! Firefox and Safari can both perform a bit more like the piano has been drinking, arrr.</p>
  <p>Carpe beerum, and <a href="https://github.com/mudcube/MIDI.js">commandeer</a> yer own copy!</p>
  <h3>Description of package;</h3>
- <li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &nbsp;Decides which framework is best to use, and sends request.</li>
+ <li><a href="./js/MIDI.loadPlugin.js">MIDI.loadPlugin.js</a>: &#160;Decides which framework is best to use, and sends request.</li>
 <li class="indent">
 <pre>
 // interface to download soundfont, then execute callback;
@@ -67,10 +67,10 @@ MIDI.loadPlugin({
 });
 </pre>
 </li>
- <li><a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: &nbsp;Customizable base64 Soundfont.</li>
+ <li><a href="./soundfont/soundfont-ogg.js">MIDI.Soundfont.js</a>: &#160;Customizable base64 Soundfont.</li>
   <li class="indent square"><a href="http://mudcu.be/journal/2011/11/base64-soundfonts/">Encode your own soundfonts</a>, Drums, Guitars, and so on.</li>
   <li class="indent square">You are listening to <a href="http://packages.debian.org/search?keywords=fluid-soundfont-gm">Fluid (R3) General MIDI SoundFont (GM)</a>.</li>
- <li><a href="./js/MIDI.Plugin.js">MIDI.Plugin.js</a>: &nbsp;Ties together the following frameworks;</li>
+ <li><a href="./js/MIDI.Plugin.js">MIDI.Plugin.js</a>: &#160;Ties together the following frameworks;</li>
  <li class="indent"><pre>
 MIDI.noteOn(channel, note, velocity, delay);
 MIDI.noteOff(channel, note, delay);
@@ -79,7 +79,7 @@ MIDI.chordOff(channel, chord, delay);
 MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 </pre></li>
- <li><a href="./js/MIDI.Player.js">MIDI.Player.js</a>: &nbsp;Streams the MIDI to the browser.
+ <li><a href="./js/MIDI.Player.js">MIDI.Player.js</a>: &#160;Streams the MIDI to the browser.
 <li class="indent">
  <pre>
 MIDI.Player.currentTime = integer; // time we are at now within the song.
@@ -110,42 +110,42 @@ MIDI.Player.setAnimation(function(data) {
 	// then do what you want with the information!
 });</pre></li>
 </li>
- <li><a href="./js/Color.js">Color.js</a>: &nbsp;Color conversions, music isn&rsquo;t complete without!</li>
+ <li><a href="./js/Color.js">Color.js</a>: &#160;Color conversions, music isn&rsquo;t complete without!</li>
  <li class="indent"><pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre></li>
- <li><a href="./js/DOMLoader.script.js">DOMLoader.script.js</a>: &nbsp;Loads scripts in synchronously, or asynchronously.</li>
+ <li><a href="./js/DOMLoader.script.js">DOMLoader.script.js</a>: &#160;Loads scripts in synchronously, or asynchronously.</li>
  <li class="indent"><pre>DOMLoader.script.add(src, callback);</pre></li>
- <li><a href="./js/DOMLoader.XMLHttp.js">DOMLoader.XMLHttp.js</a>: &nbsp;Cross-browser XMLHttpd request.</li>
+ <li><a href="./js/DOMLoader.XMLHttp.js">DOMLoader.XMLHttp.js</a>: &#160;Cross-browser XMLHttpd request.</li>
  <li class="indent"><pre>DOMLoader.sendRequest(src, callback);</pre></li>
- <li><a href="./js/MusicTheory.Synesthesia.js">MusicTheory.Synesthesia.js</a>: &nbsp;Note-to-color mappings (from Isaac Newton onwards).</li>
+ <li><a href="./js/MusicTheory.Synesthesia.js">MusicTheory.Synesthesia.js</a>: &#160;Note-to-color mappings (from Isaac Newton onwards).</li>
  <h3>Many thanks to the authors of these libraries;</h3>
- <li><a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: &nbsp;HTML5 specs</li>
- <li><a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudioAPI</a>: &nbsp;W3C proposal by Google</li>
- <li>Java package: &nbsp;<a href="https://github.com/abudaan/midibridge-js">MIDIBridge</a> by <a href="http://abumarkub.net">Daniel van der Meer</a></li>
+ <li><a href="http://dev.w3.org/html5/spec/Overview.html">&lt;audio&gt;</a>: &#160;HTML5 specs</li>
+ <li><a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudioAPI</a>: &#160;W3C proposal by Google</li>
+ <li>Java package: &#160;<a href="https://github.com/abudaan/midibridge-js">MIDIBridge</a> by <a href="http://abumarkub.net">Daniel van der Meer</a></li>
  <li class="indent square">Use this to hook up a MIDI keyboard to your browser!</li>
  <li class="indent square">Access to 128 General MIDI instruments.</li>
- <li>Flash package: &nbsp;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a></li>
- <li><a href="https://github.com/gasman/jasmid">jasmid</a>: &nbsp;Reads MIDI file byte-code, and translats into a Javascript array.</li>
- <li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &nbsp;Cleans up XML base64-requests for Web Audio API.</li>
- <h3>Example(s): &nbsp;<a href="http://twitter.com/mudcube">Tweet</a> me your app to be included!</h3>
+ <li>Flash package: &#160;<a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager2</a> by <a href="http://schillmania.com">Scott Schiller</a></li>
+ <li><a href="https://github.com/gasman/jasmid">jasmid</a>: &#160;Reads MIDI file byte-code, and translats into a Javascript array.</li>
+ <li><a href="http://blog.danguer.com/2011/10/24/base64-binary-decoding-in-javascript/">base642binary.js</a>: &#160;Cleans up XML base64-requests for Web Audio API.</li>
+ <h3>Example(s): &#160;<a href="http://twitter.com/mudcube">Tweet</a> me your app to be included!</h3>
 
  <li class="indent square">
- <a href="http://mudcu.be/piano/">Color Piano</a><br>Learn piano songs without reading sheet music.
- <br>Coded by <a href="http://mudcu.be/">mud</a>.</li>
+ <a href="http://mudcu.be/piano/">Color Piano</a><br/>Learn piano songs without reading sheet music.
+ <br/>Coded by <a href="http://mudcu.be/">mud</a>.</li>
  <hr size=1 style="opacity: 0.25;">
 
  <li class="indent square">
- <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a><br>This app will play a simple melody, and you try to play it back.
- <br>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
+ <a href="http://labs.uxmonk.com/simon-says/">Simon Says</a><br/>This app will play a simple melody, and you try to play it back.
+ <br/>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
  <hr size=1 style="opacity: 0.25;">
 
  <li class="indent square">
- <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a><br>Digital Lite-Brite with sound!
- <br>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
+ <a href="http://labs.uxmonk.com/brite-lite/">Brite Lite</a><br/>Digital Lite-Brite with sound!
+ <br/>Coded by <a href="http://uxmonk.com/">uxmonk</a>.</li>
  <hr size=1 style="opacity: 0.25;">
 
  <li class="indent square">
- <a href="http://mudcu.be/midi-js/WhitneyMusicBox.html">Whitney Music Box</a><br>Beautiful HTML5 simulation of a Whitney Music Box.
- <br>Coded by <a href="http://www.krazydad.com/">KrazyDad</a>.</li>
+ <a href="http://mudcu.be/midi-js/WhitneyMusicBox.html">Whitney Music Box</a><br/>Beautiful HTML5 simulation of a Whitney Music Box.
+ <br/>Coded by <a href="http://www.krazydad.com/">KrazyDad</a>.</li>
 </div>
 <script type="text/javascript">
 

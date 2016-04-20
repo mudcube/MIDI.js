@@ -144,9 +144,9 @@ if (window.AudioContext ) (function () {
 		var buffer = Base64Binary.decodeArrayBuffer(base64);
 		ctx.decodeAudioData(buffer, function (buffer) {
 			var msg = url;
-			while (msg.length < 3) msg += "&nbsp;";
+			while (msg.length < 3) msg += "&#160;";
 			if (typeof (MIDI.loader) !== "undefined") {
-				MIDI.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
+				MIDI.loader.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
 			}
 			buffer.id = url;
 			bufferList[index] = buffer;
