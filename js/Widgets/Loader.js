@@ -262,10 +262,10 @@ widgets.Loader = function (configure) {
 		that.span.style.top = (height / 2 + size - 10) + "px";
 	};
         
-	var style = document.createElement("widget_loader");
+	var style = document.getElementById('widget_loader');
         
         if( ! style ) {
-            style = document.createElement('widget_loader');
+            style = document.createElement('style');
             style.setAttribute( "id", "widget_loader" ); 
             style.innerHTML = '\
 .loader { color: #fff; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
