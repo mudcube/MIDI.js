@@ -261,15 +261,20 @@ widgets.Loader = function (configure) {
 		canvas.style.height = (size) + "px";
 		that.span.style.top = (height / 2 + size - 10) + "px";
 	};
-
-	var style = document.createElement("style");
-	style.innerHTML = '\
+        
+	var style = document.createElement("widget_loader");
+        
+        if( ! style ) {
+            style = document.createElement('widget_loader');
+            style.setAttribute( "id", "widget_loader" ); 
+            style.innerHTML = '\
 .loader { color: #fff; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
 .loader span.message { font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
 .loader span.message div { border-bottom: 1px solid #222; padding: 5px 10px; clear: both; text-align: left; opacity: 1; }\
-.loader span.message div:last-child { border-bottom: none; }\
-';
-	document.head.appendChild(style);
+.loader span.message div:last-child { border-bottom: none; }';
+            document.head.appendChild(style);
+        }
+        
 	/// Private functions.
 	var removeChild = function(item) {
 		window.setTimeout(function() { // timeout in case within same event loop.

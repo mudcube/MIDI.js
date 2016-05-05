@@ -12,4 +12,5 @@ java -Dfile.encoding=utf-8 -jar yuicompressor-2.4.2.jar --line-break 7000 -o bin
 
 
 copy bin\MIDI_%versao%-min.js ..\diatonic-map\MIDI.js\
+copy bin\MIDI_%versao%-min.js ..\abcxjs\MIDI.js\
 copy tmp\MIDI.js ..\diatonic-map\MIDI.js\
