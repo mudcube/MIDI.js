@@ -23,6 +23,10 @@ java -jar yuicompressor-2.4.2.jar  --line-break 7000 -o bin/MIDI_$1-min.js tmp/M
 echo "Compressing MIDI_nobase64.js..."
 java -jar yuicompressor-2.4.2.jar  --line-break 7000 -o bin/MIDI_nobase64_$1-min.js tmp/MIDI_nobase64.js
 
+cp bin/MIDI_$1-min.js ../diatonic-map/MIDI.js/
+cp bin/MIDI_$1-min.js ../abcxjs/MIDI.js/
+cp tmp/MIDI.js ../diatonic-map/MIDI.js/
+
 echo "Removing temporary files..."
 rm tmp/*
 

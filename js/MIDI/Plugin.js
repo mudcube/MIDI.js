@@ -134,33 +134,34 @@ if (window.AudioContext ) (function () {
 	var masterVolume = 127;
 	var audioBuffers = {};
 	var audioLoader = function (instrument, urlList, index, bufferList, callback) {
-		var synth = MIDI.GeneralMIDI.byName[instrument];
-		var instrumentId = synth.number;
-		var url = urlList[index];
-		if (!MIDI.Soundfont[instrument][url]) { // missing soundfont
-			return callback(instrument);
-		}
-		var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
-		var buffer = Base64Binary.decodeArrayBuffer(base64);
-		ctx.decodeAudioData(buffer, function (buffer) {
-			var msg = url;
-			while (msg.length < 3) msg += "&#160;";
-			if (typeof (MIDI.loader) !== "undefined") {
-				MIDI.loader.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
-			}
-			buffer.id = url;
-			bufferList[index] = buffer;
-			//
-			if (bufferList.length === urlList.length) {
-				while (bufferList.length) {
-					buffer = bufferList.pop();
-					if (!buffer) continue;
-					var nodeId = MIDI.keyToNote[buffer.id];
-					audioBuffers[instrumentId + "" + nodeId] = buffer;
-				}
-				callback(instrument);
-			}
-		});
+            var synth = MIDI.GeneralMIDI.byName[instrument];
+            var instrumentId = synth.number;
+            var url = urlList[index];
+            if (!MIDI.Soundfont[instrument][url]) { // missing soundfont
+                    return callback(instrument);
+            }
+            var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
+            var buffer = Base64Binary.decodeArrayBuffer(base64);
+            ctx.decodeAudioData(buffer, function (buffer) {
+                var msg = url;
+                while (msg.length < 3) msg += "&#160;";
+                if (typeof (MIDI.loader) !== "undefined") {
+                    MIDI.loader.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
+                }
+                buffer.id = url;
+                bufferList[index] = buffer;
+                //
+                if (bufferList.length === urlList.length) {
+                    while (bufferList.length) {
+                        buffer = bufferList.pop();
+                        if (!buffer) continue;
+                        var nodeId = MIDI.keyToNote[buffer.id];
+                        audioBuffers[instrumentId + "" + nodeId] = buffer;
+                    }
+                    // flavio
+                    window.setTimeout(function () { callback(instrument); }, 5 );
+                }
+            });
 	};
 
 	root.setVolume = function (channel, volume) {
@@ -257,28 +258,28 @@ if (window.AudioContext ) (function () {
         }
     };
 
-	root.connect = function (conf) {
-		setPlugin(root);
-		//
-		MIDI.Player.ctx = ctx = new AudioContext();
-		///
-		var urlList = [];
-		var keyToNote = MIDI.keyToNote;
-		for (var key in keyToNote) urlList.push(key);
-		var bufferList = [];
-		var pending = {};
-		var oncomplete = function(instrument) {
-			delete pending[instrument];
-			for (var key in pending) break;
-			if (!key) conf.callback();
-		};
-		for (var instrument in MIDI.Soundfont) {
-			pending[instrument] = true;
-			for (var i = 0; i < urlList.length; i++) {
-				audioLoader(instrument, urlList, i, bufferList, oncomplete);
-			}
-		}
-	};
+    root.connect = function (conf) {
+        setPlugin(root);
+        //
+        MIDI.Player.ctx = ctx = new AudioContext();
+        ///
+        var urlList = [];
+        var keyToNote = MIDI.keyToNote;
+        for (var key in keyToNote) urlList.push(key);
+        var bufferList = [];
+        var pending = {};
+        var oncomplete = function(instrument) {
+            delete pending[instrument];
+            for (var key in pending) break;
+            if (!key) conf.callback();
+        };
+        for (var instrument in MIDI.Soundfont) {
+            pending[instrument] = true;
+            for (var i = 0; i < urlList.length; i++) {
+                audioLoader(instrument, urlList, i, bufferList, oncomplete);
+            }
+        }
+    };
 })();
 
 /*
