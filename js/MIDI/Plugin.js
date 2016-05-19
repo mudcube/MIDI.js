@@ -158,8 +158,10 @@ if (window.AudioContext ) (function () {
                         var nodeId = MIDI.keyToNote[buffer.id];
                         audioBuffers[instrumentId + "" + nodeId] = buffer;
                     }
-                    // flavio
+                    // flavio - tinha tentado resolver problema do Firefox, que as vezes não carrega todas as notas
+                    // window.setTimeout(function () { callback(instrument); }, 5 );
                     callback(instrument);
+                    
                 }
             });
 	};
@@ -262,7 +264,7 @@ if (window.AudioContext ) (function () {
         setPlugin(root);
         //
         MIDI.Player.ctx = ctx = new AudioContext();
-        ///
+        //
         var urlList = [];
         var keyToNote = MIDI.keyToNote;
         for (var key in keyToNote) urlList.push(key);
@@ -271,8 +273,9 @@ if (window.AudioContext ) (function () {
         var oncomplete = function(instrument) {
             delete pending[instrument];
             for (var key in pending) break;
-            // flavio
-            if (!key) window.setTimeout(function () { conf.callback(); }, 5 );
+            // flavio - tinha tentado resolver problema do Firefox, que as vezes não carrega todas as notas
+            // if (!key) window.setTimeout(function () { conf.callback(); }, 5 );
+            if (!key) conf.callback(); 
         };
         for (var instrument in MIDI.Soundfont) {
             pending[instrument] = true;
