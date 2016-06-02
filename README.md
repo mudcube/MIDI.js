@@ -16,6 +16,7 @@
 * [Simon Says](http://labs.uxmonk.com/simon-says/) by Daniel Christopher @uxmonk
 * [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
 * [VexFlow](http://my.vexflow.com/articles/53) by Mohit Muthanna @11111110b
+* [Vishwamohini Melody Player](http://vishwamohini.com/music/home.php) by Shivraj Sawant @shivrajsa
 
 ## Related repositories
 
