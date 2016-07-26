@@ -235,7 +235,7 @@
 			var notes = root.keyToNote;
 			for (var key in notes) urls.push(key);
 			///
-			var waitForEnd = function(instrument) {
+			var waitForEnd = function() {
 				for (var key in bufferPending) { // has pending items
 					if (bufferPending[key]) return;
 				}
@@ -259,7 +259,7 @@
 							var percent = index / 87;
 // 							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
 							soundfont.isLoaded = true;
-							waitForEnd(instrument);
+							waitForEnd();
 						}
 					}, function(err) {
 		// 				console.log(err);
