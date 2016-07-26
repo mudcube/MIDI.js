@@ -61,6 +61,10 @@
 		}
 	};
 
+	midi.now = function() {
+		return performance.now();
+	};
+
 	midi.connect = function(opts) {
 		root.setDefaultPlugin(midi);
 		var errFunction = function(err) { // well at least we tried!

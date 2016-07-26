@@ -135,6 +135,10 @@
 			}
 		};
 	
+		midi.now = function() {
+			return 0;
+		};
+
 		midi.connect = function(opts) {
 			root.setDefaultPlugin(midi);
 			///
