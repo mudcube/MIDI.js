@@ -34,9 +34,11 @@ SOUNDFONT = "../sf2/redco/TR-808-Drums.SF2" # Soundfont file path
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
 INSTRUMENTS = [
+  -1,   # Percussion (channel 10)
   0     # Acoustic Grand Piano
 ];
 # INSTRUMENTS = [
+#   -1,    # Percussion (channel 10)
 #   0,     # Acoustic Grand Piano
 #   24,    # Acoustic Guitar (nylon)
 #   25,    # Acoustic Guitar (steel)
@@ -64,7 +66,11 @@ puts "Building the following instruments using font: " + SOUNDFONT
 
 # Display instrument names.
 INSTRUMENTS.each do |i|
-  puts "    #{i}: " + MIDI::GM_PATCH_NAMES[i]
+  if i == -1
+    puts "    percussion (MIDI channel 10)"
+  else
+    puts "    #{i}: " + MIDI::GM_PATCH_NAMES[i]
+  end
 end
 
 puts
@@ -137,11 +143,16 @@ def generate_midi(program, note_value, file)
   include MIDI
   seq = Sequence.new()
   track = Track.new(seq)
+  channel = 0
+  if program == -1
+    channel = 9
+    program = 0
+  end
 
   seq.tracks << track
-  track.events << ProgramChange.new(0, Integer(program))
-  track.events << NoteOn.new(0, note_value, VELOCITY, 0) # channel, note, velocity, delta
-  track.events << NoteOff.new(0, note_value, VELOCITY, DURATION)
+  track.events << ProgramChange.new(channel, Integer(program))
+  track.events << NoteOn.new(channel, note_value, VELOCITY, 0) # channel, note, velocity, delta
+  track.events << NoteOff.new(channel, note_value, VELOCITY, DURATION)
 
   File.open(file, 'wb') { | file | seq.write(file) }
 end
@@ -183,7 +194,11 @@ end
 
 def generate_audio(program)
   include MIDI
-  instrument = GM_PATCH_NAMES[program]
+  if program == -1
+    instrument = "percussion"
+  else
+    instrument = GM_PATCH_NAMES[program]
+  end
   instrument_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s+/, "_")
 
   puts "Generating audio for: " + instrument + "(#{instrument_key})"
