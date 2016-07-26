@@ -200,6 +200,10 @@
 			}
 		};
 
+		midi.now = function() {
+			return ctx.currentTime;
+		};
+
 		midi.setEffects = function(list) {
 			if (ctx.tunajs) {
 				for (var n = 0; n < list.length; n ++) {
