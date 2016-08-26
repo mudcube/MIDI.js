@@ -10,7 +10,7 @@
 * [Brite Lite](http://labs.uxmonk.com/brite-lite/) by Daniel Christopher @uxmonk
 * [Color Piano](http://mudcu.be/piano) by Michael Deal @mudcube
 * [Euphony 3D Piano](http://qiao.github.com/euphony/) by Xueqiao Xu @qiao
-* [Gbloink!](http://gbloink.com/alpha/) by Phil Jones
+* [Gbloink!](http://gbloink.com/) by Phil Jones
 * [Piano Typewriter](http://www.picatino.com/piano_typewriter/) by Andrew Levine
 * [Ragamroll](http://online-compute.rhcloud.com/ragamroll/) by Mani Balasubramanian
 * [Simon Says](http://labs.uxmonk.com/simon-says/) by Daniel Christopher @uxmonk
