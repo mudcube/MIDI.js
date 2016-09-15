@@ -64,9 +64,9 @@
 	midi.connect = function(opts) {
 		root.setDefaultPlugin(midi);
 		var errFunction = function(err) { // well at least we tried!
-			if (window.AudioContext) { // Chrome
+			if (window.AudioContext || window.webkitAudioContext) {
 				opts.api = 'webaudio';
-			} else if (window.Audio) { // Firefox
+			} else if (window.Audio) {
 				opts.api = 'audiotag';
 			} else { // no support
 				return;
