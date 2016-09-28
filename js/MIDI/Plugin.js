@@ -123,7 +123,7 @@ var setPlugin = function(root) {
 	--------------------------------------------
 */
 
-if (window.AudioContext ) (function () {
+if (window.AudioContext || window.webkitAudioContext) (function () {
 
 	var AudioContext = window.AudioContext;
 	var root = MIDI.WebAudio = {
@@ -134,6 +134,8 @@ if (window.AudioContext ) (function () {
 	var masterVolume = 127;
 	var audioBuffers = {};
 	var audioLoader = function (instrument, urlList, index, bufferList, callback) {
+            //_Debug && debugToTitle('audioLoader entered');
+            
             var synth = MIDI.GeneralMIDI.byName[instrument];
             var instrumentId = synth.number;
             var url = urlList[index];
@@ -143,12 +145,15 @@ if (window.AudioContext ) (function () {
             var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
             var buffer = Base64Binary.decodeArrayBuffer(base64);
             ctx.decodeAudioData(buffer, function (buffer) {
+                //_Debug && debugToTitle('ctx.decodeAudioData '+index);
+                
                 var msg = url;
                 while (msg.length < 3) msg += "&#160;";
                 if (typeof (MIDI.loader2) !== "undefined") {
                     MIDI.loader2.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
                 }
                 if (typeof (MIDI.loader) !== "undefined") {
+                    MIDI.loader.setFormat( 'Notas (%)')
                     MIDI.loader.setValue(index / 87 * 100 >> 0);
                 }
                 buffer.id = url;
@@ -264,9 +269,11 @@ if (window.AudioContext ) (function () {
     };
 
     root.connect = function (conf) {
+        _Debug && debugToTitle('setPlugin');
         setPlugin(root);
         //
         MIDI.Player.ctx = ctx = new AudioContext();
+        _Debug && debugToTitle('MIDI.Player.ctx new AudioContext');
         //
         var urlList = [];
         var keyToNote = MIDI.keyToNote;
@@ -278,6 +285,7 @@ if (window.AudioContext ) (function () {
             for (var key in pending) break;
             // flavio - tinha tentado resolver problema do Firefox, que as vezes não carrega todas as notas
             // if (!key) window.setTimeout(function () { conf.callback(); }, 5 );
+            _Debug && debugToTitle('audioLoader oncomplete');
             if (!key) conf.callback(); 
         };
         for (var instrument in MIDI.Soundfont) {

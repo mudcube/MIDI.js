@@ -20,6 +20,9 @@ if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 var USE_JAZZMIDI = false; // Turn on to support JazzMIDI Plugin
 
 MIDI.loadPlugin = function(conf) {
+    
+        _Debug && debugToTitle('MIDI.loadPlugin');
+        
 	if (typeof(conf) === "function") conf = {
 		callback: conf
 	};
@@ -38,6 +41,7 @@ MIDI.loadPlugin = function(conf) {
         
 	/// Detect the best type of audio to use.
 	MIDI.audioDetect(function(types) {
+            
 		var api = "";
 		// use the most appropriate plugin if not specified
 		if (apis[conf.api]) {
@@ -53,6 +57,9 @@ MIDI.loadPlugin = function(conf) {
 		} else { // Internet Explorer
 			api = "flash";
 		}
+                
+                _Debug && debugToTitle('MIDI.audioDetect.callback#api=' + api);
+                
 		///
 		if (!connect[api]) return;
                 
@@ -118,6 +125,8 @@ connect.audiotag = function(filetype, instruments, conf) {
 connect.webaudio = function(filetype, instruments, conf) {
 	if (MIDI.loader2) MIDI.loader2.message("Web Audio API...");
 	// works awesome! safari, chrome and firefox support.
+        _Debug && debugToTitle('connect.webaudio');
+         
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
@@ -133,6 +142,8 @@ connect.webaudio = function(filetype, instruments, conf) {
 			});
 		},
 		onComplete: function() {
+                        _Debug && debugToTitle('connect.webaudio complete');
+                     
 			MIDI.WebAudio.connect(conf);
 		}
 	});

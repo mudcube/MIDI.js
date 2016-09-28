@@ -16,6 +16,7 @@ root.ui.Timer = function(opts) {
 	///
 	var size;
 	var format;
+        var customFormat;
 	var container;
 	var endValue;
 	var value;
@@ -35,7 +36,7 @@ root.ui.Timer = function(opts) {
 		if (format === 'percent') {
 			return {
 				value: value,
-				format: 'PERCENT',
+				format: customFormat || 'PERCENT',
 				percent: value / 100
 			}
 		} else if (format === 'time') {
@@ -160,6 +161,10 @@ root.ui.Timer = function(opts) {
 		}, 350);
 	};
 
+	that.setFormat = function(format) {
+		customFormat = format;
+	};
+        
 	that.setValue = function(percent) {
 		cancelAnimationFrame(requestId);
 		///

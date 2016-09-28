@@ -5,6 +5,7 @@
         <title>Whitney Music Box in HTML5</title>
 
         <!-- midi.js package -->
+        <script src="../js/MIDI/WebAudioAPI.js" type="text/javascript"></script>
         <script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
         <script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
         <script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
@@ -24,6 +25,8 @@
         <script src="./inc/synesthesia.js" type="text/javascript"></script>
         <script src="./inc/colorspace.js" type="text/javascript"></script>
 
+        <script src="../js/debug.js" type="text/javascript"></script>
+        
         <!-- font -->
         <link href="http://fonts.googleapis.com/css?family=Andada" rel="stylesheet" type="text/css" />
 
@@ -40,6 +43,7 @@
 Whitney Music Box animation in HTML5.<br/>
 Graphics code by <a href="https://github.com/jbum/Whitney-Music-Box-Examples">Jim Bumgardner</a>.<br/>
 Audio created with <a href="https://github.com/mudx/MIDI.js">MIDI.js</a><br/>
+<div id="title" style="background: rgba(255,255,0,0.5); position: relative;color: #000; z-index: -1;padding: 5px 11px 5px;">Loading API...</div>
 <canvas id="mycanvas" ></canvas>
 <script type="text/javascript">
 
@@ -113,6 +117,11 @@ window.onload = function () {
         }
         ,callback: function() {
             MIDI.loader2.stop();
+            
+            if( ! _Debug ) {   
+                var title = document.getElementById("title");
+                title.style='display:none;';            
+            }    
             MIDI.programChange(0, 0); // piano
 
             var canvas = document.getElementById('mycanvas');

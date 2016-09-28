@@ -12,6 +12,7 @@
         <link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
 
         <!-- midi.js package -->
+        <script src="../js/MIDI/WebAudioAPI.js" type="text/javascript"></script>
         <script src="../js/MIDI/AudioDetect.js" type="text/javascript"></script>
         <script src="../js/MIDI/LoadPlugin.js" type="text/javascript"></script>
         <script src="../js/MIDI/Plugin.js" type="text/javascript"></script>
@@ -31,6 +32,9 @@
         <script src="./inc/event.js" type="text/javascript"></script>
         <script src="./inc/synesthesia.js" type="text/javascript"></script>
         <script src="./inc/colorspace.js" type="text/javascript"></script>
+        
+        <script src="../js/debug.js" type="text/javascript"></script>
+
     </head>
 <body>
 <img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
@@ -220,12 +224,13 @@ eventjs.add(window, "load", function(event) {
     
     //
     //MIDI.loader2 = new widgets.Loader;
-    MIDI.loader = new sketch.ui.Timer;
+    MIDI.loader = new sketch.ui.Timer({size:240});
+    MIDI.loader.setFormat( 'API (%)')
     
     MIDI.loadPlugin( {
          soundfontUrl: "./soundfont/"
         ,instruments: "accordion"
-         //,targetFormat: "mp3"
+        //,targetFormat: "mp3"
         ,onprogress: function(event) {
             if (!this.totalSize) {
                     if (this.getResponseHeader("Content-Length-Raw")) {
@@ -241,7 +246,7 @@ eventjs.add(window, "load", function(event) {
         ,callback: function() {
             // this is the language we are running in
             var title = document.getElementById("title");
-            title.innerHTML = "Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
+            title.innerHTML += "<br>Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
             // this sets up the MIDI.Player and gets things going...
             player = MIDI.Player;
             player.timeWarp = 1; // speed the song is played back
@@ -264,7 +269,7 @@ eventjs.add(window, "load", function(event) {
             ColorSphereBackground();
             MIDIPlayerPercentage(player);
             //
-            MIDI.loader2.stop();
+            MIDI.loader2 && MIDI.loader2.stop();
 	}
     });
 });

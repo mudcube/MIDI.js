@@ -1,9 +1,8 @@
 CODE EXAMPLES (from the repo)
 
-* ./demo-Basic.html - the most basic implementation.
-* ./demo-MIDIPlayer.html - how to parse MIDI files, and interact with the data stream.
-* ./demo-MultipleInstruments.html - synth drum and piano playing together
-* ./demo-WhitneyMusicBox.html - a audio/visual experiment by Jim Bumgardner
+* ./examples/Basic.html - the most basic implementation.
+* ./examples/MIDIPlayer.html - how to parse MIDI files, and interact with the data stream.
+* ./examples/WhitneyMusicBox.html - a audio/visual experiment by Jim Bumgardner
 
 -------------
 
