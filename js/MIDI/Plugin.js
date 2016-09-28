@@ -145,8 +145,11 @@ if (window.AudioContext ) (function () {
             ctx.decodeAudioData(buffer, function (buffer) {
                 var msg = url;
                 while (msg.length < 3) msg += "&#160;";
+                if (typeof (MIDI.loader2) !== "undefined") {
+                    MIDI.loader2.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
+                }
                 if (typeof (MIDI.loader) !== "undefined") {
-                    MIDI.loader.update(null, synth.instrument + "<br/>Processing: " + (index / 87 * 100 >> 0) + "%<br/>" + msg);
+                    MIDI.loader.setValue(index / 87 * 100 >> 0);
                 }
                 buffer.id = url;
                 bufferList[index] = buffer;
@@ -518,8 +521,8 @@ if (window.Audio) (function () {
 				var instrument = instruments[i];
 				var onload = function () {
 					loaded.push(this.sID);
-					if (typeof (MIDI.loader) === "undefined") return;
-					MIDI.loader.update(null, "Processing: " + this.sID);
+					if (typeof (MIDI.loader2) === "undefined") return;
+					MIDI.loader2.update(null, "Processing: " + this.sID);
 				};
 				for (var j = 0; j < samplesPerInstrument; j++) {
 					var id = noteReverse[j + 21];
@@ -600,8 +603,7 @@ MIDI.channels = (function () { // 0 - 15 channels
 	var channels = {};
 	for (var n = 0; n < 16; n++) {
 		channels[n] = { // default values
-			instrument: 0,
-			// Acoustic Grand Piano
+			instrument: 21, // Accordion
 			mute: false,
 			mono: false,
 			omni: false,
