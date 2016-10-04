@@ -256,10 +256,10 @@ widgets.Loader = function (configure) {
 		var height = windowSize.height - size;
 		/// Center the animation within the content.
 		canvas.style.left = (width / 2) + "px";
-		canvas.style.top = (height / 2) + "px";
+		canvas.style.top = (height / 2) + 30 + "px";
 		canvas.style.width = (size) + "px";
 		canvas.style.height = (size) + "px";
-		that.span.style.top = (height / 2 + size - 10) + "px";
+		that.span.style.top = (height / 2 + +30+ size - 10) + "px";
 	};
         
 	var style = document.getElementById('widget_loader');

@@ -25,7 +25,6 @@ var canPlayThrough = function (src) {
 	audio.id = "audio";
 	audio.setAttribute("preload", "auto");
 	audio.setAttribute("audiobuffer", true);
-        _Debug && debugToTitle('canPlayThrough ' + mime);        
         supports[mime] = null;
 	audio.addEventListener("error", function() {
                 body.removeChild(audio);
@@ -39,30 +38,23 @@ var canPlayThrough = function (src) {
 	audio.src = "data:" + src;
 	body.appendChild(audio);
     } catch(e) {
-        _Debug && debugToTitle('canPlayThrough exception ' + JSON.stringify(e));        
     }
 };
 
 MIDI.audioDetect = function(callback) {
-        _Debug && debugToTitle('MIDI.audioDetect');
 
 	// check whether <audio> tag is supported
 	if (typeof(Audio) === "undefined") return callback({});
-        _Debug && debugToTitle('MIDI.audioDetect 1');
 	// check whether canPlayType is supported
 	var audio = new Audio();
 	if (typeof(audio.canPlayType) === "undefined") return callback(supports);
-        _Debug && debugToTitle('MIDI.audioDetect 2');
 	// see what we can learn from the browser
 	var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
-        _Debug && debugToTitle('MIDI.audioDetect 3: vorbis = ' + vorbis);
 	vorbis = (vorbis === "probably" || vorbis === "maybe");
 	var mpeg = audio.canPlayType('audio/mpeg');
-        _Debug && debugToTitle('MIDI.audioDetect 3: mpeg = ' + mpeg);
 	mpeg = (mpeg === "probably" || mpeg === "maybe");
 	// maybe nothing is supported
 	if (!vorbis && !mpeg) {
-                _Debug && debugToTitle('maybe nothing is supported');
             
 		callback(supports);
 		return;
@@ -77,8 +69,6 @@ MIDI.audioDetect = function(callback) {
 		var maxExecution = now - time > 5000;
 		if (!pending || maxExecution) {
 			window.clearInterval(interval);
-                        _Debug && debugToTitle('MIDI.audioDetect interval: supports = ' + JSON.stringify(supports));
-                        
 			callback(supports);
 		}
 	}, 1);

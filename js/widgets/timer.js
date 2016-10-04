@@ -23,8 +23,14 @@ root.ui.Timer = function(opts) {
 	///
 	var RAD_DEG = 180.0 / Math.PI; // Radians to Degrees
 	var DEG_RAD = 1.0 / RAD_DEG; // Degrees to Radians
+        var cor1;
+        var cor2;
 	///
+        var totalSizes = 0;
+        ///
 	var setParams = function(opts) {
+                cor1 = opts.cor1 || '#378cff';
+                cor2 = opts.cor2 || '#9cdb7d'; 
 		size = opts.size || 120;
 		format = opts.format || 'percent';
 		container = opts.container || document.body;
@@ -68,13 +74,31 @@ root.ui.Timer = function(opts) {
 
 	var gradient = ['#9cdb7d', '#99d97f', '#97d782', '#95d684', '#93d487', '#91d38a', '#8fd18c', '#8dcf8f', '#8bce91', '#89cc94', '#87cb97', '#85c999', '#83c89c', '#81c69e', '#7fc4a1', '#7dc3a4', '#7bc1a6', '#79c0a9', '#77beab', '#75bcae', '#73bbb1', '#71b9b3', '#6fb8b6', '#6db6b8', '#6bb5bb', '#69b3be', '#67b1c0', '#65b0c3', '#63aec5', '#61adc8', '#5fabcb', '#5daacd', '#5ba8d0', '#59a6d2', '#57a5d5', '#55a3d8', '#53a2da', '#51a0dd', '#4f9edf', '#4d9de2', '#4b9be5', '#499ae7', '#4798ea', '#4597ec', '#4395ef', '#4193f2', '#3f92f4', '#3d90f7', '#3b8ff9', '#398dfc', '#378cff'];
 	///
+
+        var calcGrad = function (cor1, cor2, progresso) {
+            var r1 = parseInt( cor1.substr( 1, 2 ), 16 );
+            var g1 = parseInt( cor1.substr( 3, 2 ), 16 );
+            var b1 = parseInt( cor1.substr( 5, 2 ), 16 );
+            var r2 = parseInt( cor2.substr( 1, 2 ), 16 );
+            var g2 = parseInt( cor2.substr( 3, 2 ), 16 );
+            var b2 = parseInt( cor2.substr( 5, 2 ), 16 );
+            
+            var r = (Math.round( (r2 - r1) * progresso) + r1).toString(16);
+            var g = (Math.round( (g2 - g1) * progresso) + g1).toString(16);
+            var b = (Math.round( (b2 - b1) * progresso) + b1).toString(16);
+            
+            return "#" + r + g + b;
+        };
+
+        
 	var requestId;
 	var pulse = 0;
 	var startTime = Date.now(); // 'time' format
 	var render = function() {
 		var obj = getPosition();
 		///
-		ctx.fillStyle = gradient[Math.round((1.0 - obj.percent) * 50)];
+		//ctx.fillStyle = gradient[Math.round((1.0 - obj.percent) * 50)];
+                ctx.fillStyle = calcGrad( cor1, cor2, obj.percent );
 		///
 // 		pulse ++;
 		///
@@ -101,7 +125,7 @@ root.ui.Timer = function(opts) {
 		ctx.fill();
 		///
 		var ratio = size / 260;
-		var fontSize = ratio * 26;
+		var fontSize = ratio * 20;
 		var fontFamily = '"Trebuchet MS", Arial, Helvetica, sans-serif';
 		ctx.font = 'bold ' + fontSize + 'px ' + fontFamily;
 		ctx.textBaseline = 'top';
@@ -111,11 +135,11 @@ root.ui.Timer = function(opts) {
 		var fontSize = ratio * 46;
 		ctx.font = 'bold ' + fontSize + 'px ' + fontFamily;
 		ctx.fillStyle = '#ffffff';
-		ctx.fillText(obj.value, outerRadius, outerRadius - ratio * 44);
+		ctx.fillText(obj.value+'%', outerRadius, outerRadius - ratio * 44);
 		ctx.restore();
 		///
 		if (obj.percent < 1.0) {
-			requestId = requestAnimationFrame(render);
+                    requestId = requestAnimationFrame(render);
 		}
 	};
 	///

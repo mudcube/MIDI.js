@@ -223,26 +223,23 @@ eventjs.add(window, "load", function(event) {
     }
     
     //
-    //MIDI.loader2 = new widgets.Loader;
-    MIDI.loader = new sketch.ui.Timer({size:240});
-    MIDI.loader.setFormat( 'API (%)')
+    //MIDI.loader = new widgets.Loader;
+    MIDI.widget = new sketch.ui.Timer({size:240});
+    MIDI.widget.setFormat( 'Carregando...')
     
     MIDI.loadPlugin( {
          soundfontUrl: "./soundfont/"
         ,instruments: "accordion"
         //,targetFormat: "mp3"
-        ,onprogress: function(event) {
-            if (!this.totalSize) {
-                    if (this.getResponseHeader("Content-Length-Raw")) {
-                            this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
-                    } else {
-                            this.totalSize = event.total;
-                    }
-            }
-            ///
-            var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
-            MIDI.loader.setValue(percent);
-        }         
+        ,onprogress: function( event ) {
+            MIDI.widget.setValue(0+Math.round(MIDI.getPercent(event)/2));
+        }
+        ,onload: function () {
+            MIDI.widget.setValue(50);
+        }
+        ,onprogress2: function( percent ) {
+            MIDI.widget.setValue(50+Math.round(percent/2));
+        }        
         ,callback: function() {
             // this is the language we are running in
             var title = document.getElementById("title");
@@ -269,7 +266,7 @@ eventjs.add(window, "load", function(event) {
             ColorSphereBackground();
             MIDIPlayerPercentage(player);
             //
-            MIDI.loader2 && MIDI.loader2.stop();
+            MIDI.loader && MIDI.loader.stop();
 	}
     });
 });

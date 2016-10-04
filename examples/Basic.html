@@ -33,16 +33,7 @@ window.onload = function () {
         ,instruments: ["accordion", "acoustic_grand_piano"]
         //,targetFormat: "ogg"
         ,onprogress: function (event) {
-            if (!this.totalSize) {
-                    if (this.getResponseHeader("Content-Length-Raw")) {
-                            this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
-                    } else {
-                            this.totalSize = event.total;
-                    }
-            }
-            ///
-            var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
-            console.log( 'percent:' +percent);
+            console.log( 'Carregado: ' + MIDI.getPercent(event) + '%');
         }
        ,callback: function() {
           MIDI.programChange(0, 21); // accordion

@@ -99,29 +99,20 @@ RefreshFrame = function () {
 };
 
 window.onload = function () {
-    MIDI.loader2 = new widgets.Loader;
+    MIDI.loader = new widgets.Loader;
     MIDI.loadPlugin({
          instrument: "acoustic_grand_piano" // or multiple instruments
         ,onprogress: function (event) {
-            if (!this.totalSize) {
-                    if (this.getResponseHeader("Content-Length-Raw")) {
-                            this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
-                    } else {
-                            this.totalSize = event.total;
-                    }
-            }
-            ///
-            var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
-            if (MIDI.loader2) MIDI.loader2.update(null, "Downloading...", percent);  
-            console.log( 'percent:' +percent);
+            if (MIDI.loader) MIDI.loader.update(null, "Downloading...", MIDI.getPercent(event));  
         }
         ,callback: function() {
-            MIDI.loader2.stop();
+            MIDI.loader.stop();
             
             if( ! _Debug ) {   
                 var title = document.getElementById("title");
                 title.style='display:none;';            
-            }    
+            }   
+            
             MIDI.programChange(0, 0); // piano
 
             var canvas = document.getElementById('mycanvas');
