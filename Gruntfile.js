@@ -27,8 +27,8 @@ module.exports = function (grunt) {
 				'js/util/dom_request_xhr.js', // req when using XHR
 				'js/util/dom_request_script.js', // req otherwise
 //				'js/widget/loader.js', // optional
-				'inc/polyfill/Base64.js',
-				'inc/polyfill/base64binary.js'
+				'inc/shim/Base64.js',
+				'inc/shim/Base64binary.js'
 			]
 		},
 		uglify: {
