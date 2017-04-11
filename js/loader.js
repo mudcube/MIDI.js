@@ -10,14 +10,15 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 (function (MIDI) { 'use strict';
 
-	if (console && console.log) {
-		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
-	}
 
 	/** globals **/
 	MIDI.DEBUG = false;
 	MIDI.USE_XHR = true;
 	MIDI.PATH = './soundfont/';
+
+	if (MIDI.DEBUG && console && console.log) {
+		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
+	}
 
 	/** priorities **/
 	var _adaptorPriority = {
