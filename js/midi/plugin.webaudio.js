@@ -17,6 +17,7 @@
 		var effects = {};
 		var masterVolume = 127;
 		var audioBuffers = {};
+		var detuneCents=0;
 		///
 		midi.audioBuffers = audioBuffers;
 		midi.send = function(data, delay) { };
@@ -54,6 +55,11 @@
 				var channel = root.channels[channelId];
 				channel.pitchBend = program;
 // 			}
+		};
+		
+		midi.setDetune = function(cents)
+		{
+			detuneCents = cents;		
 		};
 
 		midi.noteOn = function(channelId, noteId, velocity, delay) {
@@ -94,6 +100,7 @@
 			/// add gain + pitchShift
 			var gain = (velocity / 127) * (masterVolume / 127) * 2 - 1;
 			source.connect(ctx.destination);
+			source.detune.value = detuneCents;
 			source.playbackRate.value = 1; // pitch shift 
 			source.gainNode = ctx.createGain(); // gain
 			source.gainNode.connect(ctx.destination);
