@@ -11,7 +11,6 @@
 	window.Audio && (function() {
 		var midi = root.AudioTag = { api: 'audiotag' };
 		var noteToKey = {};
-		var volume = 127; // floating point 
 		var buffer_nid = -1; // current channel
 		var audioBuffers = []; // the audio channels
 		var notesOn = []; // instrumentId + noteId that is currently playing in each 'channel', for routing noteOff/chordOff calls
@@ -37,7 +36,7 @@
 					return;
 				}
 				audio.src = root.Soundfont[instrumentId][note.id];
-				audio.volume = volume / 127;
+				audio.volume = root.channels[channel].volume / 127;
 				audio.play();
 				buffer_nid = nid;
 			}
@@ -64,9 +63,17 @@
 	
 		midi.audioBuffers = audioBuffers;
 		midi.send = function(data, delay) { };
-		midi.setController = function(channel, type, value, delay) { };
-		midi.setVolume = function(channel, n) {
-			volume = n; //- should be channel specific volume
+		midi.setController = function(channel, type, value, delay) {
+			if(type == 7) root.setVolume(channel, value, delay);
+		};
+		midi.setVolume = function(channel, n, delay) {
+			if (delay) {
+				return setTimeout(function() {
+					root.channels[channel].volume = n;
+				}, delay * 1000);
+			} else {
+				root.channels[channel].volume = n;
+			}
 		};
 
 		midi.programChange = function(channel, program) {
