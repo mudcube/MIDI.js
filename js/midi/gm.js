@@ -123,6 +123,24 @@
 			channel.solo = truthy;
 		}
 	};
+	
+	/* get/setChannelVolume
+	--------------------------------------------------- */
+	root.getChannelVolume = function(channelId) {
+		var channel = root.channels[channelId];
+		return channel && channel.volume;
+	};
+
+	root.setChannelVolume = function(channelId, truthy) {
+		var channel = root.channels[channelId];
+		if (delay) {
+			return setTimeout(function() {
+				channel.volume = truthy;	
+			}, delay);
+		} else {
+			channel.volume = truthy;
+		}
+	};
 
 	/* channels
 	--------------------------------------------------- */
@@ -132,6 +150,7 @@
 			channels[i] = { // default values
 				instrument: i,
 				pitchBend: 0,
+				volume: 127,
 				mute: false,
 				mono: false,
 				omni: false,
