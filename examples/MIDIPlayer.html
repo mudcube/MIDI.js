@@ -229,18 +229,14 @@ eventjs.add(window, "load", function(event) {
     
     MIDI.loadPlugin( {
          soundfontUrl: "./soundfont/"
-        ,instruments: "accordion"
+        ,instruments: ["accordion",'acoustic_grand_piano']
         //,targetFormat: "mp3"
-        ,onprogress: function( event ) {
-            MIDI.widget.setValue(0+Math.round(MIDI.getPercent(event)/2));
+        ,onprogress: function( total, done, currentPercent ) {
+            var percent = ((done*100)+currentPercent)*100/(total*100);
+            MIDI.widget.setValue(0+Math.round(percent));
         }
-        ,onload: function () {
-            MIDI.widget.setValue(50);
-        }
-        ,onprogress2: function( percent ) {
-            MIDI.widget.setValue(50+Math.round(percent/2));
-        }        
         ,callback: function() {
+            MIDI.widget.setValue(100);
             // this is the language we are running in
             var title = document.getElementById("title");
             title.innerHTML += "<br>Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);

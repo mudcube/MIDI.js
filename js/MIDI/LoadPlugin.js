@@ -12,7 +12,12 @@
 	});
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
+if (!window.MIDI)
+    window.MIDI = {};
+
+
+//if (typeof (MIDI) === "undefined") var MIDI = {};
+
 if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
 
 (function() { "use strict";
@@ -33,13 +38,19 @@ MIDI.getPercent = function(event) {
 
 MIDI.loadPlugin = function(conf) {
     
+    
 	if (typeof(conf) === "function") conf = {
 		callback: conf
 	};
+        
 	/// Get the instrument name.
 	var instruments = conf.instruments || conf.instrument || "accordion";
 	if (typeof(instruments) !== "object") instruments = [ instruments ];
-	///
+        
+        MIDI.clientOnProgress = conf.onprogress;
+        MIDI.jobsTotal = (2*instruments.length);
+        MIDI.jobsDone = 0;
+        
 	for (var n = 0; n < instruments.length; n ++) {
 		var instrument = instruments[n];
 		if (typeof(instrument) === "number") {
@@ -91,13 +102,18 @@ MIDI.loadPlugin = function(conf) {
 var connect = {};
 
 connect.webmidi = function(filetype, instruments, conf) {
+    
 	if (MIDI.loader) MIDI.loader.message("Web MIDI API...");
+        
 	MIDI.WebMIDI.connect(conf);
+        
 };
 
 connect.flash = function(filetype, instruments, conf) {
+    
 	// fairly quick, but requires loading of individual MP3s (more http requests).
 	if (MIDI.loader) MIDI.loader.message("Flash API...");
+        
 	DOMLoader.script.add({
 		src: conf.soundManagerUrl || "./inc/SoundManager2/script/soundmanager2.js",
 		verify: "SoundManager",
@@ -108,23 +124,23 @@ connect.flash = function(filetype, instruments, conf) {
 };
 
 connect.audiotag = function(filetype, instruments, conf) {
+    
 	// works ok, kinda like a drunken tuna fish, across the board.
-
         if (MIDI.loader) MIDI.loader.message("HTML5 Audio API...");
         
-        var onload = conf.onload || defaultOnLoad;
+        var onload = defaultOnLoad;
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
-			DOMLoader.sendRequest({
+                            DOMLoader.sendRequest({
 				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: conf.onprogress || defaultOnProgress,
+				onprogress: defaultOnProgress,
 				onload: function (response) {
 					addSoundfont(response.responseText);
                                         onload();
 					queue.getNext();
 				}
-			});
+                            });
 		},
 		onComplete: function() {
 			MIDI.AudioTag.connect(conf);
@@ -133,17 +149,17 @@ connect.audiotag = function(filetype, instruments, conf) {
 };
 
 connect.webaudio = function(filetype, instruments, conf) {
+    
 	// works awesome! safari, chrome and firefox support.
-        
 	if (MIDI.loader) MIDI.loader.message("Web Audio API...");
          
-        var onload = conf.onload || defaultOnLoad;
+        var onload = defaultOnLoad;
 	var queue = createQueue({
 		items: instruments,
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
 				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-				onprogress: conf.onprogress || defaultOnProgress,
+				onprogress: defaultOnProgress,
 				onload: function(response) {
 					addSoundfont(response.responseText);
                                         onload();
@@ -177,10 +193,20 @@ var addSoundfont = function(text) {
 
 
 var defaultOnProgress = function( event ) {
-    MIDI.loader && MIDI.loader.update(null, "Downloading...", MIDI.getPercent(event));
+    if( MIDI.clientOnProgress ) {
+        MIDI.clientOnProgress( MIDI.jobsTotal, MIDI.jobsDone, MIDI.getPercent(event) );
+    } else {
+        MIDI.loader && MIDI.loader.update(null, "Downloading...", MIDI.getPercent(event));
+    }
 };
+
 var defaultOnLoad = function( event ) {
-    MIDI.loader && MIDI.loader.update(null, "Downloading", 100);
+    if( MIDI.clientOnProgress ) {
+        MIDI.jobsDone++;
+        MIDI.clientOnProgress( MIDI.jobsTotal, MIDI.jobsDone, 0 );
+    } else {
+        MIDI.loader && MIDI.loader.update(null, "Downloading", 100);
+    }    
 };
 
 var createQueue = function(conf) {

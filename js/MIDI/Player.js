@@ -1,3 +1,4 @@
+
 /*
 	-------------------------------------
 	MIDI.Player : 0.3
@@ -8,7 +9,11 @@
 	-------------------------------------
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
+if (!window.MIDI)
+    window.MIDI = {};
+
+//if (typeof (MIDI) === "undefined") var MIDI = {};
+
 if (typeof (MIDI.Player) === "undefined") MIDI.Player = {};
 
 (function() { "use strict";

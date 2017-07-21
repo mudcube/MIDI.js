@@ -20,7 +20,10 @@
 		MIDI.noteToKey
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
+if (!window.MIDI)
+    window.MIDI = {};
+    
+//if (typeof (MIDI) === "undefined") var MIDI = {};
 
 (function() { "use strict";
 
@@ -135,14 +138,18 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 	var audioBuffers = {};
         
         var defaultOnProgress = function( percent, instrument, msg ) {
-            MIDI.loader && MIDI.loader.update( null, instrument + "<br/>Processing: " + percent + "%<br/>" + msg);
+            if ( MIDI.clientOnProgress ) {
+                MIDI.clientOnProgress( MIDI.jobsTotal, MIDI.jobsDone, percent );
+            } else {
+                MIDI.loader && MIDI.loader.update( null, instrument + "<br/>Processing: " + percent + "%<br/>" + msg);
+            }
         };        
         
-	var audioLoader = function (instrument, urlList, index, bufferList, callback, pend, onProgress2) {
+	var audioLoader = function (instrument, urlList, index, bufferList, callback, pend ) {
             
             var synth = MIDI.GeneralMIDI.byName[instrument];
             var instrumentId = synth.number;
-            var onProgress = onProgress2 || defaultOnProgress;
+            var onProgress = defaultOnProgress;
 
             var url = urlList[index];
             
@@ -282,9 +289,11 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
 
     root.connect = function (conf) {
         setPlugin(root);
-        //
-        MIDI.Player.ctx = ctx = new AudioContext();
-        //
+        
+        ctx = new AudioContext();
+        
+        if ( MIDI.Player ) MIDI.Player.ctx = ctx;
+        
         var urlList = [];
         var keyToNote = MIDI.keyToNote;
         for (var key in keyToNote) urlList.push(key);
@@ -292,16 +301,18 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
         var pending = {};
         var oncomplete = function(instrument) {
             delete pending[instrument];
+            if(MIDI.clientOnProgress) {
+                MIDI.jobsDone ++;
+                MIDI.clientOnProgress( MIDI.jobsTotal, MIDI.jobsDone, 0 );
+            }
             for (var key in pending) break;
-            // flavio - tinha tentado resolver problema do Firefox, que as vezes não carrega todas as notas
-            // if (!key) window.setTimeout(function () { conf.callback(); }, 5 );
             if (!key) conf.callback(); 
         };
         for (var instrument in MIDI.Soundfont) {
             pending[instrument] = { pend: 0, done: 0};
             for (var i = 0; i < urlList.length; i++) {
                 pending[instrument].pend ++;
-                audioLoader(instrument, urlList, i, bufferList, oncomplete, pending, conf.onprogress2);
+                audioLoader(instrument, urlList, i, bufferList, oncomplete, pending);
             }
         }
     };

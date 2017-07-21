@@ -9,8 +9,10 @@
 	Test to see what types of <audio> MIME types are playable by the browser.
 	-------------------------------------
 */
+if (!window.MIDI)
+    window.MIDI = {};
 
-if (typeof(MIDI) === "undefined") var MIDI = {};
+//if (typeof(MIDI) === "undefined") var MIDI = {};
 
 (function() { "use strict";
 
