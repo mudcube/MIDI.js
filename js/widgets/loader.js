@@ -188,15 +188,13 @@ widgets.Loader = function (configure) {
 			getProgress: conf.getProgress
 		};
 		this.span.appendChild(container);
+		this.center();
 		this.span.style.display = "block";
 		this.update(item.seed, message);
 		/// Escape event loop.
 		if (conf.onstart) {
 			window.setTimeout(conf.onstart, 50);
 		}
-		///
-		this.center();
-		///
 		if (!this.interval) {
 			if (!conf.delay) renderAnimation();
 			window.clearInterval(this.interval);
@@ -260,6 +258,12 @@ widgets.Loader = function (configure) {
 		canvas.style.width = (size) + "px";
 		canvas.style.height = (size) + "px";
 		that.span.style.top = (height / 2 + +30+ size - 10) + "px";
+                
+		this.div.style.left = configure.container.offsetLeft + (width / 2) +  "px";
+		this.div.style.top = configure.container.offsetTop + (height / 2) + "px";
+		this.div.style.width = (size) + "px";
+		this.div.style.height = (size) + "px";
+                
 	};
         
 	var style = document.getElementById('widget_loader');
@@ -268,7 +272,7 @@ widgets.Loader = function (configure) {
             style = document.createElement('style');
             style.setAttribute( "id", "widget_loader" ); 
             style.innerHTML = '\
-.loader { color: #fff; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
+.loader { color: #fff; position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
 .loader span.message { font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
 .loader span.message div { border-bottom: 1px solid #222; padding: 5px 10px; clear: both; text-align: left; opacity: 1; }\
 .loader span.message div:last-child { border-bottom: none; }';
@@ -361,35 +365,37 @@ widgets.Loader = function (configure) {
 ////
 
 var transitionCSS = function(type, ms) {
-	return '\
-		-webkit-transition-property: '+type+';\
-		-webkit-transition-duration: '+ms+'ms;\
-		-moz-transition-property: '+type+';\
-		-moz-transition-duration: '+ms+'ms;\
-		-o-transition-property: '+type+';\
-		-o-transition-duration: '+ms+'ms;\
-		-ms-transition-property: '+type+';\
-		-ms-transition-duration: '+ms+'ms;';
+    return '\
+        -webkit-transition-property: '+type+';\
+        -webkit-transition-duration: '+ms+'ms;\
+        -moz-transition-property: '+type+';\
+        -moz-transition-duration: '+ms+'ms;\
+        -o-transition-property: '+type+';\
+        -o-transition-duration: '+ms+'ms;\
+        -ms-transition-property: '+type+';\
+        -ms-transition-duration: '+ms+'ms;';
 };
 
 var getWindowSize = function (element) {
-	if (window.innerWidth && window.innerHeight) {
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-	} else if (document.compatMode === "CSS1Compat" && document.documentElement && document.documentElement.offsetWidth) {
-		var width = document.documentElement.offsetWidth;
-		var height = document.documentElement.offsetHeight;
-	} else if (document.body && document.body.offsetWidth) {
-		var width = document.body.offsetWidth;
-		var height = document.body.offsetHeight;
-	}
-	if (element) {
-		var width = element.offsetWidth;
-	}
-	return {
-		width: width,
-		height: height
-	};
+    if (element) {
+        var width = element.offsetWidth;
+        var height = element.offsetHeight;
+    } else {
+        if (window.innerWidth && window.innerHeight) {
+                var width = window.innerWidth;
+                var height = window.innerHeight;
+        } else if (document.compatMode === "CSS1Compat" && document.documentElement && document.documentElement.offsetWidth) {
+                var width = document.documentElement.offsetWidth;
+                var height = document.documentElement.offsetHeight;
+        } else if (document.body && document.body.offsetWidth) {
+                var width = document.body.offsetWidth;
+                var height = document.body.offsetHeight;
+        }
+    }
+    return {
+        width: width,
+        height: height
+    };
 };
 
 })();
