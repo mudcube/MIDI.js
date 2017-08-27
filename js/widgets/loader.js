@@ -105,13 +105,13 @@ widgets.Loader = function (configure) {
 	var radius = configure.radius;
 	var max = configure.lineHeight + 20;
 	var size = max * 2 + configure.radius * 2;
-	var windowSize = getWindowSize(configure.container);
-	var width = windowSize.width - size;
-	var height = windowSize.height - size;
+	//var windowSize = getWindowSize(configure.container);
+	//var width = windowSize.width - size;
+	//var height = windowSize.height - size;
 	var deviceRatio = window.devicePixelRatio || 1;
 	///
-	canvas.width = size * deviceRatio;
-	canvas.height = size  * deviceRatio;
+	canvas.width = 300 * deviceRatio;
+	canvas.height = 48  * deviceRatio;
 	///
 	var iteration = 0;
 	var ctx = canvas.getContext("2d");
@@ -249,22 +249,23 @@ widgets.Loader = function (configure) {
 	};
 
 	this.center = function() {
-		var windowSize = getWindowSize(configure.container);
-		var width = windowSize.width - size;
-		var height = windowSize.height - size;
-		/// Center the animation within the content.
-		canvas.style.left = (width / 2) + "px";
-		canvas.style.top = (height / 2) + 30 + "px";
-		canvas.style.width = (size) + "px";
-		canvas.style.height = (size) + "px";
-		that.span.style.top = (height / 2 + +30+ size - 10) + "px";
-                
-		this.div.style.left = configure.container.offsetLeft + (width / 2) +  "px";
-		this.div.style.top = configure.container.offsetTop + (height / 2) + "px";
-		this.div.style.width = (size) + "px";
-		this.div.style.height = (size) + "px";
-                
+            var windowSize = getWindowSize(configure.container);
+            var width = windowSize.width - 300;
+            var height = windowSize.height - 48;
+
+            this.div.style.left = configure.container.offsetLeft + (width / 2) +  "px";
+            this.div.style.top = configure.container.offsetTop + (height / 2) + "px";
+            this.div.style.width = 300 + "px";
+            this.div.style.height = 48 + "px";
+
+            /// Center the animation within the content.
+            //canvas.style.left = (width / 2) + "px";
+            //canvas.style.top = (height / 2) + 30 + "px";
+            //canvas.style.width = (size) + "px";
+            //canvas.style.height = (size) + "px";
+            //that.span.style.top = (height / 2 + +30+ size - 10) + "px";
 	};
+        
         
 	var style = document.getElementById('widget_loader');
         
@@ -273,7 +274,7 @@ widgets.Loader = function (configure) {
             style.setAttribute( "id", "widget_loader" ); 
             style.innerHTML = '\
 .loader { color: #fff; position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; opacity: 0; display: none; }\
-.loader span.message { font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0; right: 0; }\
+.loader span.message { font-family: monospace; font-size: 14px; margin: auto; opacity: 1; display: none; border-radius: 10px; padding: 0px; width: 300px; text-align: center; position: absolute; z-index: 10000; left: 0px; right: 0; }\
 .loader span.message div { border-bottom: 1px solid #222; padding: 5px 10px; clear: both; text-align: left; opacity: 1; }\
 .loader span.message div:last-child { border-bottom: none; }';
             document.head.appendChild(style);
