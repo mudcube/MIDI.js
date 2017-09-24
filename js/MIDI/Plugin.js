@@ -310,9 +310,13 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
         };
         for (var instrument in MIDI.Soundfont) {
             pending[instrument] = { pend: 0, done: 0};
-            for (var i = 0; i < urlList.length; i++) {
-                pending[instrument].pend ++;
-                audioLoader(instrument, urlList, i, bufferList, oncomplete, pending);
+            if( ! MIDI.Soundfont[instrument].alreadyLoaded ) {
+                for (var i = 0; i < urlList.length; i++) {
+                    pending[instrument].pend ++;
+                    audioLoader(instrument, urlList, i, bufferList, oncomplete, pending);
+                }
+            } else {
+                oncomplete(instrument);
             }
         }
     };

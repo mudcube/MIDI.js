@@ -200,6 +200,48 @@ var pausePlayStop = function(stop) {
 
 eventjs.add(window, "load", function(event) {
     
+    
+    //
+    //MIDI.loader = new widgets.Loader;
+    MIDI.widget = new sketch.ui.Timer({size:240});
+    MIDI.widget.setFormat( 'Carregando piano...');
+    
+    MIDI.loadPlugin( {
+         soundfontUrl: "./soundfont/"
+        ,instruments: ['acoustic_grand_piano']
+        //,targetFormat: "mp3"
+        ,onprogress: function( total, done, currentPercent ) {
+            var percent = ((done*100)+currentPercent)*100/(total*100);
+            MIDI.widget.setValue(0+Math.round(percent));
+        }
+        ,callback: doItAgain
+    });
+});
+
+///
+function doItAgain(){
+    
+    MIDI.widget.setValue(100);
+    
+    MIDI.widget = new sketch.ui.Timer({size:340});
+    MIDI.widget.setFormat( 'Carregando accordion...');
+    
+    MIDI.loadPlugin( {
+         soundfontUrl: "./soundfont/"
+        ,instruments: ['accordion' ]
+        //,targetFormat: "mp3"
+        ,onprogress: function( total, done, currentPercent ) {
+            var percent = ((done*100)+currentPercent)*100/(total*100);
+            MIDI.widget.setValue(0+Math.round(percent));
+        }
+        ,callback: startApp
+    });
+}
+
+function startApp(){
+    MIDI.widget.setValue(100);
+    
+    
     var link = document.createElement('link');
     link.href = 'http://fonts.googleapis.com/css?family=Oswald';
     link.ref = "stylesheet";
@@ -222,52 +264,33 @@ eventjs.add(window, "load", function(event) {
             colors.appendChild(d);
     }
     
-    //
-    //MIDI.loader = new widgets.Loader;
-    MIDI.widget = new sketch.ui.Timer({size:240});
-    MIDI.widget.setFormat( 'Carregando...')
-    
-    MIDI.loadPlugin( {
-         soundfontUrl: "./soundfont/"
-        ,instruments: ["accordion",'acoustic_grand_piano']
-        //,targetFormat: "mp3"
-        ,onprogress: function( total, done, currentPercent ) {
-            var percent = ((done*100)+currentPercent)*100/(total*100);
-            MIDI.widget.setValue(0+Math.round(percent));
-        }
-        ,callback: function() {
-            MIDI.widget.setValue(100);
-            // this is the language we are running in
-            var title = document.getElementById("title");
-            title.innerHTML += "<br>Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
-            // this sets up the MIDI.Player and gets things going...
-            player = MIDI.Player;
-            player.timeWarp = 1; // speed the song is played back
-            player.loadFile(song[songid++%3], player.start);
-            // control the piano keys colors
-            var colorMap = MusicTheory.Synesthesia.map();
-            player.addListener(function(data) {
-                    var pianoKey = data.note - MIDI.pianoKeyOffset;
-                    var d = colorElements[pianoKey];
-                    if (data.message === 144) {
-                            var map = colorMap[data.note - 27];
-                            if (map) d.style.background = map.hex;
-                            d.style.color = "#fff";
-                    } else {
-                            d.style.background = "";
-                            d.style.color = "";
-                    }
-            });
-            //
-            ColorSphereBackground();
-            MIDIPlayerPercentage(player);
-            //
-            MIDI.loader && MIDI.loader.stop();
-	}
+    // this is the language we are running in
+    var title = document.getElementById("title");
+    title.innerHTML += "<br>Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
+    // this sets up the MIDI.Player and gets things going...
+    player = MIDI.Player;
+    player.timeWarp = 1; // speed the song is played back
+    player.loadFile(song[songid++%3], player.start);
+    // control the piano keys colors
+    var colorMap = MusicTheory.Synesthesia.map();
+    player.addListener(function(data) {
+            var pianoKey = data.note - MIDI.pianoKeyOffset;
+            var d = colorElements[pianoKey];
+            if (data.message === 144) {
+                    var map = colorMap[data.note - 27];
+                    if (map) d.style.background = map.hex;
+                    d.style.color = "#fff";
+            } else {
+                    d.style.background = "";
+                    d.style.color = "";
+            }
     });
-});
-
-///
+    //
+    ColorSphereBackground();
+    MIDIPlayerPercentage(player);
+    //
+    MIDI.loader && MIDI.loader.stop();
+}
 
 var MIDIPlayerPercentage = function(player) {
 	// update the timestamp

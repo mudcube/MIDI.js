@@ -134,9 +134,10 @@ connect.audiotag = function(filetype, instruments, conf) {
 		getNext: function(instrumentId) {
                             DOMLoader.sendRequest({
 				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+                                instrument: instrumentId,
 				onprogress: defaultOnProgress,
-				onload: function (response) {
-					addSoundfont(response.responseText);
+				onload: function (response, instrument) {
+					addSoundfont(response.responseText, instrument);
                                         onload();
 					queue.getNext();
 				}
@@ -159,9 +160,10 @@ connect.webaudio = function(filetype, instruments, conf) {
 		getNext: function(instrumentId) {
 			DOMLoader.sendRequest({
 				url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
+                                instrument: instrumentId,
 				onprogress: defaultOnProgress,
-				onload: function(response) {
-					addSoundfont(response.responseText);
+				onload: function(response, instrument) {
+					addSoundfont(response.responseText, instrument );
                                         onload();
 					queue.getNext();
 				}
@@ -182,12 +184,16 @@ var apis = {
 	"flash": true
 };
 
-var addSoundfont = function(text) {
+var addSoundfont = function(text, instrument) {
+    if(!MIDI.Soundfont[instrument]) {
 	var script = document.createElement("script");
 	script.language = "javascript";
 	script.type = "text/javascript";
 	script.text = text;
 	document.body.appendChild(script);
+    } else {
+        MIDI.Soundfont[instrument].alreadyLoaded = true;
+    }
 };
 
 

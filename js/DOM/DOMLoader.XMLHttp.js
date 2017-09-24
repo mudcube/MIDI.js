@@ -28,11 +28,11 @@ if (typeof (XMLHttpRequest) === "undefined") {
 	(function () { // find equivalent for IE
 		var factories = [
 		function () {
-			return new ActiveXObject("Msxml2.XMLHTTP")
+			return new ActiveXObject("Msxml2.XMLHTTP");
 		}, function () {
-			return new ActiveXObject("Msxml3.XMLHTTP")
+			return new ActiveXObject("Msxml3.XMLHTTP");
 		}, function () {
-			return new ActiveXObject("Microsoft.XMLHTTP")
+			return new ActiveXObject("Microsoft.XMLHTTP");
 		}];
 		for (var i = 0; i < factories.length; i++) {
 			try {
@@ -103,7 +103,7 @@ if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
 		req.setRequestHeader("Accept-Charset", "x-user-defined");
 		req.send(null);
 		return req;
-	}
+	};
 } else {
 	DOMLoader.sendRequest = function(conf) {
 		var req = new XMLHttpRequest();
@@ -115,12 +115,12 @@ if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
 		if (conf.onprogress) req.onprogress = conf.onprogress;
 		req.onreadystatechange = function (event) {
 			if (req.readyState === 4) {
-				if (req.status !== 200 && req.status != 304) {
+				if (req.status !== 200 && req.status !== 304) {
 					if (conf.onerror) conf.onerror(event, false);
 					return;
 				}
 				if (conf.onload) {
-					conf.onload(req);
+					conf.onload(req, conf.instrument);
 				}
 			}
 		};

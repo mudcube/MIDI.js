@@ -107,10 +107,10 @@ root.ui.Timer = function(opts) {
 		var outerRadius = size / 2.0 + (pulse % 20);
 		var innerRadius = size / 2.0 * 0.61 + (pulse % 20);
 		///
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.save();
 		///
-		ctx.beginPath()
+		ctx.beginPath();
 		ctx.arc(outerRadius, outerRadius, outerRadius, startAngle, endAngle, false);
 		ctx.arc(outerRadius, outerRadius, innerRadius, endAngle, startAngle, true);
 		ctx.globalAlpha = 0.25;
@@ -118,7 +118,7 @@ root.ui.Timer = function(opts) {
 		///
 		startAngle += 360 * DEG_RAD;
 		///
-		ctx.beginPath()
+		ctx.beginPath();
 		ctx.arc(outerRadius, outerRadius, outerRadius, startAngle, endAngle, false);
 		ctx.arc(outerRadius, outerRadius, innerRadius, endAngle, startAngle, true);
 		ctx.globalAlpha = 1.0;
@@ -142,23 +142,27 @@ root.ui.Timer = function(opts) {
                     requestId = requestAnimationFrame(render);
 		}
 	};
-	///
+        
 	setParams(opts);
-	///
+        
 	var canvas = document.createElement('canvas');
 	var ctx = canvas.getContext('2d');
 	canvas.width = size;
 	canvas.height = size;
-	///
-	var parent = document.createElement('div');
-	parent.style.display = 'none';
-	parent.className = 'sk-timer';
-	parent.appendChild(canvas);
-	///
-	container.appendChild(parent);
-	///
+        
+        var parent = document.getElementById('sk-timer');
+        
+        if( ! parent ) {
+            parent = document.createElement('div');
+            parent.style.display = 'none';
+            parent.id = 'sk-timer'
+            parent.className = 'sk-timer';
+            parent.appendChild(canvas);
+            container.appendChild(parent);
+        }
+        
 	if (opts.onstart) {
-		setTimeout(opts.onstart, 250);
+            setTimeout(opts.onstart, 250);
 	}
 
 	/* Public 

@@ -35,30 +35,45 @@ window.onload = function () {
         ,onprogress: function (event) {
             console.log( 'Carregado: ' + MIDI.getPercent(event) + '%');
         }
-       ,callback: function() {
-          MIDI.programChange(0, 21); // accordion
-          MIDI.programChange(1, 0); // piano
-
-          var title = document.getElementById("title");
-          title.innerHTML += "<br> Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
-
-          var note = 50; // the MIDI note
-          var velocity = 127; // how hard the note hits
-
-          var delay = 0; 
-
-          // play the note
-          MIDI.setVolume(0, 127);
-          MIDI.noteOn(0, note, velocity, delay);
-          MIDI.noteOff(0, note, delay + 1.75);
-
-          delay = 2; 
-
-          MIDI.setVolume(1, 127);
-          MIDI.noteOn(1, note, velocity, delay);
-          MIDI.noteOff(1, note, delay + 1.75);
-        }
+       ,callback: doItAgain
     });
+};
+
+function doItAgain() {
+    MIDI.loadPlugin({
+         soundfontUrl: "./soundfont/"
+        ,instruments: ["accordion", "acoustic_grand_piano"]
+        //,targetFormat: "ogg"
+        ,onprogress: function (event) {
+            console.log( 'Carregado: ' + MIDI.getPercent(event) + '%');
+        }
+       ,callback: startPlay
+    });
+};
+
+function startPlay() {
+
+    MIDI.programChange(0, 21); // accordion
+    MIDI.programChange(1, 0); // piano
+
+    var title = document.getElementById("title");
+    title.innerHTML += "<br> Sound being generated with " + MIDI.api + " ("+ MIDI.audioformat  + ").<br> Supported formats: " + JSON.stringify(MIDI.supports);
+
+    var note = 50; // the MIDI note
+    var velocity = 127; // how hard the note hits
+
+    var delay = 0; 
+
+    // play the note
+    MIDI.setVolume(0, 127);
+    MIDI.noteOn(0, note, velocity, delay);
+    MIDI.noteOff(0, note, delay + 1.75);
+
+    delay = 2; 
+
+    MIDI.setVolume(1, 127);
+    MIDI.noteOn(1, note, velocity, delay);
+    MIDI.noteOff(1, note, delay + 1.75);
 };
 
 </script>
