@@ -270,7 +270,10 @@ function startApp(){
     // this sets up the MIDI.Player and gets things going...
     player = MIDI.Player;
     player.timeWarp = 1; // speed the song is played back
-    player.loadFile(song[songid++%3], player.start);
+    // flavio - just loads the file - do not start
+    //player.loadFile(song[songid++%3], player.start);
+    pausePlayStop(true);
+    player.loadFile(song[songid++%3]);
     // control the piano keys colors
     var colorMap = MusicTheory.Synesthesia.map();
     player.addListener(function(data) {
