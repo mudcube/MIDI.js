@@ -86,8 +86,10 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				}
 
 				function loadAdaptor(tech) {
+					tech = tech.toLowerCase();
 					var format = MIDI.adaptor.format;
 					var canPlayThrough = supports[tech];
+//					console.log("loadAdaptor", tech, format, canPlayThrough, supports);
 					if (!canPlayThrough[format]) {
 						handleError();
 						return;
