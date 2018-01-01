@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-03-26
+	MIDI.Player : 0.3.2 : 2017-12-31
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -19,6 +19,9 @@ midi.playing = false;
 midi.timeWarp = 1;
 midi.startDelay = 0;
 midi.BPM = 120;
+midi.playingStartTime = 0;
+midi.ctxStartTime = 0;
+midi.lastCallbackTime = 0;
 
 midi.start =
 midi.resume = function(onsuccess) {
@@ -82,22 +85,23 @@ midi.setAnimation = function(callback) {
 			currentTime = midi.currentTime;
 		}
 		///
-		var endTime = midi.endTime;
-		var percent = currentTime / endTime;
-		var total = currentTime / 1000;
-		var minutes = total / 60;
-		var seconds = total - (minutes * 60);
-		var t1 = minutes * 60 + seconds;
-		var t2 = (endTime / 1000);
-		///
-		if (t2 - t1 < -1.0) {
-			return;
-		} else {
-			callback({
-				now: t1,
-				end: t2,
-				events: noteRegistrar
-			});
+		if(currentTime == 0 && midi.playing) currentTime = ((Date.now() - midi.ctxStartTime * 10) - midi.playingStartTime) / 100 * MIDI.Player.BPM;
+		if(midi.lastCallbackTime!=currentTime){
+			var endTime = midi.endTime;
+			//var percent = currentTime / endTime;
+			var t1 = currentTime / 1000;
+			var t2 = endTime / 1000;
+			///
+			if (t2 - t1 < -1.0) {
+				return;
+			} else {
+				callback({
+					now: t1,
+					end: t2,
+					events: noteRegistrar
+				});
+			}
+			midi.lastCallbackTime = currentTime;
 		}
 	};
 	///
@@ -285,13 +289,16 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 		ctx.currentTime = (now - __now) / 1000;
 	}
 	///
-	startTime = ctx.currentTime;
+	midi.ctxStartTime = startTime = ctx.currentTime;
+	midi.playingStartTime = Date.now() - midi.ctxStartTime*10 ;
 	///
 	for (var n = 0; n < length && messages < 100; n++) {
 		var obj = data[n];
 		if ((queuedTime += obj[1]) <= currentTime) {
 			offset = queuedTime;
-			continue;
+			
+			if (obj[0].event.type !== 'channel')
+				continue;
 		}
 		///
 		currentTime = queuedTime - offset;
