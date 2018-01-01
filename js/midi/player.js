@@ -22,11 +22,10 @@ midi.BPM = 120;
 midi.playingStartTime = 0;
 midi.ctxStartTime = 0;
 midi.lastCallbackTime = 0;
-
 midi.start =
 midi.resume = function(onsuccess) {
-    if (midi.currentTime < -1) {
-    	midi.currentTime = -1;
+    if (midi.currentTime < 0) {
+    	midi.currentTime = 0;
     }
     startAudio(midi.currentTime, null, onsuccess);
 };
@@ -102,6 +101,11 @@ midi.setAnimation = function(callback) {
 				});
 			}
 			midi.lastCallbackTime = currentTime;
+			
+			if(currentTime > endTime){
+				stopAudio();
+				if(typeof midi.onEnd != 'undefined') midi.onEnd();
+			}
 		}
 	};
 	///
