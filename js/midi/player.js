@@ -82,30 +82,30 @@ midi.setAnimation = function(callback) {
 			}
 		} else { // paused
 			currentTime = midi.currentTime;
+			tOurTime = Date.now();
+			tTheirTime = midi.currentTime;
 		}
 		///
 		if(currentTime == 0 && midi.playing) currentTime = ((Date.now() - midi.ctxStartTime * 10) - midi.playingStartTime) / 100 * MIDI.Player.BPM;
-		if(midi.lastCallbackTime!=currentTime){
-			var endTime = midi.endTime;
-			//var percent = currentTime / endTime;
-			var t1 = currentTime / 1000;
-			var t2 = endTime / 1000;
-			///
-			if (t2 - t1 < -1.0) {
-				return;
-			} else {
-				callback({
-					now: t1,
-					end: t2,
-					events: noteRegistrar
-				});
-			}
-			midi.lastCallbackTime = currentTime;
-			
-			if(currentTime > endTime){
-				stopAudio();
-				if(typeof midi.onEnd != 'undefined') midi.onEnd();
-			}
+		var endTime = midi.endTime;
+		//var percent = currentTime / endTime;
+		var t1 = currentTime / 1000;
+		var t2 = endTime / 1000;
+		///
+		if (t2 - t1 < -1.0) {
+			return;
+		} else {
+			callback({
+				now: t1,
+				end: t2,
+				events: noteRegistrar
+			});
+		}
+		midi.lastCallbackTime = currentTime;
+		
+		if(currentTime > endTime){
+			stopAudio();
+			if(typeof midi.onEnd != 'undefined') midi.onEnd();
 		}
 	};
 	///
@@ -301,7 +301,7 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 		if ((queuedTime += obj[1]) <= currentTime) {
 			offset = queuedTime;
 			
-			if (obj[0].event.type !== 'channel')
+			if (currentTime>0 || obj[0].event.type !== 'channel')
 				continue;
 		}
 		///
