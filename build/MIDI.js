@@ -1590,7 +1590,7 @@ player.handleEvent = function(type, truthy) {
 		///
 		MIDI.setDefaultPlugin(midi);
 		///
-		function errFunction(err) { // well at least we tried!
+		function errFunction(err) { // well at least we tried.
 			onerror && onerror(err);
 			///
 			if (window.AudioContext) { // Chrome

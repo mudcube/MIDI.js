@@ -68,7 +68,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 					for (var format in _formatPriority) {
 						if (supports[format]) {
 							MIDI.adaptor.format = format;
-							return true; // yay!
+							return true; // yay!...
 						}
 					}
 				}
