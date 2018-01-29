@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-03-26
+	MIDI.Player : 0.3.3 : 2018-01-28
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -19,11 +19,13 @@ midi.playing = false;
 midi.timeWarp = 1;
 midi.startDelay = 0;
 midi.BPM = 120;
-
+midi.playingStartTime = 0;
+midi.ctxStartTime = 0;
+midi.lastCallbackTime = 0;
 midi.start =
 midi.resume = function(onsuccess) {
-    if (midi.currentTime < -1) {
-    	midi.currentTime = -1;
+    if (midi.currentTime < 0) {
+    	midi.currentTime = 0;
     }
     startAudio(midi.currentTime, null, onsuccess);
 };
@@ -80,15 +82,15 @@ midi.setAnimation = function(callback) {
 			}
 		} else { // paused
 			currentTime = midi.currentTime;
+			tOurTime = Date.now();
+			tTheirTime = midi.currentTime;
 		}
 		///
+		if(currentTime == 0 && midi.playing) currentTime = ((Date.now() - midi.ctxStartTime * 10) - midi.playingStartTime) / 100 * MIDI.Player.BPM;
 		var endTime = midi.endTime;
-		var percent = currentTime / endTime;
-		var total = currentTime / 1000;
-		var minutes = total / 60;
-		var seconds = total - (minutes * 60);
-		var t1 = minutes * 60 + seconds;
-		var t2 = (endTime / 1000);
+		//var percent = currentTime / endTime;
+		var t1 = currentTime / 1000;
+		var t2 = endTime / 1000;
 		///
 		if (t2 - t1 < -1.0) {
 			return;
@@ -98,6 +100,12 @@ midi.setAnimation = function(callback) {
 				end: t2,
 				events: noteRegistrar
 			});
+		}
+		midi.lastCallbackTime = currentTime;
+		
+		if(currentTime > endTime){
+			stopAudio();
+			if(typeof midi.onEnd != 'undefined') midi.onEnd();
 		}
 	};
 	///
@@ -194,6 +202,7 @@ var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener
 var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
+	note -= 12; // off by one octave ???
 	return setTimeout(function() {
 		var data = {
 			channel: channel,
@@ -285,13 +294,16 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 		ctx.currentTime = (now - __now) / 1000;
 	}
 	///
-	startTime = ctx.currentTime;
+	midi.ctxStartTime = startTime = ctx.currentTime;
+	midi.playingStartTime = Date.now() - midi.ctxStartTime*10 ;
 	///
 	for (var n = 0; n < length && messages < 100; n++) {
 		var obj = data[n];
 		if ((queuedTime += obj[1]) <= currentTime) {
 			offset = queuedTime;
-			continue;
+			
+			if (currentTime>0 || obj[0].event.type !== 'channel')
+				continue;
 		}
 		///
 		currentTime = queuedTime - offset;
