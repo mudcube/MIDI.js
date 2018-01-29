@@ -1,6 +1,6 @@
 /*
 	----------------------------------------------------------
-	MIDI.Player : 0.3.2 : 2017-12-31
+	MIDI.Player : 0.3.3 : 2018-01-28
 	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
 	----------------------------------------------------------
@@ -202,6 +202,7 @@ var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
 var onMidiEvent = undefined; // listener
 var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
+	note -= 12; // off by one octave ???
 	return setTimeout(function() {
 		var data = {
 			channel: channel,
