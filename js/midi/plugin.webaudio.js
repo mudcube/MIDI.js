@@ -275,7 +275,7 @@
 				}
 				///
 				var synth = root.GM.byName[instrument];
-				var instrumentId = synth.number;
+				var instrumentId = synth.id;
 				///
 				bufferPending[instrumentId] = 0;
 				///
