@@ -28,26 +28,21 @@ if (typeof MIDI === 'undefined') MIDI = {};
 			var tech = args.tech;
 			
 			var length = programs.length;
-			var pending = length;
 
 			for (var i = 0; i < length; i ++) {
 				var programId = programs[i];
 				var request = _requests[programId] || (_requests[programId] = {});
 
 				if (request.loaded) {
-					waitForEnd();
+					waitForEnd([programId]);
 				} else if (request.loading) {
 					request.queue.push(resolve);
 				} else {
 					request.queue = [resolve];
 					request.loading = true;
 
-					sendRequest(programId, audioFormat, function (e, progress) {
-						var transferring = progress / length;
-						var completed = (length - pending) / length;
-						emitProgress(transferring + completed, programId);
-					}).then(function () {
-						waitForEnd();
+					sendRequest(programId, audioFormat).then(function (pgm) {
+						waitForEnd(pgm);
 					}).catch(reject);
 				}
 			}
@@ -59,8 +54,17 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				}
 			}
 			
-			function waitForEnd() {
-				if (!--pending) {
+			function waitForEnd(pgm) {
+				_requests[pgm].loading = false;
+				var pending = false;
+				for (var key in _requests) {
+					if (_requests.hasOwnProperty(key)) {
+						if (_requests[key].loading) {
+							pending = true;
+						}
+					}
+				}
+				if (!pending) {
 					emitProgress(1.0);
 					_adaptors[tech].connect(args).then(function () {
 						programs.forEach(function (programId) {
@@ -90,7 +94,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 							script.type = 'text/javascript';
 							script.text = responseText;
 							document.body.appendChild(script);
-							resolve();
+							resolve(programId);
 						}
 					});
 				} else {
