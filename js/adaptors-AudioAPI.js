@@ -139,6 +139,9 @@ window.AudioContext && (function () { 'use strict';
 			}
 		};
 
+		// To take care of browsers who catch this as an "auto play" case.
+		if (_ctx.state === "suspended")
+			_ctx.resume(); // TODO-PER: should actually wrap the following in a promise, but this is the simplest code change and the following promise will take a long time.
 
 		/** connect **/
 		return new Promise(function (resolve, reject) {
