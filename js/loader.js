@@ -10,14 +10,15 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 (function (MIDI) { 'use strict';
 
-	if (console && console.log) {
-		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
-	}
 
 	/** globals **/
 	MIDI.DEBUG = false;
 	MIDI.USE_XHR = true;
 	MIDI.PATH = './soundfont/';
+
+	if (MIDI.DEBUG && console && console.log) {
+		console.log('%c♥ MIDI.js 0.4.2 ♥', 'color: red;');
+	}
 
 	/** priorities **/
 	var _adaptorPriority = {
@@ -67,7 +68,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 					for (var format in _formatPriority) {
 						if (supports[format]) {
 							MIDI.adaptor.format = format;
-							return true; // yay!
+							return true; // yay!...
 						}
 					}
 				}
@@ -85,8 +86,10 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				}
 
 				function loadAdaptor(tech) {
+					tech = tech.toLowerCase();
 					var format = MIDI.adaptor.format;
 					var canPlayThrough = supports[tech];
+//					console.log("loadAdaptor", tech, format, canPlayThrough, supports);
 					if (!canPlayThrough[format]) {
 						handleError();
 						return;

@@ -146,7 +146,10 @@
 	function detectDecodeAudio(src) {
 		return new Promise(function (resolve, reject) {
 			audioContext = audioContext || new AudioContext();
-			audioContext.decodeAudioData(base64ToBuffer(src), resolve, reject);
+			audioContext.decodeAudioData(base64ToBuffer(src), resolve, reject).then(function(resp) {
+			}).catch(function(err) {
+				// It's ok to fail this test: suppress the console message for it.
+			});
 			setTimeout(reject, 250); // chrome workaround https://code.google.com/p/chromium/issues/detail?id=424174
 		});
 	}

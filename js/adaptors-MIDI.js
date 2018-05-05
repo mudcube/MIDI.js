@@ -120,7 +120,7 @@
 				}
 			}, handleError);
 
-			function handleError(err) { // well at least we tried!
+			function handleError(err) { // well at least we tried.
 				reject && reject(err);
 			}
 		});

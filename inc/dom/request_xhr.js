@@ -140,7 +140,7 @@ if (typeof galactic === 'undefined') galactic = {};
 	/* NodeJS
 	------------------------------------------------------ */
 	if (typeof module === 'object' && module.exports) {
-		var NodeFS = require('fs');
+//TODO-PER: to make it compile		var NodeFS = require('fs');
 		module.exports = root.request;
 	}
 

@@ -36,7 +36,7 @@ root.module.DOMMisc = function(root) {
 	---------------------------------------------------------- */
 	util.requestKioskMode = function() {
 		if (root.client.nodewebkit) {
-			var win = require('nw.gui').Window.get();
+			//TODO-PER: to make it compile			var win = require('nw.gui').Window.get();
 			win.enterKioskMode();
 		} else {
 //			root.FullScreen.enter();
@@ -688,7 +688,7 @@ root.module.DOMMisc = function(root) {
 /// NodeJS
 if (typeof module !== 'undefined' && module.exports) {
 	try {
-		var Canvas = require('canvas');
+		//TODO-PER: to make it compile var Canvas = require('canvas');
 	} catch(e) {}
 	///
 	module.exports = root.module.DOMMisc;
