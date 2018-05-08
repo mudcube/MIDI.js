@@ -29,6 +29,7 @@ if (!window.MIDI)
 
 var setPlugin = function(root) {
 	MIDI.api = root.api;
+	MIDI.resume = root.resume;
 	MIDI.setVolume = root.setVolume;
 	MIDI.programChange = root.programChange;
 	MIDI.noteOn = root.noteOn;
@@ -55,6 +56,11 @@ var setPlugin = function(root) {
 	var root = MIDI.WebMIDI = {
 		api: "webmidi"
 	};
+        
+	root.resume = function () { 
+            
+	};
+        
 	root.setVolume = function (channel, volume) { // set channel volume
 		output.send([0xB0 + channel, 0x07, volume]);
 	};
@@ -193,6 +199,11 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
             );
 	};
 
+	root.resume = function () { 
+            // flavio - to be compliant with autoplay-policy-changes #webaudio
+            ctx.resume();
+	};
+        
 	root.setVolume = function (channel, volume) {
 		masterVolume = volume;
 	};
@@ -292,6 +303,9 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
         
         ctx = new AudioContext();
         
+        // flavio - to be compliant with autoplay-policy-changes #webaudio
+        MIDI.context = ctx;
+        
         if ( MIDI.Player ) MIDI.Player.ctx = ctx;
         
         var urlList = [];
@@ -385,6 +399,10 @@ if (window.Audio) (function () {
 		MIDI.channels[channel].instrument = program;
 	};
 
+	root.resume = function () { 
+            
+	};
+        
 	root.setVolume = function (channel, n) {
 		volume = n; //- should be channel specific volume
 	};
@@ -482,6 +500,10 @@ if (window.Audio) (function () {
 		MIDI.channels[channel].instrument = program;
 	};
 
+	root.resume = function () { 
+            
+	};
+        
 	root.setVolume = function (channel, note) {
 
 	};
