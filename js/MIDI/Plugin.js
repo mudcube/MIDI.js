@@ -301,7 +301,15 @@ if (window.AudioContext || window.webkitAudioContext) (function () {
     root.connect = function (conf) {
         setPlugin(root);
         
-        ctx = new AudioContext();
+        try{
+            ctx = new window.AudioContext();
+        } catch(e) {
+            try {
+                ctx = new window.webkitAudioContext();
+            } catch(e){
+                alert( 'Cannot instantiate AudioContext - API: ' + conf.api );
+            }
+        }
         
         // flavio - to be compliant with autoplay-policy-changes #webaudio
         MIDI.context = ctx;

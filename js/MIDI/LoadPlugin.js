@@ -93,6 +93,7 @@ MIDI.loadPlugin = function(conf) {
 		MIDI.lang = api;
 		MIDI.supports = types;
                 MIDI.audioformat = filetype;
+                conf.api = api;
 		connect[api](filetype, instruments, conf);
 	});
 };
@@ -102,7 +103,6 @@ MIDI.loadPlugin = function(conf) {
 var connect = {};
 
 connect.webmidi = function(filetype, instruments, conf) {
-    
 	if (MIDI.loader) MIDI.loader.message("Web MIDI API...");
         
 	MIDI.WebMIDI.connect(conf);
