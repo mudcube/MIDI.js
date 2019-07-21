@@ -272,7 +272,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 				(a[2] * 0.5 + b[2] * 0.5 + 0.5) >> 0
 			];
 		};
-		///
+		//
 		var syn = root.data;
 		var colors = syn[type] || syn['D. D. Jameson (1844)'];
 		for (var note = 0, pclr, H, S, L; note <= 88; note ++) { // creates mapping for 88 notes
@@ -283,7 +283,7 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 				};
 			} else {
 				var clr = colors[(note + 9) % 12];
-				///
+				//
 				switch(colors.format) {
 					case 'RGB':
 						clr = Color.Space(clr, 'RGB>HSL');
@@ -297,20 +297,20 @@ MIDI.Synesthesia = MIDI.Synesthesia || {};
 						L = clr[2];
 						break;
 				}
-				///
+				//
 				if (H === S && S === L) { // note color is unset
 					clr = blend(pclr, colors[(note + 10) % 12]);
 				}
-				///
+				//
 // 				var amount = L / 10;
 // 				var octave = note / 12 >> 0;
 // 				var octaveLum = L + amount * octave - 3.0 * amount; // map luminance to octave
-				///
+				//
 				data[note] = {
 					hsl: 'hsla(' + H + ',' + S + '%,' + L + '%, 1)',
 					hex: Color.Space({H: H, S: S, L: L}, 'HSL>RGB>HEX>W3')
 				};
-				///
+				//
 				pclr = clr;
 			}
 		}

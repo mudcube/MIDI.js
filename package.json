@@ -1,23 +1,29 @@
 {
   "name": "midi",
   "version": "0.3.0",
-  "description": "Library to assist in creating HTML5 MIDI apps.",
+  "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [
     "Sergi Mansilla",
     "Daniel van der Meer",
     "Mohit Muthanna",
-    "Pete Otaqui"
+    "Pete Otaqui",
+    "Michael Scott Cuthbert"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mudcube/MIDI.js.git"
+    "url": "git://github.com/mscuthbert/midicube.git"
   },
   "main": "./build/MIDI.min.js",
   "license": "MIT",
   "devDependencies": {
-    "grunt": "~0.4.0",
-    "grunt-contrib-concat": "~0.1.3",
-    "grunt-contrib-uglify": "~0.1.2"
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-export-namespace-from": "^7.5.2",
+    "@babel/plugin-transform-object-assign": "^7.2.0",
+    "@babel/preset-env": "^7.5.5",
+    "webpack": "^4.36.1"
+  },
+  "dependencies": {
+    "jquery": "^3.4.1"
   }
 }

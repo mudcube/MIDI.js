@@ -41,11 +41,11 @@ window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineA
 		["createDelayNode", "createDelay"],
 		["createJavaScriptNode", "createScriptProcessor"]
 	];
-	///
+	//
 	var proto;
 	var instance;
 	var sourceProto;
-	///
+	//
 	if (!isFunction(Context)) {
 		return;
 	}

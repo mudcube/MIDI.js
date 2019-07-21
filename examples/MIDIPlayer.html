@@ -6,10 +6,10 @@
 	<!-- midi.js css -->
 	<link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
 	<!-- shim -->
-	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
-	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
-	<script src="../inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<script src="../inc/shim/WebMIDIAPI.js" type="text/javascript"></script>
+	<script src="../js/shim/Base64.js" type="text/javascript"></script>
+	<script src="../js/shim/Base64binary.js" type="text/javascript"></script>
+	<script src="../js/shim/WebAudioAPI.js" type="text/javascript"></script>
+	<script src="../js/shim/WebMIDIAPI.js" type="text/javascript"></script>
 	<!-- jasmid package -->
 	<script src="../inc/jasmid/stream.js"></script>
 	<script src="../inc/jasmid/midifile.js"></script>
@@ -120,7 +120,7 @@
 		link.type = "text/css";
 		document.body.appendChild(link);
 		
-		/// load up the piano keys
+		// load up the piano keys
 		var colors = document.getElementById("colors");
 		var colorElements = [];
 		for (var n = 0; n < 88; n++) {
@@ -129,7 +129,7 @@
 			colorElements.push(d);
 			colors.appendChild(d);
 		}
-		///
+		//
 		MIDI.loader = new sketch.ui.Timer;
 		MIDI.loadPlugin({
 			soundfontUrl: "./soundfont/",
@@ -140,11 +140,11 @@
 			    console.warn(err);  
 			},
 			onsuccess: function() {
-				/// this is the language we are running in
+				// this is the language we are running in
 				var title = document.getElementById("title");
 				title.innerHTML = "Sound being generated with " + MIDI.api + " " + JSON.stringify(MIDI.supports);
 
-				/// this sets up the MIDI.Player and gets things going...
+				// this sets up the MIDI.Player and gets things going...
 				player = MIDI.Player;
 				player.timeWarp = 1; // speed the song is played back
 				player.loadFile(song[songid++ % song.length], 
@@ -156,7 +156,7 @@
 				        }
 				);
 
-				/// control the piano keys colors
+				// control the piano keys colors
 				var colorMap = MIDI.Synesthesia.map();
 				player.addListener(function(data) {
 					var pianoKey = data.note - 21;
@@ -172,7 +172,7 @@
 						}
 					}
 				});
-				///
+				//
 				ColorSphereBackground();
 				MIDIPlayerPercentage(player);
 			}
@@ -272,7 +272,7 @@
 			ctx.putImageData(imageData, 0, 0);
 		};
 		eventjs.add(d, "mousemove", onMouseMove);
-		///
+		//
 		function sphere(top) { // create Sphere image, and apply to <canvas>
 			var canvas1 = document.createElement("canvas");
 			var ctx = canvas1.getContext("2d");

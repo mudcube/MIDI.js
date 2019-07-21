@@ -76,19 +76,19 @@ function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
 				// tempo change events can occur anywhere in the middle and affect events that follow
 				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
 			}
-			///
+			//
 			var beatsToGenerate = 0;
 			var secondsToGenerate = 0;
 			if (midiEvent.ticksToEvent > 0) {
 				beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
 				secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
 			}
-			///
+			//
 			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
 			temporal.push([ midiEvent, time]);
 			midiEvent = getNextEvent();
 		};
-		///
+		//
 		if (midiEvent = getNextEvent()) {
 			while(midiEvent) processNext(true);
 		}

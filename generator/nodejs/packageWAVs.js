@@ -17,23 +17,23 @@ var noteToKey = {}; // 108 === C8
 		noteToKey[n] = name;
 	}
 })();
-///
+//
 var zlib = require("zlib");
 var fs = require("fs");
 var beautify = require("js-beautify").js_beautify;
 var exec = require("child_process").exec;
 var walk = require("walk");
 var walker = walk.walk("./source", { followLinks: false });
-///
+//
 var buildDir = "./build/";
 var instrumentName = "synth_drum";
 var instrumentDir = buildDir + instrumentName + "/";
 var index = 21;
-///
+//
 var output = {};
 output.ogg = [];
 output.mp3 = [];
-///
+//
 walker.on("file", function (root, stat, next) {
 	if (stat.name.indexOf(".wav") === -1) return next();
 	convertPackage(stat, "mp3", function() { // encode mp3
@@ -88,17 +88,17 @@ var writePackage = function (type) {
 if (typeof(MIDI) === "undefined") var MIDI = {};\
 if (typeof(MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};\
 MIDI.Soundfont["' + instrumentName + '"] = ';
-	///
+	//
 	var ret = {};
 	for (var n = 0; n < data.length; n ++) {
 		var obj = data[n];
 		ret[obj.key] = obj.data;
 	}
-	///
+	//
 	var js = beautify(header + JSON.stringify(ret));
 	var path = "./build/" + instrumentName + "." + type + ".js";
 	fs.writeFileSync(path, js);
-	///
+	//
 	var buf = new Buffer(js, "utf-8"); // Choose encoding for the string.
 	zlib.gzip(buf, function (self, result) { // The callback will give you the 
 		fs.writeFileSync(path + ".gz", result);
