@@ -918,7 +918,8 @@ root.getBoundingBox = function(o) {
 	} else { // windows, linux, or mac opera.
 		metaKeys = { 17: true };
 	}
-	(root.metaTrackerReset = function() {
+	// noinspection AssignmentResultUsedJS
+    (root.metaTrackerReset = function() {
 		eventjs.fnKey = root.fnKey = false;
 		eventjs.metaKey = root.metaKey = false;
 		eventjs.ctrlKey = root.ctrlKey = false;

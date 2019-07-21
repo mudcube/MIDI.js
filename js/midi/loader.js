@@ -19,6 +19,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 
 MIDI.Soundfont = MIDI.Soundfont || {};
 MIDI.Player = MIDI.Player || {};
+MIDI.Players = MIDI.Players || {};
 
 (function(root) { 'use strict';
 
@@ -53,9 +54,11 @@ MIDI.Player = MIDI.Player || {};
 				api = opts.api;
 			} else if (supports[hash.substr(1)]) {
 				api = hash.substr(1);
-			} else if (supports.webmidi) {
-				api = 'webmidi';
-			} else if (window.AudioContext) { // Chrome
+			}
+			// else if (supports.webmidi) {
+			// 	api = 'webmidi';
+			// }
+			else if (window.AudioContext) { // Chrome
 				api = 'webaudio';
 			} else if (window.Audio) { // Firefox
 				api = 'audiotag';
