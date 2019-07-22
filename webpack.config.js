@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './js/loader.js',
+    entry: './js/index.js',
     output: {
         path: path.resolve(__dirname, 'build'),
         filename: 'midicube.js',

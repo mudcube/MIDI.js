@@ -1,3 +1,5 @@
+midicube is a fork of mudcube's great MIDI.js which adds ES6 modules and support.
+
 ## Code examples - from the repo
 
 * [Basic](./examples/Basic.html) - the most basic implementation.

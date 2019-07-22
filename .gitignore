@@ -18,6 +18,7 @@ npm-debug.log
 
 
 .project
+.idea/*
 .idea/dictionaries/cuthbert.xml
 .idea/midicube.iml
 .idea/misc.xml

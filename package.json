@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/mscuthbert/midicube.git"
   },
-  "main": "./build/MIDI.min.js",
+  "main": "./build/midicube.js",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.5.5",
