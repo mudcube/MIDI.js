@@ -14,7 +14,6 @@
 		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
 	----------------------------------------------------------
 */
-import $ from 'jquery';
 import './shim/WebAudioAPI.js';  // imported by default -- webmidi shim needs to be loaded separately
 import { audioDetect } from './audioDetect.js';
 import * as AudioTag from './plugin.audiotag.js';
@@ -201,23 +200,23 @@ export const requestQueue = (opts, context) => {
 
 export const sendRequest = (instrumentId, audioFormat, onprogress, onsuccess, onerror) => {
 	const soundfontPath = config.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
-	$.ajax(
-		soundfontPath,
-		{
-			async: true,  // by default, but explicit is better.
-			contentType: 'text/plain',
-			error: onerror,
-			// no on progress...
-			success: responseText => {
-				const script = document.createElement('script');
-				script.language = 'javascript';
-				script.type = 'text/javascript';
-				script.text = responseText;
-				document.body.appendChild(script);
-				onsuccess();
-			}
+	const xhr = new XMLHttpRequest();
+	xhr.open('GET', soundfontPath);
+	xhr.setRequestHeader('Content-Type', 'text/plain');
+	xhr.onload = () => {
+		if (xhr.status === 200) {
+			const script = document.createElement('script');
+			script.language = 'javascript';
+			script.type = 'text/javascript';
+			// console.log(xhr.responseText);
+			script.text = xhr.responseText;
+			document.body.appendChild(script);
+			onsuccess();
+		} else {
+			onerror();
 		}
-		);
+	};
+	xhr.send();
 };
 
 export const playChannel = (...options) => {
