@@ -30,7 +30,7 @@ export const playChannel = (channel, in_note) => {
 	if (!channels[channel]) {
 		return;
 	}
-	const instrument = channels[channel].instrument;
+	const instrument = channels[channel].program;
 	const instrumentId = GM.byId[instrument].id;
 	const note = notes[in_note];
 	if (note) {
@@ -45,7 +45,7 @@ export const playChannel = (channel, in_note) => {
 			return;
 		}
 		audio.src = shared_root_info.Soundfont[instrumentId][note.id];
-		audio.volume = volume / 127;
+		audio.volume = volumes[channel] / 127;
 		audio.play();
 		buffer_nid = nid;
 	}
@@ -55,7 +55,7 @@ export const stopChannel = (channel, in_note) => {
 	if (!channels[channel]) {
 		return;
 	}
-	const instrument = channels[channel].instrument;
+	const instrument = channels[channel].program;
 	const instrumentId = GM.byId[instrument].id;
 	const note = notes[in_note];
 	if (note) {
@@ -92,18 +92,23 @@ export const noteOn = (channel, note, velocity, delay) => {
 	}
 	if (delay) {
 		return setTimeout(() => {
+			volumes[channel] = velocity;
 			playChannel(channel, id);
 		}, delay * 1000);
 	} else {
+		volumes[channel] = velocity;
 		playChannel(channel, id);
 	}
 };
 
 export const noteOff = (channel, note, delay) => {
 	// MSC: Commented out in MudCube version...
+	//      I see why!  clips all the notes!
 
-	// var id = noteToKey[note];
-	// if (!notes[id]) return;
+	// const id = noteToKey[note];
+	// if (!notes[id]) {
+	// 	return;
+	// }
 	// if (delay) {
 	// 	return setTimeout(function() {
 	// 		stopChannel(channel, id);

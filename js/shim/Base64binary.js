@@ -26,12 +26,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/**
+ * Modified by MSC to be a module.
+ * @type {string}
+ * @private
+ */
+
 const _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 /* will return a  Uint8Array type */
 export function decodeArrayBuffer(input) {
-	var bytes = Math.ceil( (3*input.length) / 4.0);
-	var ab = new ArrayBuffer(bytes);
+	const bytes = Math.ceil( (3*input.length) / 4.0);
+	const ab = new ArrayBuffer(bytes);
 	this.decode(input, ab);
 
 	return ab;

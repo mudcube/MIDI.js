@@ -15,7 +15,7 @@
 	----------------------------------------------------------
 */
 import $ from 'jquery';
-
+import './shim/WebAudioAPI.js';  // imported by default -- webmidi shim needs to be loaded separately
 import { audioDetect } from './audioDetect.js';
 import * as AudioTag from './plugin.audiotag.js';
 import * as WebAudio from './plugin.webaudio.js';
@@ -62,6 +62,9 @@ export const loadPlugin = opts => {
 	opts.targetFormat = opts.targetFormat || '';
 	opts.instrument = opts.instrument || 'acoustic_grand_piano';
 	opts.instruments = opts.instruments || undefined;
+	// MSC: add the order of API precedence.
+	//      Chrome's need for sys permissions for webmidi makes it lower precedence.
+	opts.apiPrecedence = opts.apiPrecedence || ['webaudio', 'webmidi', 'audiotag'];
 
 	config.soundfontUrl = opts.soundfontUrl || config.soundfontUrl;
 
@@ -75,12 +78,13 @@ export const loadPlugin = opts => {
 			api = opts.api;
 		} else if (supports[hash.substr(1)]) {
 			api = hash.substr(1);
-		} else if (window.AudioContext) { // Chrome
-			api = 'webaudio';
-		} else if (supports.webmidi) {
-		 	api = 'webmidi';
-		} else if (window.Audio) { // Firefox
-			api = 'audiotag';
+		} else {
+			for (const apiInOrder of opts.apiPrecedence) {
+				if (supports[apiInOrder]) {
+					api = apiInOrder;
+					break;
+				}
+			}
 		}
 
 		if (connect[api]) {
@@ -96,20 +100,21 @@ export const loadPlugin = opts => {
 			config.api = api;
 			config.audioFormat = audioFormat;
 			config.supports = supports;
-			loadResource(opts);
+			loadProgram(opts);
 		}
 	});
 };
 
 /*
-	loadResource({
+	loadProgram({
+		instrument: 'banjo'
 		onsuccess: function() { },
 		onprogress: function(state, percent) { },
-		instrument: 'banjo'
+		onerror: function() { },
 	})
 */
 
-export const loadResource = opts => {
+export const loadProgram = opts => {
 	let instruments = opts.instruments || opts.instrument || 'acoustic_grand_piano';
 	//
 	if (typeof instruments !== 'object') {
@@ -138,28 +143,28 @@ export const loadResource = opts => {
 const connect = {
 	webmidi: opts => {
 		// cant wait for this to be standardized!
-		pre_connect(WebMIDI);
+		pre_connect(WebMIDI, opts);
 		WebMIDI.connect(opts);
 	},
 	audiotag: opts => {
 		// works ok, kinda like a drunken tuna fish, across the board
 		// http://caniuse.com/audio
-		pre_connect(AudioTag);
+		pre_connect(AudioTag, opts);
 		requestQueue(opts, 'AudioTag');
 	},
 	webaudio: opts => {
 		// works awesome! safari, chrome and firefox support
 		// http://caniuse.com/web-audio
-		pre_connect(WebAudio);
+		pre_connect(WebAudio, opts);
 		requestQueue(opts, 'WebAudio');
 	}
 };
 
-const pre_connect = plugin => {
+const pre_connect = (plugin, opts) => {
 	config.connected_plugin = plugin;
 	plugin.shared_root_info.Soundfont = Soundfont;
-	// plugin.shared_root_info.Player = Player;
-	// plugin.shared_root_info.Players = Players;
+	plugin.shared_root_info.config = config;
+	plugin.shared_root_info.webaudio_backup_connect = opts => connect['webaudio'](opts);
 }
 
 export const requestQueue = (opts, context) => {

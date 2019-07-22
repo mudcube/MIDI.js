@@ -5,7 +5,7 @@ GeneralMIDI
 */
 
 const GM_fixer = in_dict => {
-	const clean = name => {
+	const asId = name => {
 		return name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
 	};
 	const res = {
@@ -18,17 +18,21 @@ const GM_fixer = in_dict => {
 			if (!instrument) {
 				continue;
 			}
-			const num = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
-			instrument = instrument.replace(num + ' ', '');
-			const cleaned_up = {
-				id: clean(instrument),
-				instrument: instrument,
-				number: num - 1,
+			const id = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
+			const programNumber = id - 1;
+			const name = instrument.replace(id + ' ', '');
+			const nameId = asId(name);
+			const categoryId = asId(key);
+			const spec = {
+				id: nameId,
+				name: name,
+				program: programNumber,
 				category: key
 			};
-			res.byId[num - 1] = cleaned_up;
-			res.byName[clean(instrument)] = cleaned_up;
-			res.byCategory[clean(key)] = cleaned_up;
+			res.byId[programNumber] = spec;
+			res.byName[nameId] = spec;
+			res.byCategory[categoryId] = res.byCategory[categoryId] || [];
+			res.byCategory[categoryId].push(spec);
 		}
 	}
 	return res;
@@ -59,7 +63,7 @@ const get_channels = () => { // 0 - 15 channels
 	const channels = {};
 	for (let i = 0; i < 16; i++) {
 		channels[i] = { // default values
-			instrument: i,
+			program: i,
 			pitchBend: 0,
 			mute: false,
 			mono: false,
@@ -76,19 +80,19 @@ export const channels = get_channels();
 
 /* get/setInstrument
 --------------------------------------------------- */
-export const getInstrument = (channelId) => {
+export const getProgram = (channelId) => {
 	const channel = channels[channelId];
-	return channel && channel.instrument;
+	return channel && channel.program;
 };
 
-export const setInstrument = (channelId, program, delay) => {
+export const setProgram = (channelId, program, delay) => {
 	const channel = channels[channelId];
 	if (delay) {
 		return setTimeout(() => {
-			channel.instrument = program;
+			channel.program = program;
 		}, delay);
 	} else {
-		channel.instrument = program;
+		channel.program = program;
 	}
 };
 

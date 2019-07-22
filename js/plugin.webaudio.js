@@ -35,13 +35,22 @@ export const setVolume = (channelId, volume, delay) => {
 export const programChange = (channelId, program, delay) => {
     // delay is ignored
     const channel = channels[channelId];
-    channel.instrument = program;
+    if (channel) {
+        channel.program = program;
+    }
 };
 
-export const pitchBend = function(channelId, program, delay) {
+export const pitchBend = function(channelId, bend, delay) {
     // delay is ignored
     const channel = channels[channelId];
-    channel.pitchBend = program;
+    if (channel) {
+        if (delay) {
+            setTimeout(() => channel.pitchBend = bend,
+                delay);
+        } else {
+            channel.pitchBend = bend;
+        }
+    }
 };
 
 export const noteOn = (channelId, noteId, velocity, delay) => {
@@ -49,12 +58,12 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
 
     // check whether the note exists
     const channel = channels[channelId];
-    const instrument = channel.instrument;
-    const bufferId = instrument + '' + noteId;
+    const program = channel.program;
+    const bufferId = program + 'x' + noteId;
     const buffer = audioBuffers[bufferId];
     if (!buffer) {
         if (DEBUG) {
-            console.log(GM.byId[instrument].id, instrument, channelId);
+            console.log('no buffer', GM.byId[program].id, program, channelId);
         }
         return;
     }
@@ -105,7 +114,7 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
         source.start(delay || 0);
     }
 
-    sources[channelId + '' + noteId] = source;
+    sources[channelId + 'x' + noteId] = source;
 
     return source;
 };
@@ -115,15 +124,15 @@ export const noteOff = (channelId, noteId, delay) => {
 
     // check whether the note exists
     const channel = channels[channelId];
-    const instrument = channel.instrument;
-    const bufferId = instrument + '' + noteId;
+    const program = channel.program;
+    const bufferId = program + 'x' + noteId;
     const buffer = audioBuffers[bufferId];
     if (buffer) {
         if (delay < ctx.currentTime) {
             delay += ctx.currentTime;
         }
 
-        let source = sources[channelId + '' + noteId];
+        let source = sources[channelId + 'x' + noteId];
         if (source) {
             if (source.gainNode) {
                 // @Miranet: 'the values of 0.2 and 0.3 could of course be used as
@@ -149,7 +158,7 @@ export const noteOff = (channelId, noteId, delay) => {
                 }
             }
 
-            delete sources[channelId + '' + noteId];
+            delete sources[channelId + 'x' + noteId];
             return source;
         }
     }
@@ -157,9 +166,7 @@ export const noteOff = (channelId, noteId, delay) => {
 
 export const chordOn = (channel, chord, velocity, delay) => {
     const res = {};
-    let note;
-    for (let n = 0; n < chord.length; n++) {
-        note = chord[n];
+    for (const note of chord) {
         res[note] = noteOn(channel, note, velocity, delay);
     }
     return res;
@@ -167,9 +174,7 @@ export const chordOn = (channel, chord, velocity, delay) => {
 
 export const chordOff = (channel, chord, delay) => {
     const res = {};
-    let note;
-    for (let n = 0; n < chord.length; n++) {
-        note = chord[n];
+    for (const note of chord) {
         res[note] = noteOff(channel, note, delay);
     }
     return res;
@@ -215,11 +220,11 @@ export const getContext = () => {
     return ctx;
 };
 
-export const setContext = (newCtx, onload, onprogress, onerror) => {
+export const setContext = (newCtx, onsuccess, onprogress, onerror) => {
     ctx = newCtx;
 
     // tuna.js effects module - https://github.com/Dinahmoe/tuna
-    if (typeof Tuna !== 'undefined' && !ctx.tunajs) {
+    if (typeof Tuna !== 'undefined' && !(ctx.tunajs instanceof Tuna)) {
         ctx.tunajs = new Tuna(ctx);
     }
 
@@ -236,28 +241,28 @@ export const setContext = (newCtx, onload, onprogress, onerror) => {
             }
         }
 
-        if (onload) { // run onload once
-            onload();
-            onload = null;
+        if (onsuccess) { // run onsuccess once
+            onsuccess();
+            onsuccess = null;
         }
     };
 
-    const requestAudio = (soundfont, instrumentId, index, key) => {
+    const requestAudio = (soundfont, programId, index, key) => {
         const url = soundfont[key];
         if (url) {
-            bufferPending[instrumentId] ++;
+            bufferPending[programId] ++;
             loadAudio(url, buffer => {
                 buffer.id = key;
                 const noteId = keyToNote[key];
-                audioBuffers[instrumentId + '' + noteId] = buffer;
+                audioBuffers[programId + 'x' + noteId] = buffer;
 
-                if (--bufferPending[instrumentId] === 0) {
+                if (--bufferPending[programId] === 0) {
                     const percent = index / 87;
                     if (DEBUG) {
-                        console.log(GM.byId[instrumentId], 'processing: ', percent);
+                        console.log(GM.byId[programId], 'processing: ', percent);
                     }
                     soundfont.isLoaded = true;
-                    waitForEnd(instrumentId);
+                    waitForEnd(programId);
                 }
             }, err => {
                 console.log(err);
@@ -271,14 +276,16 @@ export const setContext = (newCtx, onload, onprogress, onerror) => {
             continue;
         }
 
-        const synth = GM.byName[instrument];
-        const instrumentId = synth.number;
+        const spec = GM.byName[instrument];
+        if (spec) {
+            const programId = spec.program;
 
-        bufferPending[instrumentId] = 0;
+            bufferPending[programId] = 0;
 
-        for (let index = 0; index < urls.length; index++) {
-            const key = urls[index];
-            requestAudio(soundfont, instrumentId, index, key);
+            for (let index = 0; index < urls.length; index++) {
+                const key = urls[index];
+                requestAudio(soundfont, programId, index, key);
+            }
         }
     }
     setTimeout(waitForEnd, 1);
@@ -286,7 +293,7 @@ export const setContext = (newCtx, onload, onprogress, onerror) => {
 
 /* Load audio file: streaming | base64 | arraybuffer
 ---------------------------------------------------------------------- */
-export const loadAudio = (url, onload, onerror) => {
+export const loadAudio = (url, onsuccess, onerror) => {
     if (useStreamingBuffer) {
         const audio = new Audio();
         audio.src = url;
@@ -294,7 +301,7 @@ export const loadAudio = (url, onload, onerror) => {
         audio.autoplay = false;
         audio.preload = false;
         audio.addEventListener('canplay', () => {
-            onload && onload(audio);
+            onsuccess && onsuccess(audio);
         });
         audio.addEventListener('error', err => {
             onerror && onerror(err);
@@ -303,13 +310,13 @@ export const loadAudio = (url, onload, onerror) => {
     } else if (url.indexOf('data:audio') === 0) { // Base64 string
         const base64 = url.split(',')[1];
         const buffer = Base64Binary.decodeArrayBuffer(base64);
-        return ctx.decodeAudioData(buffer, onload, onerror);
+        return ctx.decodeAudioData(buffer, onsuccess, onerror);
     } else {  // XMLHTTP buffer
         const request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
-        request.onload = () => {
-            return ctx.decodeAudioData(request.response, onload, onerror);
+        request.onsuccess = () => {
+            return ctx.decodeAudioData(request.response, onsuccess, onerror);
         };
         request.send();
     }

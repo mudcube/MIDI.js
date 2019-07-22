@@ -63,7 +63,12 @@ export const stopAllNotes = () => {
 
 export const connect = opts => {
 	const errFunction = err => {
-		console.error('Could not connect!');
+		console.error('Could not connect to web midi! Falling back to WebAudio:', err);
+		// we tried.  Anything that sort of supports webmidi should support WebAudio.
+		if (shared_root_info.webaudio_backup_connect) {
+			shared_root_info.config.api = 'webaudio';
+			shared_root_info.webaudio_backup_connect(opts);
+		}
 	};
 	navigator.requestMIDIAccess().then(access => {
 		const plugin = access;
@@ -74,7 +79,7 @@ export const connect = opts => {
 			output = pluginOutputs[0];
 		}
 		if (output === undefined) { // nothing there...
-			errFunction();
+			errFunction('No outputs defined');
 		} else {
 			opts.onsuccess && opts.onsuccess();
 		}
