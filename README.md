@@ -60,27 +60,29 @@ MIDI.noteToKey = object; // 21 => A0
 ### [MIDI.Player.js](./js/midi/player.js) - Plays MIDI stream
 
 ```javascript
-MIDI.Player.currentTime = integer; // time we are at now within the song.
-MIDI.Player.endTime = integer; // time when song ends.
-MIDI.Player.playing = boolean; // are we playing? yes or no.
-MIDI.Player.loadFile(file, onsuccess); // load .MIDI from base64 or binary XML request.
-MIDI.Player.start(); // start the MIDI track (you can put this in the loadFile callback)
-MIDI.Player.resume(); // resume the MIDI track from pause.
-MIDI.Player.pause(); // pause the MIDI track.
-MIDI.Player.stop(); // stops all audio being played, and resets currentTime to 0.
+const Player = new MIDI.Player();
+Player.currentTime = integer; // time we are at now within the song.
+Player.endTime = integer; // time when song ends.
+Player.playing = boolean; // are we playing? yes or no.
+Player.loadFile(file, onsuccess); // load .MIDI from base64 or binary XML request.
+Player.start(); // start the MIDI track (you can put this in the loadFile callback)
+Player.resume(); // resume the MIDI track from pause.
+Player.pause(); // pause the MIDI track.
+Player.stop(); // stops all audio being played, and resets currentTime to 0.
 ```
 
 ### Listener for when notes are played
 
 ```javascript
-MIDI.Player.removeListener(); // removes current listener.
-MIDI.Player.addListener(function(data) { // set it to your own function!
-    var now = data.now; // where we are now
-    var end = data.end; // time when song ends
-    var channel = data.channel; // channel note is playing on
-    var message = data.message; // 128 is noteOff, 144 is noteOn
-    var note = data.note; // the note
-    var velocity = data.velocity; // the velocity of the note
+const Player = new MIDI.Player();
+Player.removeListener(); // removes current listener.
+Player.addListener(function(data) { // set it to your own function!
+    const now = data.now; // where we are now
+    const end = data.end; // time when song ends
+    const channel = data.channel; // channel note is playing on
+    const message = data.message; // 128 is noteOff, 144 is noteOn
+    const note = data.note; // the note
+    const velocity = data.velocity; // the velocity of the note
     // then do whatever you want with the information!
 });
 ```
@@ -88,11 +90,12 @@ MIDI.Player.addListener(function(data) { // set it to your own function!
 ### Smooth animation interpolating between onMidiEvent calls
 
 ```javascript
-MIDI.Player.clearAnimation(); // clears current animation.
-MIDI.Player.setAnimation(function(data) {
-    var now = data.now; // where we are now
-    var end = data.end; // time when song ends
-    var events = data.events; // all the notes currently being processed
+const Player = new MIDI.Player();
+Player.clearAnimation(); // clears current animation.
+Player.setAnimation(function(data) {
+    const now = data.now; // where we are now
+    const end = data.end; // time when song ends
+    const events = data.events; // all the notes currently being processed
     // then do what you want with the information!
 });
 ```
