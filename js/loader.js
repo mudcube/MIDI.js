@@ -22,10 +22,9 @@ import * as WebAudio from './plugin.webaudio.js';
 import * as WebMIDI from './plugin.webmidi.js';
 export { GM, noteToKey, keyToNote } from './gm.js';
 import { PlayInstance } from './player.js';
+export * as Synesthesia from './synesthesia.js';
 
 export const Soundfont = {};
-// export const Player = {};
-// export const Players = {};
 
 export const audio_contexts = {
 	AudioTag,
@@ -35,8 +34,8 @@ export const audio_contexts = {
 
 export const config = {
 	soundfontUrl: './soundfont/',
-	__api: undefined,
-	__audioFormat: undefined,
+	api: undefined,
+	audioFormat: undefined,
 	supports: {},
 	connected_plugin: undefined,
 };
@@ -94,8 +93,8 @@ export const loadPlugin = opts => {
 			}
 
 			// load the specified plugin
-			config.__api = api;
-			config.__audioFormat = audioFormat;
+			config.api = api;
+			config.audioFormat = audioFormat;
 			config.supports = supports;
 			loadResource(opts);
 		}
@@ -130,10 +129,10 @@ export const loadResource = opts => {
 		}
 	}
 	//
-	opts.format = config.__audioFormat;
+	opts.format = config.audioFormat;
 	opts.instruments = instruments;
 	//
-	connect[config.__api](opts);
+	connect[config.api](opts);
 };
 
 const connect = {
@@ -286,10 +285,9 @@ export const setContext = (...options) => {
 
 // Player
 
-class Player extends PlayInstance {
+export class Player extends PlayInstance {
 	constructor() {
-		const plugin = config.connected_plugin;
-		super(plugin);
+		super(config.connected_plugin);
 	}
 	loadPlugin(...options) {
 		return loadPlugin(...options);

@@ -1,60 +1,82 @@
-var clone = function (o) {
-	if (typeof o != 'object') return (o);
-	if (o == null) return (o);
-	var ret = (typeof o.length == 'number') ? [] : {};
-	for (var key in o) ret[key] = clone(o[key]);
+/**
+ * Replayer class -- factored from function by MSC July 2019
+ *
+ */
+
+
+/**
+ * Clone any object
+ *
+ * @param {*} o
+ * @returns {Array|*}
+ */
+const clone = o => {
+	if (typeof o != 'object') {
+		return o;
+	}
+	if (o == null) {
+		return o;
+	}
+	const ret = (typeof o.length == 'number') ? [] : {};
+	for (let key in o) {
+		// noinspection JSUnfilteredForInLoop
+		ret[key] = clone(o[key]);
+	}
 	return ret;
 };
 
-function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
-	var trackStates = [];
-	var beatsPerMinute = bpm ? bpm : 120;
-	var bpmOverride = bpm ? true : false;
+export class Replayer {
+	constructor(midiFile, timeWarp, eventProcessor, bpm) {
+		this.midiFile = midiFile;
+		this.timeWarp = timeWarp;
+		this.eventProcessor = eventProcessor;
+		this.trackStates = [];
+		this.beatsPerMinute = bpm ? bpm : 120;
+		this.bpmOverride = !!bpm;
+		this.ticksPerBeat = midiFile.header.ticksPerBeat;
 
-	var ticksPerBeat = midiFile.header.ticksPerBeat;
-	
-	for (var i = 0; i < midiFile.tracks.length; i++) {
-		trackStates[i] = {
-			'nextEventIndex': 0,
-			'ticksToNextEvent': (
-				midiFile.tracks[i].length ?
-					midiFile.tracks[i][0].deltaTime :
-					null
-			)
-		};
+		for (let i = 0; i < midiFile.tracks.length; i++) {
+			this.trackStates[i] = {
+				'nextEventIndex': 0,
+				'ticksToNextEvent': (
+					midiFile.tracks[i].length ?
+						midiFile.tracks[i][0].deltaTime :
+						null
+				)
+			};
+		}
+		this.temporal = [];
+		this.processEvents();
 	}
 
-	var nextEventInfo;
-	var samplesToNextEvent = 0;
-	
-	function getNextEvent() {
-		var ticksToNextEvent = null;
-		var nextEventTrack = null;
-		var nextEventIndex = null;
+	getNextEvent() {
+		let ticksToNextEvent = null;
+		let nextEventTrack = null;
+		let nextEventIndex = null;
 		
-		for (var i = 0; i < trackStates.length; i++) {
+		for (let i = 0; i < this.trackStates.length; i++) {
 			if (
-				trackStates[i].ticksToNextEvent != null
-				&& (ticksToNextEvent == null || trackStates[i].ticksToNextEvent < ticksToNextEvent)
+				this.trackStates[i].ticksToNextEvent != null
+				&& (ticksToNextEvent == null || this.trackStates[i].ticksToNextEvent < ticksToNextEvent)
 			) {
-				ticksToNextEvent = trackStates[i].ticksToNextEvent;
+				ticksToNextEvent = this.trackStates[i].ticksToNextEvent;
 				nextEventTrack = i;
-				nextEventIndex = trackStates[i].nextEventIndex;
+				nextEventIndex = this.trackStates[i].nextEventIndex;
 			}
 		}
 		if (nextEventTrack != null) {
 			/* consume event from that track */
-			var nextEvent = midiFile.tracks[nextEventTrack][nextEventIndex];
-			if (midiFile.tracks[nextEventTrack][nextEventIndex + 1]) {
-				trackStates[nextEventTrack].ticksToNextEvent += midiFile.tracks[nextEventTrack][nextEventIndex + 1].deltaTime;
+			const nextEvent = this.midiFile.tracks[nextEventTrack][nextEventIndex];
+			if (this.midiFile.tracks[nextEventTrack][nextEventIndex + 1]) {
+				this.trackStates[nextEventTrack].ticksToNextEvent += this.midiFile.tracks[nextEventTrack][nextEventIndex + 1].deltaTime;
 			} else {
-				trackStates[nextEventTrack].ticksToNextEvent = null;
+				this.trackStates[nextEventTrack].ticksToNextEvent = null;
 			}
-			trackStates[nextEventTrack].nextEventIndex += 1;
+			this.trackStates[nextEventTrack].nextEventIndex += 1;
 			/* advance timings on all tracks by ticksToNextEvent */
-			for (var i = 0; i < trackStates.length; i++) {
-				if (trackStates[i].ticksToNextEvent != null) {
-					trackStates[i].ticksToNextEvent -= ticksToNextEvent
+			for (let i = 0; i < this.trackStates.length; i++) {
+				if (this.trackStates[i].ticksToNextEvent != null) {
+					this.trackStates[i].ticksToNextEvent -= ticksToNextEvent
 				}
 			}
 			return {
@@ -65,38 +87,30 @@ function Replayer(midiFile, timeWarp, eventProcessor, bpm) {
 		} else {
 			return null;
 		}
-	};
-	//
-	var midiEvent;
-	var temporal = [];
-	//
-	function processEvents() {
-		function processNext() {
-		    if (!bpmOverride && midiEvent.event.type == "meta" && midiEvent.event.subtype == "setTempo" ) {
+	}
+
+	processEvents() {
+		let midiEvent = this.getNextEvent();
+		while(midiEvent) {
+		    if (!this.bpmOverride && midiEvent.event.type === "meta" && midiEvent.event.subtype === "setTempo" ) {
 				// tempo change events can occur anywhere in the middle and affect events that follow
-				beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
+				this.beatsPerMinute = 60000000 / midiEvent.event.microsecondsPerBeat;
 			}
 			//
-			var beatsToGenerate = 0;
-			var secondsToGenerate = 0;
+			let beatsToGenerate = 0;
+			let secondsToGenerate = 0;
 			if (midiEvent.ticksToEvent > 0) {
-				beatsToGenerate = midiEvent.ticksToEvent / ticksPerBeat;
-				secondsToGenerate = beatsToGenerate / (beatsPerMinute / 60);
+				beatsToGenerate = midiEvent.ticksToEvent / this.ticksPerBeat;
+				secondsToGenerate = beatsToGenerate / (this.beatsPerMinute / 60);
 			}
-			//
-			var time = (secondsToGenerate * 1000 * timeWarp) || 0;
-			temporal.push([ midiEvent, time]);
-			midiEvent = getNextEvent();
-		};
-		//
-		if (midiEvent = getNextEvent()) {
-			while(midiEvent) processNext(true);
+
+			const time = (secondsToGenerate * 1000 * this.timeWarp) || 0;
+			this.temporal.push([midiEvent, time]);
+			midiEvent = this.getNextEvent();
 		}
-	};
-	processEvents();
-	return {
-		"getData": function() {
-			return clone(temporal);
-		}
-	};
-};
+	}
+
+	getData() {
+		return clone(this.temporal);
+	}
+}

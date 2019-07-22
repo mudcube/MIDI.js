@@ -92,12 +92,12 @@ RefreshFrame = function () {
 };
 
 window.onload = function () {
-	MIDI.loader = new sketch.ui.Timer;
+	SketchTimer = new sketch.ui.Timer;
 	MIDI.loadPlugin({
 		soundfontUrl: "./soundfont/",
 		instrument: "acoustic_grand_piano", // or multiple instruments
 		onprogress: function(state, progress) {
-			MIDI.loader.setValue(progress * 100);
+			SketchTimer.setValue(progress * 100);
 		},
 		onsuccess: function() {
 			var canvas = document.getElementById('mycanvas');

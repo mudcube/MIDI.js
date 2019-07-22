@@ -6,7 +6,8 @@
 	----------------------------------------------------------
 */
 import { channels, GM } from './gm.js';
-
+import { MidiFile } from '../inc/jasmid/midifile.js';
+import { Replayer } from '../inc/jasmid/replayer.js';
 
 export class PlayInstance {
     constructor(plugin) {
@@ -63,7 +64,7 @@ export class PlayInstance {
         if (this.animationFrameId)  {
             cancelAnimationFrame(mthis.animationFrameId);
         }
-    };
+    }
     setAnimation(callback) {
         let currentTime = 0;
         let tOurTime = 0;
@@ -99,6 +100,7 @@ export class PlayInstance {
             const t2 = (endTime / 1000);
 
             if (t2 - t1 < -1.0) {
+                // noinspection UnnecessaryReturnStatementJS
                 return;
             } else {
                 callback({

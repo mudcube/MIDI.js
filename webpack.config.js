@@ -10,7 +10,7 @@ module.exports = {
         umdNamedDefine: true,
     },
     mode: 'development',
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     module: {
         rules: [
              {
