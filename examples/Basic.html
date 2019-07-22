@@ -2,25 +2,11 @@
 <html xmlns = "http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<!-- polyfill -->
-	<script src="../js/shim/Base64.js" type="text/javascript"></script>
-	<script src="../js/shim/Base64binary.js" type="text/javascript"></script>
-	<script src="../js/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<!-- midi.js package -->
-	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
-	<script src="../js/midi/gm.js" type="text/javascript"></script>
-	<script src="../js/midi/loader.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.audiotag.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webaudio.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webmidi.js" type="text/javascript"></script>
-	<!-- utils -->
-	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
 <body>
 <script type="text/javascript">
 
-window.onload = function () {
+function load_and_play() {
 	MIDI.loadPlugin({
 		soundfontUrl: "./soundfont/",
 		instrument: "acoustic_grand_piano",
@@ -38,7 +24,8 @@ window.onload = function () {
 		}
 	});
 };
-
 </script>
+<button onclick="load_and_play()">Click Me to play a note!</button>
+<script src="../build/midicube.js"></script>
 </body>
 </html>

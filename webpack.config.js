@@ -1,14 +1,15 @@
-// const path = require('path');
+const path = require('path');
 
 module.exports = {
-    entry: './js/index.js',
+    entry: './js/loader.js',
     output: {
-        path: './build',
+        path: path.resolve(__dirname, 'build'),
         filename: 'midicube.js',
         library: 'MIDI',
         libraryTarget: 'umd',
         umdNamedDefine: true,
     },
+    mode: 'development',
     devtool: 'source-map',
     module: {
         rules: [

@@ -1,6 +1,6 @@
 {
-  "name": "midi",
-  "version": "0.3.0",
+  "name": "midicube",
+  "version": "0.4.0",
   "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [
@@ -10,6 +10,10 @@
     "Pete Otaqui",
     "Michael Scott Cuthbert"
   ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/mscuthbert/midicube.git"
@@ -21,7 +25,9 @@
     "@babel/plugin-proposal-export-namespace-from": "^7.5.2",
     "@babel/plugin-transform-object-assign": "^7.2.0",
     "@babel/preset-env": "^7.5.5",
-    "webpack": "^4.36.1"
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6"
   },
   "dependencies": {
     "jquery": "^3.4.1"

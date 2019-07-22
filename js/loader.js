@@ -60,7 +60,7 @@ export const loadPlugin = opts => {
 	opts.api = opts.api || '';
 	opts.targetFormat = opts.targetFormat || '';
 	opts.instrument = opts.instrument || 'acoustic_grand_piano';
-	opts.instruments = opts.instruments || [];
+	opts.instruments = opts.instruments || undefined;
 
 	config.soundfontUrl = opts.soundfontUrl || config.soundfontUrl;
 
@@ -74,10 +74,10 @@ export const loadPlugin = opts => {
 			api = opts.api;
 		} else if (supports[hash.substr(1)]) {
 			api = hash.substr(1);
-		} else if (supports.webmidi) {
-		 	api = 'webmidi';
 		} else if (window.AudioContext) { // Chrome
 			api = 'webaudio';
+		} else if (supports.webmidi) {
+		 	api = 'webmidi';
 		} else if (window.Audio) { // Firefox
 			api = 'audiotag';
 		}
@@ -137,24 +137,24 @@ export const loadResource = opts => {
 const connect = {
 	webmidi: opts => {
 		// cant wait for this to be standardized!
+		pre_connect(WebMIDI);
 		WebMIDI.connect(opts);
-		post_connect(WebMIDI);
 	},
 	audiotag: opts => {
 		// works ok, kinda like a drunken tuna fish, across the board
 		// http://caniuse.com/audio
+		pre_connect(AudioTag);
 		requestQueue(opts, 'AudioTag');
-		config.connected_plugin = AudioTag;
 	},
 	webaudio: opts => {
 		// works awesome! safari, chrome and firefox support
 		// http://caniuse.com/web-audio
+		pre_connect(WebAudio);
 		requestQueue(opts, 'WebAudio');
-		config.connected_plugin = WebAudio;
 	}
 };
 
-const post_connect = plugin => {
+const pre_connect = plugin => {
 	config.connected_plugin = plugin;
 	plugin.shared_root_info.Soundfont = Soundfont;
 	plugin.shared_root_info.Player = Player;
@@ -188,7 +188,7 @@ export const requestQueue = (opts, context) => {
 				onprogress && onprogress('load', fileProgress + queueProgress, instrumentId);
 			}
 			const onsuccess_inner = () => waitForEnd();
-			sendRequest(instruments[i], audioFormat, onprogress_inner, onsuccess_inner, onerror);
+			sendRequest(instrumentId, audioFormat, onprogress_inner, onsuccess_inner, onerror);
 		}
 	};
 };

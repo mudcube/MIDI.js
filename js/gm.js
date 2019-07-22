@@ -23,7 +23,7 @@ const GM_fixer = in_dict => {
 			const cleaned_up = {
 				id: clean(instrument),
 				instrument: instrument,
-				number: num,
+				number: num - 1,
 				category: key
 			};
 			res.byId[num - 1] = cleaned_up;
@@ -52,6 +52,7 @@ export const GM = GM_fixer({
 	'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
 	'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
 });
+console.log(GM);
 
 /* channels
 --------------------------------------------------- */
