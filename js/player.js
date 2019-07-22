@@ -9,7 +9,8 @@ import { channels, GM } from './gm.js';
 
 
 export class PlayInstance {
-    constructor() {
+    constructor(plugin) {
+        this.plugin = plugin;
         this.currentTime = 0;
         this.endTime = 0;
         this.restart = 0;
@@ -117,7 +118,7 @@ export class PlayInstance {
             this.data = this.replayer.getData();
             this.endTime = this.getLength();
 
-            MIDI.loadPlugin({
+            this.loadPlugin({
                 // instruments: this.getFileInstruments(),
                 onsuccess: onsuccess,
                 onprogress: onprogress,
@@ -127,6 +128,9 @@ export class PlayInstance {
             onerror && onerror(event);
         }
     }
+
+    loadPlugin(...options) {  // override in subclasses
+        }
 
     loadFile(file, onsuccess, onprogress, onerror) {
         this.stop();
@@ -389,5 +393,3 @@ export class PlayInstance {
         this.noteRegistrar = {};
     }
 }
-
-export const Player = new PlayInstance();

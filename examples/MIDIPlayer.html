@@ -5,45 +5,30 @@
 	<title>MIDI.js - Sequencing in Javascript.</title>
 	<!-- midi.js css -->
 	<link href="./css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
-	<!-- shim -->
-	<script src="../js/shim/Base64.js" type="text/javascript"></script>
-	<script src="../js/shim/Base64binary.js" type="text/javascript"></script>
-	<script src="../js/shim/WebAudioAPI.js" type="text/javascript"></script>
-	<script src="../js/shim/WebMIDIAPI.js" type="text/javascript"></script>
+	<!-- midi.js package -->
+	<script src="../build/midicube.js"></script>
 	<!-- jasmid package -->
 	<script src="../inc/jasmid/stream.js"></script>
 	<script src="../inc/jasmid/midifile.js"></script>
 	<script src="../inc/jasmid/replayer.js"></script>
-	<!-- midi.js package -->
-	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
-	<script src="../js/midi/gm.js" type="text/javascript"></script>
-	<script src="../js/midi/loader.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.audiotag.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webaudio.js" type="text/javascript"></script>
-	<script src="../js/midi/plugin.webmidi.js" type="text/javascript"></script>
-	<script src="../js/midi/player.js" type="text/javascript"></script>
-	<script src="../js/midi/synesthesia.js" type="text/javascript"></script>
-	<!-- utils -->
-	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 	<!-- includes -->
 	<script src="./inc/timer.js" type="text/javascript"></script>
 	<script src="./inc/colorspace.js" type="text/javascript"></script>
 	<script src="./inc/event.js" type="text/javascript"></script>
 </head>
 <body>
-	<img src="./images/shiverMeTimbers.gif" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
-	<img src="./images/tuna.png" onmousedown="event.preventDefault()" width="625" style="opacity: 0.95; position: fixed; top: 0; left: 765px; z-index: 2; padding: 10px; float: left; margin-right: 20px; ">
+	<img src="./images/shiverMeTimbers.gif" alt="Shiver me timbers it's raining colors!" style="position: fixed; top: 30px; left: 1300px; z-index: 4">
+	<img src="./images/tuna.png" alt="[picture of a tuna in pirate costume]" onmousedown="preventDefault()" width="625" style="opacity: 0.95; position: fixed; top: 0; left: 765px; z-index: 2; padding: 10px; float: left; margin-right: 20px; ">
 	<h1>MIDI.js - Sequencing in Javascript.</h1>
 	<div style="position: fixed; top: 0; left: 0; z-index: 4; overflow: hidden;" id="colors"></div>
 	<div style="text-align: center; position: absolute; top: -70px; left: -40px; opacity: 0.9" id="colors"></div>
 	<div style="margin-bottom: 50px; border: 1px solid #000; background: rgba(255,255,255,0.5); border-radius: 11px; float: left; width: 800px; padding-bottom: 15px; position: relative; z-index: 2;">
 		<div class="player" style="height: 42px; box-shadow: 0 -1px #000; margin-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
 			<div style="margin: 0 auto; width: 160px; float: right;">
-				<input type="image" src="./images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
-				<input type="image" src="./images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
-				<input type="image" src="./images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
-				<input type="image" src="./images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
+				<input type="image" alt="pause" src="./images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
+				<input type="image" alt="stop" src="./images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
+				<input type="image" alt="backward" src="./images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
+				<input type="image" alt="forwrad" src="./images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
 			</div>
 			<div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
 				<span id="time1" class="time">0:00</span>
@@ -95,8 +80,8 @@
 		log: function() {}
 	};
 	// Toggle between Pause and Play modes.
-	var pausePlayStop = function(stop) {
-		var d = document.getElementById("pausePlayStop");
+	const pausePlayStop = function(stop) {
+		const d = document.getElementById("pausePlayStop");
 		if (stop) {
 			MIDI.Player.stop();
 			d.src = "./images/play.png";
@@ -109,22 +94,22 @@
 		}
 	};
 	eventjs.add(window, "load", function(event) {
-		var link = document.createElement("link");
+		let link = document.createElement("link");
 		link.href = "//fonts.googleapis.com/css?family=Oswald";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
-		var link = document.createElement("link");
+		link = document.createElement("link");
 		link.href = "//fonts.googleapis.com/css?family=Andada";
 		link.ref = "stylesheet";
 		link.type = "text/css";
 		document.body.appendChild(link);
 		
 		// load up the piano keys
-		var colors = document.getElementById("colors");
-		var colorElements = [];
-		for (var n = 0; n < 88; n++) {
-			var d = document.createElement("div");
+		const colors = document.getElementById("colors");
+		const colorElements = [];
+		for (let n = 0; n < 88; n++) {
+			const d = document.createElement("div");
 			d.innerHTML = MIDI.noteToKey[n + 21];
 			colorElements.push(d);
 			colors.appendChild(d);

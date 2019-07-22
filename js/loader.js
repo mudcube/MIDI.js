@@ -20,17 +20,18 @@ import { audioDetect } from './audioDetect.js';
 import * as AudioTag from './plugin.audiotag.js';
 import * as WebAudio from './plugin.webaudio.js';
 import * as WebMIDI from './plugin.webmidi.js';
-import { GM } from './gm.js';
+export { GM, noteToKey, keyToNote } from './gm.js';
+import { PlayInstance } from './player.js';
 
 export const Soundfont = {};
-export const Player = {};
-export const Players = {};
+// export const Player = {};
+// export const Players = {};
 
 export const audio_contexts = {
 	AudioTag,
 	WebAudio,
 	WebMIDI,
-}
+};
 
 export const config = {
 	soundfontUrl: './soundfont/',
@@ -39,6 +40,7 @@ export const config = {
 	supports: {},
 	connected_plugin: undefined,
 };
+
 
 /*
 MIDI.loadPlugin({
@@ -157,8 +159,8 @@ const connect = {
 const pre_connect = plugin => {
 	config.connected_plugin = plugin;
 	plugin.shared_root_info.Soundfont = Soundfont;
-	plugin.shared_root_info.Player = Player;
-	plugin.shared_root_info.Players = Players;
+	// plugin.shared_root_info.Player = Player;
+	// plugin.shared_root_info.Players = Players;
 }
 
 export const requestQueue = (opts, context) => {
@@ -279,4 +281,17 @@ export const setContext = (...options) => {
 		return;
 	}
 	return config.connected_plugin.setContext(...options);
+}
+
+
+// Player
+
+class Player extends PlayInstance {
+	constructor() {
+		const plugin = config.connected_plugin;
+		super(plugin);
+	}
+	loadPlugin(...options) {
+		return loadPlugin(...options);
+	}
 }
