@@ -3,8 +3,8 @@ generator/ruby/soundfont*
 **/source*
 **/build*
 */soundfont/*
-!examples/soundfont/acoustic_grand_piano*
-!examples/soundfont/synth_drum*
+!examples/soundfont/acoustic_grand_piano*.js
+!examples/soundfont/synth_drum*.js
 oggenc
 oggdec
 
