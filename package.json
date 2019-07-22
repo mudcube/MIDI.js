@@ -1,6 +1,6 @@
 {
   "name": "midicube",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/mscuthbert/midicube.git"
   },
-  "main": "./build/midicube.js",
+  "main": "./releases/midicube.js",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.5.5",
