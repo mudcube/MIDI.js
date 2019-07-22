@@ -36,19 +36,19 @@ const _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+
 
 /* will return a  Uint8Array type */
 export function decodeArrayBuffer(input) {
-	const bytes = Math.ceil( (3*input.length) / 4.0);
+	const bytes = Math.ceil((3 * input.length) / 4.0);
 	const ab = new ArrayBuffer(bytes);
-	this.decode(input, ab);
+	decode(input, ab);
 
 	return ab;
 }
 
 export function decode(input, arrayBuffer) {
 	//get last chars to see if are valid
-	let lkey1 = _keyStr.indexOf(input.charAt(input.length-1));
-	let lkey2 = _keyStr.indexOf(input.charAt(input.length-1));
+	let lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
+	let lkey2 = _keyStr.indexOf(input.charAt(input.length - 1));
 
-	let bytes = Math.ceil( (3*input.length) / 4.0);
+	let bytes = Math.ceil((3 * input.length) / 4.0);
 	if (lkey1 === 64) {
 		bytes--;
 	} //padding chars, so skip
