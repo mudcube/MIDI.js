@@ -225,6 +225,7 @@ export class MidiFileClass {
 		const timeDivision = headerStream.readInt16();
 
 		let ticksPerBeat;
+		// noinspection JSBitwiseOperatorUsage
 		if (timeDivision & 0x8000) {
 			throw "Expressing time division in SMTPE frames is not supported yet"
 		} else {

@@ -9,9 +9,10 @@ module.exports = {
         libraryTarget: 'umd',
         umdNamedDefine: true,
     },
-    mode: 'production',
-    devtool: 'source-map',
-    // devtool: 'inline-source-map',
+    // mode: 'production',
+    // devtool: 'source-map',
+    mode: 'development',
+    devtool: 'inline-source-map',
     module: {
         rules: [
              {

@@ -6,7 +6,7 @@
 	----------------------------------------------------------
 */
 import { DEBUG } from './debug.js';
-import { channels, GM, keyToNote, noteToKey } from './gm.js';
+import { channels, GM, keyToNote } from './gm.js';
 import * as Base64Binary from './shim/Base64binary.js';
 // information to share with loader...
 export const shared_root_info = {};
@@ -85,7 +85,7 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
     // add effects to buffer
     if (effects) {
         let chain = source;
-        for (let key in effects) {
+        for (const key of Object.keys(effects)) {
             chain.connect(effects[key].input);
             chain = effects[key];
         }
@@ -183,7 +183,7 @@ export const chordOff = (channel, chord, delay) => {
 
 
 export const stopAllNotes = () => {
-    for (let sid in sources) {
+    for (const sid of Object.keys(sources)) {
         let delay = 0;
         if (delay < ctx.currentTime) {
             delay += ctx.currentTime;

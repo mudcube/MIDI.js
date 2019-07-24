@@ -197,6 +197,7 @@ export class PlayInstance {
 
     // Playing the audio
 
+    // noinspection JSUnusedLocalSymbols
     scheduleTracking(channel, note, currentTime, offset, message, velocity, time) {
         return setTimeout(() => {
             const data = {
@@ -377,8 +378,8 @@ export class PlayInstance {
         }
 
         // run callback to cancel any notes still playing
-        for (let key in this.noteRegistrar) {
-            const o = this.noteRegistrar[key]
+        for (const key of Object.keys(this.noteRegistrar)) {
+            const o = this.noteRegistrar[key];
             if (this.noteRegistrar[key].message === 144 && this.onMidiEvent) {
                 this.onMidiEvent({
                     channel: o.channel,
