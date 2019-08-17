@@ -1,18 +1,53 @@
 /*
-	----------------------------------------------------------------------
-	Web MIDI API - Native Soundbanks
-	----------------------------------------------------------------------
-	http://webaudio.github.io/web-midi-api/
-	----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    Web MIDI API - Native Soundbanks
+    ----------------------------------------------------------------------
+    http://webaudio.github.io/web-midi-api/
+    ----------------------------------------------------------------------
 */
+export const api = 'webmidi';
 
 // information to share with loader...
 export const shared_root_info = {};
 
-
-let plugin = null;
 let output = null;
-const channels = [];
+
+export const connect = opts => {
+    const errFunction = err => {
+        console.error('Could not connect to web midi! Falling back to WebAudio:', err);
+        // we tried.  Anything that sort of supports webmidi should support WebAudio.
+        if (shared_root_info.webaudio_backup_connect) {
+            shared_root_info.config.api = 'webaudio';
+            shared_root_info.webaudio_backup_connect(opts);
+        }
+    };
+    navigator.requestMIDIAccess().then(access => {
+        const plugin = access;
+        const pluginOutputs = plugin.outputs;
+        if (typeof pluginOutputs === 'function') { // Chrome pre-43
+            output = pluginOutputs()[0];
+        } else { // Chrome post-43
+            output = pluginOutputs[0];
+        }
+        if (output === undefined) { // nothing there...
+            return errFunction('No outputs defined');
+        } else {
+            return opts.onsuccess && opts.onsuccess();
+        }
+    }, errFunction);
+};
+
+
+// plugin-common methods
+
+// not applicable methods:
+export const playChannel = () => {};
+export const stopChannel = () => {};
+export const setEffects = () => {};
+export const getContext = () => {};
+export const setContext = () => {};
+
+
 
 export const send = (data, delay) => { // set channel volume
     output.send(data, delay * 1000);
@@ -56,32 +91,8 @@ export const chordOff = (channel, chord, delay) => {
 
 export const stopAllNotes = () => {
     output.cancel();
-    for (let channel = 0; channel < 16; channel ++) {
+    for (let channel = 0; channel < 16; channel++) {
         output.send([0xB0 + channel, 0x7B, 0]);
     }
 };
 
-export const connect = opts => {
-    const errFunction = err => {
-        console.error('Could not connect to web midi! Falling back to WebAudio:', err);
-        // we tried.  Anything that sort of supports webmidi should support WebAudio.
-        if (shared_root_info.webaudio_backup_connect) {
-            shared_root_info.config.api = 'webaudio';
-            shared_root_info.webaudio_backup_connect(opts);
-        }
-    };
-    navigator.requestMIDIAccess().then(access => {
-        const plugin = access;
-        const pluginOutputs = plugin.outputs;
-        if (typeof pluginOutputs == 'function') { // Chrome pre-43
-            output = pluginOutputs()[0];
-        } else { // Chrome post-43
-            output = pluginOutputs[0];
-        }
-        if (output === undefined) { // nothing there...
-            errFunction('No outputs defined');
-        } else {
-            opts.onsuccess && opts.onsuccess();
-        }
-    }, errFunction);
-};

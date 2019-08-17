@@ -1,32 +1,44 @@
 /*
-	----------------------------------------------------------
-	MIDI.Plugin : 0.3.4 : 2015-03-26
-	----------------------------------------------------------
-	https://github.com/mudcube/MIDI.js
-	----------------------------------------------------------
-	Inspired by javax.sound.midi (albeit a super simple version): 
-		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
-	----------------------------------------------------------
-	Technologies
-	----------------------------------------------------------
-		Web MIDI API - no native support yet (jazzplugin)
-		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
-		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
-	----------------------------------------------------------
+    ----------------------------------------------------------
+    midicube
+    2019-08-17
+
+    based on MIDI.Plugin : 0.3.4 : 2015-03-26
+    ----------------------------------------------------------
+    https://github.com/mscuthbert/midicube/
+    ----------------------------------------------------------
+    Inspired by javax.sound.midi (albeit a super simple version):
+        http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
+    ----------------------------------------------------------
+    Technologies
+    ----------------------------------------------------------
+        Web MIDI API - native support in Chrome. (Jazz plugin for safari, firefox, opera?)
+        Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+, edge 18+
+        HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
+    ----------------------------------------------------------
 */
+// not in core-js
+import 'regenerator-runtime/runtime';
+// core-js will monkey patch automatically
+
 import './shim/WebAudioAPI.js';  // imported by default -- webmidi shim needs to be loaded separately
 import { audioDetect } from './audioDetect.js';
-import * as AudioTagIn from './plugin.audiotag.js';  // to be "export * as" when fully supported
-import * as WebAudioIn from './plugin.webaudio.js';  // to be "export * as" when fully supported
-import * as WebMIDIIn from './plugin.webmidi.js';  // to be "export * as" when fully supported
-export { GM, noteToKey, keyToNote, channels } from './gm.js';
+import * as AudioTag from './plugin.audiotag.js';  // to be "export * as" when fully supported
+import * as WebAudio from './plugin.webaudio.js';  // to be "export * as" when fully supported
+import * as WebMIDI from './plugin.webmidi.js';
 import { PlayInstance } from './player.js';
-import * as SynesthesiaImport from './synesthesia.js';  // to be "export * as" when fully supported
+import * as Synesthesia from './synesthesia.js';
+import {
+    GM, noteToKey, keyToNote, channels,
+} from './gm.js';  // to be "export * as" when fully supported
 
-export const AudioTag = AudioTagIn;  // remove after export * as above
-export const WebAudio = WebAudioIn;  // remove after export * as above
-export const WebMIDI = WebMIDIIn;  // remove after export * as above
-export const Synesthesia = SynesthesiaImport;   // remove after export * as above
+export {
+    GM, noteToKey, keyToNote, channels,
+};
+export {
+    AudioTag, WebAudio, WebMIDI,
+};
+export { Synesthesia };   // remove after export * as above
 
 export const Soundfont = {};
 
@@ -38,27 +50,28 @@ export const audio_contexts = {
 
 export const config = {
     soundfontUrl: './soundfont/',
-    api: undefined,
-    audioFormat: undefined,
+    api: '',
+    audioFormat: '',
     supports: {},
-    connected_plugin: undefined,
+    connected_plugin: WebAudio,  // just for linting/inheritance
+    is_connected: false,
 };
 
 
 /*
 MIDI.loadPlugin({
-	onsuccess: function() { },
-	onprogress: function(state, percent) { },
-	targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
-	instrument: 'acoustic_grand_piano', // or 1 (default)
-	instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
+    onsuccess: function() { },
+    onprogress: function(state, percent) { },
+    targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
+    instrument: 'acoustic_grand_piano', // or 1 (default)
+    instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
 });
 */
 
 export const loadPlugin = opts => {
     if (typeof opts === 'function') {
         opts = {
-            onsuccess: opts
+            onsuccess: opts,
         };
     }
     opts.onprogress = opts.onprogress || undefined;
@@ -92,12 +105,27 @@ export const loadPlugin = opts => {
         }
 
         if (connect[api]) {
-            let audioFormat;
+            let audioFormat = '';
+            const supports_ogg = supports['audio/ogg'];
+            const supports_mpeg = supports['audio/mpeg'];
+            const audio_format_precedence = supports.ogg_mp3_precedence;
+
             // use audio/ogg when supported
             if (opts.targetFormat) {
                 audioFormat = opts.targetFormat;
-            } else { // use best quality
-                audioFormat = supports['audio/ogg'] ? 'ogg' : 'mp3';
+            } else { // use best chance of playing, then quality as tiebreak.
+                if (supports_ogg && audio_format_precedence === 'ogg') {
+                    audioFormat = 'ogg';
+                } else if (supports_mpeg && audio_format_precedence === 'mp3') {
+                    audioFormat = 'mp3';
+                } else if (supports_ogg) {
+                    audioFormat = 'ogg'
+                } else if (supports_mpeg) {
+                    audioFormat = 'mp3';
+                } else if (api !== 'webmidi') {
+                    console.warn('no supporting playback formats...will try mp3 but unlikely');
+                    audioFormat = 'mp3';
+                }
             }
 
             // load the specified plugin
@@ -110,12 +138,12 @@ export const loadPlugin = opts => {
 };
 
 /*
-	loadProgram({
-		instrument: 'banjo'
-		onsuccess: function() { },
-		onprogress: function(state, percent) { },
-		onerror: function() { },
-	})
+    loadProgram({
+        instrument: 'banjo'
+        onsuccess: function() { },
+        onprogress: function(state, percent) { },
+        onerror: function() { },
+    })
 */
 
 export const loadProgram = opts => {
@@ -129,7 +157,7 @@ export const loadProgram = opts => {
         }
     }
     // convert numeric ids into strings
-    for (let i = 0; i < instruments.length; i ++) {
+    for (let i = 0; i < instruments.length; i++) {
         const instrument = instruments[i];
         if (instrument === (instrument + 0)) { // is numeric
             if (GM.byId[instrument]) {
@@ -149,6 +177,7 @@ const connect = {
         // cant wait for this to be standardized!
         pre_connect(WebMIDI, opts);
         WebMIDI.connect(opts);
+        config.is_connected = true;
     },
     audiotag: opts => {
         // works ok, kinda like a drunken tuna fish, across the board
@@ -161,22 +190,29 @@ const connect = {
         // http://caniuse.com/web-audio
         pre_connect(WebAudio, opts);
         requestQueue(opts, 'WebAudio');
-    }
+    },
 };
 
 // noinspection JSUnusedLocalSymbols
+/**
+ *
+ * @param {WebMIDI|WebAudio|AudioTag} plugin
+ * @param {Object} [opts]
+ */
 const pre_connect = (plugin, opts) => {
     config.connected_plugin = plugin;
+
+    // noinspection JSUnresolvedVariable
     plugin.shared_root_info.Soundfont = Soundfont;
+    // noinspection JSUnresolvedVariable
     plugin.shared_root_info.config = config;
-    plugin.shared_root_info.webaudio_backup_connect = opts => connect['webaudio'](opts);
+    // noinspection JSUnresolvedVariable
+    plugin.shared_root_info.webaudio_backup_connect = opts => connect.webaudio(opts);
 };
 
 export const requestQueue = (opts, context) => {
     const audioFormat = opts.format;
-    const instruments = opts.instruments;
-    const onprogress = opts.onprogress;
-    const onerror = opts.onerror;
+    const { instruments, onprogress, onerror } = opts;
     const correct_audio_context = audio_contexts[context] || context.WebAudio;
 
     const num_instruments = instruments.length;
@@ -184,22 +220,35 @@ export const requestQueue = (opts, context) => {
     const waitForEnd = () => {
         pending -= 1;
         if (!pending) {
-            onprogress && onprogress('load', 1.0);
             correct_audio_context.connect(opts);
+            config.is_connected = true;
+            if (onprogress) {
+                onprogress('load', 1.0);
+            }
         }
     };
+
+    const onprogress_inner = (evt, progress, instrumentId) => {
+        const fileProgress = progress / num_instruments;
+        const queueProgress = (num_instruments - pending) / num_instruments;
+        if (onprogress) {
+            onprogress('load', fileProgress + queueProgress, instrumentId);
+        }
+    };
+
 
     for (const instrumentId of instruments) {
         if (Soundfont[instrumentId]) { // already loaded
             waitForEnd();
         } else { // needs to be requested
-            const onprogress_inner = (evt, progress) => {
-                const fileProgress = progress / num_instruments;
-                const queueProgress = (num_instruments - pending) / num_instruments;
-                onprogress && onprogress('load', fileProgress + queueProgress, instrumentId);
-            };
             const onsuccess_inner = () => waitForEnd();
-            sendRequest(instrumentId, audioFormat, onprogress_inner, onsuccess_inner, onerror);
+            sendRequest(
+                instrumentId,
+                audioFormat,
+                (evt, progress) => onprogress_inner(evt, progress, instrumentId),
+                onsuccess_inner,
+                onerror
+            );
         }
     }
 };
@@ -214,94 +263,95 @@ export const sendRequest = (instrumentId, audioFormat, onprogress, onsuccess, on
             const script = document.createElement('script');
             script.language = 'javascript';
             script.type = 'text/javascript';
-            // console.log(xhr.responseText);
             script.text = xhr.responseText;
             document.body.appendChild(script);
             onsuccess();
         } else {
-            onerror();
+            if (onerror) {
+                onerror();
+            } else {
+                console.error(`Could not load soundfont; path was ${soundfontPath}`);
+            }
         }
     };
     xhr.send();
 };
 
+
+// These are methods that call the connected plugin's method
+
+// TODO: get audio buffers from webaudio audioBuffers
+
+
 export const playChannel = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.playChannel(...options);
 };
 
 export const stopChannel = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.stopChannel(...options);
 };
 
-// TODO: audioBuffers
-
 export const send = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.send(...options);
 };
 export const setController = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.setController(...options);
 };
 export const setVolume = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.setVolume(...options);
 };
 export const programChange = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.programChange(...options);
 };
 export const pitchBend = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.pitchBend(...options);
 };
 export const noteOn = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.noteOn(...options);
 };
 export const noteOff = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.noteOff(...options);
 };
 
 export const chordOn = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.chordOn(...options);
 };
 
 export const chordOff = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.chordOff(...options);
 };
 
 export const stopAllNotes = (...options) => {
-    if (!config.connected_plugin) { console.error('Connect before calling'); return; }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.stopAllNotes(...options);
 };
 
 
 // noinspection JSUnusedLocalSymbols
 export const setEffects = (...options) => {
-    if (config.connected_plugin !== WebAudio) {
-        return;
-    }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.setEffects();
 };
 
 export const getContext = () => {
-    if (config.connected_plugin !== WebAudio) {
-        return;
-    }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.getContext();
 };
 
 
 export const setContext = (...options) => {
-    if (config.connected_plugin !== WebAudio) {
-        return;
-    }
+    if (!config.is_connected) { console.error('Connect before calling'); return undefined; }
     return config.connected_plugin.setContext(...options);
 };
 
@@ -312,6 +362,7 @@ export class Player extends PlayInstance {
     constructor() {
         super(config.connected_plugin);
     }
+
     loadPlugin(...options) {
         return loadPlugin(...options);
     }

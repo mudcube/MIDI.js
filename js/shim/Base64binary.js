@@ -5,7 +5,7 @@
  *  license: Simplified BSD License
  * -------------------------------------------------------------------
  * Copyright 2011, Daniel Guerrero. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     - Redistributions of source code must retain the above copyright
@@ -13,7 +13,7 @@
  *     - Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -24,7 +24,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 /**
  * Modified by MSC to be a module.
@@ -32,62 +32,64 @@
  * @private
  */
 
-const _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+const _keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
 /* will return a  Uint8Array type */
 export function decodeArrayBuffer(input) {
-	const bytes = Math.ceil((3 * input.length) / 4.0);
-	const ab = new ArrayBuffer(bytes);
-	decode(input, ab);
+    const bytes = Math.ceil((3 * input.length) / 4.0);
+    const ab = new ArrayBuffer(bytes);
+    decode(input, ab);
 
-	return ab;
+    return ab;
 }
 
 export function decode(input, arrayBuffer) {
-	//get last chars to see if are valid
-	let lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
-	let lkey2 = _keyStr.indexOf(input.charAt(input.length - 1));
+    //get last chars to see if are valid
+    const lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
+    const lkey2 = _keyStr.indexOf(input.charAt(input.length - 1));
 
-	let bytes = Math.ceil((3 * input.length) / 4.0);
-	if (lkey1 === 64) {
-		bytes--;
-	} //padding chars, so skip
-	if (lkey2 === 64) {
-		bytes--;
-	} //padding chars, so skip
+    let bytes = Math.ceil((3 * input.length) / 4.0);
+    if (lkey1 === 64) {
+        bytes--;
+    } //padding chars, so skip
+    if (lkey2 === 64) {
+        bytes--;
+    } //padding chars, so skip
 
-	let uarray;
-	let chr1, chr2, chr3;
-	let enc1, enc2, enc3, enc4;
-	let j = 0;
+    let uarray;
+    let chr1; let chr2; let 
+        chr3;
+    let enc1; let enc2; let enc3; let 
+        enc4;
+    let j = 0;
 
-	if (arrayBuffer) {
-		uarray = new Uint8Array(arrayBuffer);
-	} else {
-		uarray = new Uint8Array(bytes);
-	}
+    if (arrayBuffer) {
+        uarray = new Uint8Array(arrayBuffer);
+    } else {
+        uarray = new Uint8Array(bytes);
+    }
 
-	input = input.replace(/[^A-Za-z0-9+\/=]/g, "");
+    input = input.replace(/[^A-Za-z0-9+\/=]/g, '');
 
-	for (let i = 0; i < bytes; i += 3) {
-		// get the 3 octets in 4 ascii chars
-		enc1 = _keyStr.indexOf(input.charAt(j++));
-		enc2 = _keyStr.indexOf(input.charAt(j++));
-		enc3 = _keyStr.indexOf(input.charAt(j++));
-		enc4 = _keyStr.indexOf(input.charAt(j++));
+    for (let i = 0; i < bytes; i += 3) {
+        // get the 3 octets in 4 ascii chars
+        enc1 = _keyStr.indexOf(input.charAt(j++));
+        enc2 = _keyStr.indexOf(input.charAt(j++));
+        enc3 = _keyStr.indexOf(input.charAt(j++));
+        enc4 = _keyStr.indexOf(input.charAt(j++));
 
-		chr1 = (enc1 << 2) | (enc2 >> 4);
-		chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-		chr3 = ((enc3 & 3) << 6) | enc4;
+        chr1 = (enc1 << 2) | (enc2 >> 4);
+        chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+        chr3 = ((enc3 & 3) << 6) | enc4;
 
-		uarray[i] = chr1;
-		if (enc3 !== 64) {
-			uarray[i+1] = chr2;
-		}
-		if (enc4 !== 64) {
-			uarray[i+2] = chr3;
-		}
-	}
+        uarray[i] = chr1;
+        if (enc3 !== 64) {
+            uarray[i+1] = chr2;
+        }
+        if (enc4 !== 64) {
+            uarray[i+2] = chr3;
+        }
+    }
 
-	return uarray;
+    return uarray;
 }

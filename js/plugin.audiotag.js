@@ -1,18 +1,22 @@
 /*
-	----------------------------------------------------------------------
-	AudioTag <audio> - OGG or MPEG Soundbank
-	----------------------------------------------------------------------
-	http://dev.w3.org/html5/spec/Overview.html#the-audio-element
-	----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    AudioTag <audio> - OGG or MPEG Soundbank
+    ----------------------------------------------------------------------
+    http://dev.w3.org/html5/spec/Overview.html#the-audio-element
+    ----------------------------------------------------------------------
 */
 import { DEBUG } from './debug.js';
-import { channels, GM, keyToNote, noteToKey } from './gm.js';
+import {
+    channels, GM, keyToNote, noteToKey,
+} from './gm.js';
+
+export const api = 'audiotag';
 
 // information to share with loader...
 export const shared_root_info = {};
 
 const volumes = []; // floating point
-for (let vid = 0; vid < 16; vid ++) {
+for (let vid = 0; vid < 16; vid++) {
     volumes[vid] = 127;
 }
 
@@ -22,9 +26,32 @@ const notesOn = []; // instrumentId + noteId that is currently playing in each '
 const notes = {}; // the piano keys
 
 const audioBuffers = []; // the audio channels
-for (let nid = 0; nid < 12; nid ++) {
+for (let nid = 0; nid < 12; nid++) {
     audioBuffers[nid] = new Audio();
 }
+// TODO(msc): MIDI.audioBuffers = audioBuffers;
+
+export const connect = opts => {
+    for (const key of Object.keys(keyToNote)) {
+        notes[key] = {id: key};
+    }
+
+    if (opts.onsuccess) {
+        opts.onsuccess();
+    }
+};
+
+
+// plugin-common methods
+
+// not applicable methods:
+export const send = (data, delay) => { };
+export const setController = (channel, type, value, delay) => { };
+export const pitchBend = (channel, program, delay) => { };
+export const setEffects = () => {};
+export const getContext = () => {};
+export const setContext = () => {};
+
 
 export const playChannel = (channel, in_note) => {
     if (!channels[channel]) {
@@ -72,9 +99,7 @@ export const stopChannel = (channel, in_note) => {
     }
 };
 
-// midi.audioBuffers = audioBuffers;
-export const send = (data, delay) => { };
-export const setController = (channel, type, value, delay) => { };
+
 export const setVolume = (channel, n) => {
     volumes[channel] = n;
 };
@@ -83,12 +108,10 @@ export const programChange = (channel, program) => {
     channels[channel].instrument = program;
 };
 
-export const pitchBend = (channel, program, delay) => { };
-
 export const noteOn = (channel, note, velocity, delay) => {
     const id = noteToKey[note];
     if (!notes[id]) {
-        return;
+        return false;
     }
     if (delay) {
         return setTimeout(() => {
@@ -98,6 +121,7 @@ export const noteOn = (channel, note, velocity, delay) => {
     } else {
         volumes[channel] = velocity;
         playChannel(channel, id);
+        return true;
     }
 };
 
@@ -107,26 +131,26 @@ export const noteOff = (channel, note, delay) => {
 
     // const id = noteToKey[note];
     // if (!notes[id]) {
-    // 	return;
+    //      return;
     // }
     // if (delay) {
-    // 	return setTimeout(function() {
-    // 		stopChannel(channel, id);
-    // 	}, delay * 1000)
+    //      return setTimeout(function() {
+    //           stopChannel(channel, id);
+    //      }, delay * 1000)
     // } else {
-    // 	stopChannel(channel, id);
+    //      stopChannel(channel, id);
     // }
 };
 
 export const chordOn = (channel, chord, velocity, delay) => {
-    for (let idx = 0; idx < chord.length; idx ++) {
+    for (let idx = 0; idx < chord.length; idx++) {
         const n = chord[idx];
         const id = noteToKey[n];
         if (!notes[id]) {
             continue;
         }
         if (delay) {
-            return setTimeout(() => {
+            setTimeout(() => {
                 playChannel(channel, id);
             }, delay * 1000);
         } else {
@@ -136,14 +160,14 @@ export const chordOn = (channel, chord, velocity, delay) => {
 };
 
 export const chordOff = (channel, chord, delay) => {
-    for (let idx = 0; idx < chord.length; idx ++) {
+    for (let idx = 0; idx < chord.length; idx++) {
         const n = chord[idx];
         const id = noteToKey[n];
         if (!notes[id]) {
             continue;
         }
         if (delay) {
-            return setTimeout(() => {
+            setTimeout(() => {
                 stopChannel(channel, id);
             }, delay * 1000);
         } else {
@@ -153,15 +177,8 @@ export const chordOff = (channel, chord, delay) => {
 };
 
 export const stopAllNotes = () => {
-    for (let nid = 0, length = audioBuffers.length; nid < length; nid++) {
+    for (let nid = 0, {length} = audioBuffers; nid < length; nid++) {
         audioBuffers[nid].pause();
     }
 };
 
-export const connect = opts => {
-    for (const key in keyToNote) {
-        notes[key] = {id: key};
-    }
-    //
-    opts.onsuccess && opts.onsuccess();
-};

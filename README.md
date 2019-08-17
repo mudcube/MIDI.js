@@ -1,4 +1,39 @@
-midicube is a fork of mudcube's great MIDI.js which adds ES6 modules and support.
+midicube is a fork of Mudcube's great MIDI.js which adds ES6 modules and support.
+
+To use in a javascript project:
+
+```
+$ npm install midicube
+```
+
+then in code (ES6 modules):
+
+```
+import * as MIDI from 'midicube';
+
+MIDI.loadPlugin({
+    // this only has piano. 
+    // for other sounds install the MIDI.js 
+    // soundfonts somewhere.
+    soundfontUrl: "./examples/soundfont/",
+    onerror: console.warn,
+    onsuccess: () => {
+        MIDI.noteOn(0, 60, 0);
+    }
+});
+```
+
+Or as a script tag:
+
+```
+<script src="releases/midicube.js"></script>
+<script>
+MIDI.loadPlugin({
+    // config as above...
+});
+</script>
+```
+
 
 ## Code examples - from the repo
 
@@ -6,7 +41,13 @@ midicube is a fork of mudcube's great MIDI.js which adds ES6 modules and support
 * [MIDIPlayer](./examples/MIDIPlayer.html) - how to parse MIDI files, and interact with the data stream.
 * [WhitneyMusicBox](./examples/WhitneyMusicBox.html) - a audio/visual experiment by Jim Bumgardner
 
-## Demos
+## Related repositories
+
+* [MIDI Soundfonts](https://github.com/gleitz/midi-js-soundfonts): Pre-rendered General MIDI soundfonts that can be used immediately with MIDI.js
+* [music21j](https://github.com/cuthbertLab/music21j): library for working with music scores; integrates midicube.
+* [MIDI Pictures](https://github.com/andruo11/midi-pictures): Pictures of the 128 standard instruments on MIDI piano keyboards
+
+## Demos based on the older MIDI.js library
 
 * [3D Piano Player w/ Three.js](http://www.rgba.org/r3d/3d-piano-player/) by Borja Morales @reality3d
 * [Brite Lite](http://labs.uxmonk.com/brite-lite/) by Daniel Christopher @uxmonk
@@ -19,10 +60,8 @@ midicube is a fork of mudcube's great MIDI.js which adds ES6 modules and support
 * [Spiral Keyboard](http://spiral.qet.me/) by Patrick Snels
 * [VexFlow](http://my.vexflow.com/articles/53) by Mohit Muthanna @11111110b
 
-## Related repositories
 
-* [MIDI Pictures](https://github.com/andruo11/midi-pictures): Pictures of the 128 standard instruments on MIDI piano keyboards
-* [MIDI Soundfonts](https://github.com/gleitz/midi-js-soundfonts): Pre-rendered General MIDI soundfonts that can be used immediately with MIDI.js
+
 
 ## Generating Base64 Soundfonts
 
@@ -35,10 +74,10 @@ To dive in quickly Benjamin Gleitzman has created a package of [pre-rendered sou
 
 ## API
 
-### [MIDI.loadPlugin.js](./js/midi/loader.js) - Decides which framework is best to use
+### [MIDI](./js/midi/index.js) - Decides which framework is best to use
 
 ```javascript
-// interface to download soundfont, then execute callback;
+// interface to connect, download soundfont, then execute callback;
 MIDI.loadPlugin(onsuccess);
 // simple example to get started;
 MIDI.loadPlugin({
@@ -46,11 +85,9 @@ MIDI.loadPlugin({
     instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
     onsuccess: function() { }
 });
-```
 
-### [MIDI.Plugin.js](./js/midi/plugin.webaudio.js) - Controls MIDI output
+// after loadPlugin succeeds these will work:
 
-```javascript
 MIDI.noteOn(channel, note, velocity, delay);
 MIDI.noteOff(channel, note, delay);
 MIDI.chordOn(channel, [note, note, note], velocity, delay);
@@ -59,14 +96,18 @@ MIDI.keyToNote = object; // A0 => 21
 MIDI.noteToKey = object; // 21 => A0
 ```
 
-### [MIDI.Player.js](./js/midi/player.js) - Plays MIDI stream
+
+### [MIDI.Player.js](./js/midi/player.js) - Plays encoded MIDI
+
+Note that the ES6 interface requires `new` before `MIDI.Player()`
+but multiple `MIDI.Player` instances can appear on the same page.
 
 ```javascript
 const Player = new MIDI.Player();
 Player.currentTime = integer; // time we are at now within the song.
 Player.endTime = integer; // time when song ends.
 Player.playing = boolean; // are we playing? yes or no.
-Player.loadFile(file, onsuccess); // load .MIDI from base64 or binary XML request.
+Player.loadFile(url_or_base64data, onsuccess); // load .MIDI from base64 or binary XML request.
 Player.start(); // start the MIDI track (you can put this in the loadFile callback)
 Player.resume(); // resume the MIDI track from pause.
 Player.pause(); // pause the MIDI track.
@@ -199,15 +240,26 @@ MIDI.setEffects([
 ]);
 ```
 
+### [synesthesia.js](./js/midi/synesthesia.js): Note-to-color mappings.
+
+Used on the MIDIPlayer.html demo.
+
+
 ## Libraries
 
 * [colorspace.js](./examples/inc/colorspace.js): Color conversions, music isn&rsquo;t complete without!
 <pre>Color.Space(0xff0000, "HEX>RGB>HSL");</pre>
-* [dom_request_script.js](./js/util/dom_request_script.js): Loads scripts in synchronously, or asynchronously.
-<pre>DOMLoader.script.add(src, onsuccess);</pre>
-* [dom_request_xhr.js](./js/util/dom_request_xhr.js): Cross-browser XMLHttpd request.
-<pre>DOMLoader.sendRequest(src, onsuccess);</pre>
-* [synesthesia.js](./js/midi/synesthesia.js): Note-to-color mappings (from Isaac Newton onwards).
+
+
+## Original URLs
+
+The original version of MIDI.js was made by Mudcube.
+
+* [Original repo](https://github.com/mudcube/MIDI.js): where it began.
+* [His site](https://galactic.ink): including Michael's work on Sketch.IO
+
+The midi-js npm package is unrelated to this project, hence the
+rename to "midicube" in honor of Mudcube.
 
 ### Many thanks to the authors of these libraries
 
@@ -220,3 +272,11 @@ MIDI.setEffects([
 
 ## Similar projects
 * [Wild Web MIDI](http://zz85.github.io/wild-web-midi/) by [@BlurSpline](https://twitter.com/BlurSpline)
+
+## ES6 Conversion
+
+ES6 Conversion by Michael Scott Cuthbert:
+
+* [Github](https://github.com/mscuthbert)
+* [MIT cuthbertLab Github](https://github.com/cuthbertLab)
+

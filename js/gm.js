@@ -5,16 +5,14 @@ GeneralMIDI
 */
 
 const GM_fixer = in_dict => {
-    const asId = name => {
-        return name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
-    };
+    const asId = name => name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
     const res = {
         byName: { },
         byId: { },
-        byCategory: { }
+        byCategory: { },
     };
-    for (let [key, list] of Object.entries(in_dict)) {
-        for (let instrument of list) {
+    for (const [key, list] of Object.entries(in_dict)) {
+        for (const instrument of list) {
             if (!instrument) {
                 continue;
             }
@@ -25,9 +23,9 @@ const GM_fixer = in_dict => {
             const categoryId = asId(key);
             const spec = {
                 id: nameId,
-                name: name,
+                name,
                 program: programNumber,
-                category: key
+                category: key,
             };
             res.byId[programNumber] = spec;
             res.byName[nameId] = spec;
@@ -54,7 +52,7 @@ export const GM = GM_fixer({
     'Synth Effects': ['97 FX 1 (rain)', '98 FX 2 (soundtrack)', '99 FX 3 (crystal)', '100 FX 4 (atmosphere)', '101 FX 5 (brightness)', '102 FX 6 (goblins)', '103 FX 7 (echoes)', '104 FX 8 (sci-fi)'],
     'Ethnic': ['105 Sitar', '106 Banjo', '107 Shamisen', '108 Koto', '109 Kalimba', '110 Bagpipe', '111 Fiddle', '112 Shanai'],
     'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
-    'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
+    'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot'],
 });
 
 /* channels
@@ -68,7 +66,7 @@ const get_channels = () => { // 0 - 15 channels
             mute: false,
             mono: false,
             omni: false,
-            solo: false
+            solo: false,
         };
     }
     return channels;
@@ -94,6 +92,7 @@ export const setProgram = (channelId, program, delay) => {
     } else {
         channel.program = program;
     }
+    return undefined;
 };
 
 /* get/setMono
@@ -112,6 +111,7 @@ export const setMono = (channelId, truthy, delay) => {
     } else {
         channel.mono = truthy;
     }
+    return undefined;
 };
 
 /* get/setOmni
@@ -130,6 +130,7 @@ export const setOmni = (channelId, truthy, delay) => {
     } else {
         channel.omni = truthy;
     }
+    return undefined;
 };
 
 /* get/setSolo
@@ -139,7 +140,7 @@ export const getSolo = channelId => {
     return channel && channel.solo;
 };
 
-export const setSolo = (channelId, truthy) => {
+export const setSolo = (channelId, truthy, delay) => {
     const channel = channels[channelId];
     if (delay) {
         return setTimeout(() => {
@@ -148,6 +149,7 @@ export const setSolo = (channelId, truthy) => {
     } else {
         channel.solo = truthy;
     }
+    return undefined;
 };
 
 
@@ -156,14 +158,14 @@ export const setSolo = (channelId, truthy) => {
 export const keyToNote = {}; // C8  == 108
 export const noteToKey = {}; // 108 ==  C8
 
-(function() {
+(function helper_set_mapping() {
     const A0 = 0x15; // first note
     const C8 = 0x6C; // last note
     const number2key = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
     for (let n = A0; n <= C8; n++) {
-        const octave = (n - 12) / 12 >> 0;
+        const octave = Math.floor((n - 12) / 12);
         const name = number2key[n % 12] + octave;
         keyToNote[name] = n;
         noteToKey[n] = name;
     }
-})();
+}());

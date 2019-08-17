@@ -7,11 +7,6 @@ body {
 	margin: 0 50px;
 }
 div.player {
-	background-image: -webkit-gradient(linear,left top,left bottom,from(rgba(66,66,66,1)),to(rgba(22,22,22,1)));
-	background-image: -webkit-linear-gradient(top, rgba(66, 66, 66, 1) 0%, rgba(22, 22, 22, 1) 100%);
-	background-image: -moz-linear-gradient(top, rgba(66, 66, 66, 1) 0%, rgba(22, 22, 22, 1) 100%);
-	background-image: -ms-gradient(top, rgba(66, 66, 66, 1) 0%, rgba(22, 22, 22, 1) 100%);
-	background-image: -o-gradient(top, rgba(66, 66, 66, 1) 0%, rgba(22, 22, 22, 1) 100%);
 	background-image: linear-gradient(top, rgba(66, 66, 66, 1) 0%, rgba(22, 22, 22, 1) 100%);
 	padding: 15px 20px;
 	border: 1px solid #000;
@@ -24,20 +19,12 @@ div.player {
 	color: #FFFFFF;
 	color: rgba(255, 255, 255, 0.8);
 	text-shadow: 1px 1px 2px #000;
-	-moz-text-shadow: 1px 1px 2px #000;
 	margin-bottom: 15px;
 }
 div.player #capsule {
 	border: 1px solid #000;
 	box-shadow: 0 0 10px #555;
-	-moz-box-shadow: 0 0 10px #555;
-	-webkit-box-shadow: 0 0 10px #555;
 	background: #000;
-	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(1, rgba(0,0,0,0.5)), color-stop(0, #333));
-	background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.5) 1, #333 0);
-	background-image: -moz-linear-gradient(top, rgba(0, 0, 0, 0.5) 1, #333 0);
-	background-image: -ms-gradient(top, rgba(0, 0, 0, 0.5) 1, #333 0);
-	background-image: -o-gradient(top, rgba(0, 0, 0, 0.5) 1, #333 0);
 	background-image: linear-gradient(top, rgba(0, 0, 0, 0.5) 1, #333 0);
 	overflow: hidden;
 	border-radius: 5px;
@@ -49,16 +36,9 @@ div.player #capsule {
 }
 div.player #capsule #cursor {
 	border-radius: 5px;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
 	border-top-right-radius: 0;
 	border-bottom-right-radius: 0;
 	background: #003b96;
-	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(1, #003b96), color-stop(0, #0088e9));
-	background-image: -webkit-linear-gradient(top, #0088e9 0%, #003b96 100%);
-	background-image: -moz-linear-gradient(top, #0088e9 0%, #003b96 100%);
-	background-image: -ms-gradient(top, #0088e9 0%, #003b96 100%);
-	background-image: -o-gradient(top, #0088e9 0%, #003b96 100%);
 	background-image: linear-gradient(top, #0088e9 0%, #003b96 100%);
 	width: 0;
 	display: inline-block;

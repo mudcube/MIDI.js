@@ -1,6 +1,6 @@
 {
   "name": "midicube",
-  "version": "0.5.2",
+  "version": "0.5.6",
   "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/mscuthbert/midicube.git"
   },
-  "main": "./releases/midicube.debug.js",
+  "main": "./releases/midicube.js",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.5.5",
@@ -27,11 +27,14 @@
     "@babel/plugin-transform-object-assign": "^7.2.0",
     "@babel/preset-env": "^7.5.5",
     "babel-loader": "^8.0.6",
+    "core-js": "^3.2.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.2",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6"
   },
-  "dependencies": {}
+  "dependencies": {
+    "regenerator-runtime": "^0.13.3"
+  }
 }

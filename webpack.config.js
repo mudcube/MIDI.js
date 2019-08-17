@@ -1,4 +1,10 @@
 const path = require('path');
+const webpack = require('webpack');
+
+const BANNER = `
+midicube <%= pkg.version %> built on
+<%= grunt.template.today("yyyy-mm-dd") %>.
+`;
 
 module.exports = {
     entry: './js/index.js',
@@ -9,26 +15,38 @@ module.exports = {
         libraryTarget: 'umd',
         umdNamedDefine: true,
     },
-    // mode: 'production',
-    // devtool: 'source-map',
-    mode: 'development',
-    devtool: 'inline-source-map',
+    mode: 'production',
+    devtool: 'source-map',
+    // mode: 'development',
+    // devtool: 'inline-source-map',
     module: {
         rules: [
-             {
-              test: /\.js?$/,
-              exclude: /(node_modules|bower_components|soundfont|soundfonts)/,
-              use: [{
-                  loader: 'babel-loader',
-                  options: {
-                      presets: ['@babel/preset-env'],
-                      plugins: [
-                          '@babel/plugin-transform-object-assign',
-                          '@babel/plugin-proposal-export-namespace-from',
-                      ],
-                  },
-              }],
+            {
+                test: /\.js?$/,
+                exclude: /(node_modules|bower_components|soundfont|soundfonts)/,
+                use: [{
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['@babel/preset-env',
+                                {
+                                    // do not transform modules; let webpack do it
+                                    modules: false,
+                                    useBuiltIns: 'usage',
+                                    corejs: 3,
+                                }
+                            ],
+                        ],
+                        plugins: [
+                            '@babel/plugin-transform-object-assign',
+                            '@babel/plugin-proposal-export-namespace-from',
+                        ],
+                    },
+                }],
             },
         ],
     },
+    plugins: [
+        new webpack.BannerPlugin({banner: BANNER}),
+    ],
 };

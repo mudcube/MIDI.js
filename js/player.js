@@ -1,15 +1,19 @@
 /*
-	----------------------------------------------------------
-	MIDI.Player : 0.3.1 : 2015-03-26
-	----------------------------------------------------------
-	https://github.com/mudcube/MIDI.js
-	----------------------------------------------------------
+    ----------------------------------------------------------
+    MIDI.Player
+    ----------------------------------------------------------
+    https://github.com/mscuthbert/midicube
+    ----------------------------------------------------------
 */
 import { channels, GM } from './gm.js';
 import { MidiFile } from '../inc/jasmid/midifile.js';
 import { Replayer } from '../inc/jasmid/replayer.js';
 
 export class PlayInstance {
+    /**
+     *
+     * @param {Object} plugin -- WebAudio, WebMidi, AudioTag
+     */
     constructor(plugin) {
         this.plugin = plugin;
         this.currentTime = 0;
@@ -20,11 +24,14 @@ export class PlayInstance {
         this.startDelay = 0;
         this.BPM = 120;
 
+        this.data = [];
         this.eventQueue = []; // hold events to be triggered
         this.queuedTime = 0.0; //
         this.startTime = 0; // to measure time elapse
         this.noteRegistrar = {}; // get event for requested note
         this.onMidiEvent = undefined; // listener
+        this.MIDIOffset = 0; // not sure what used for.  A transposition?
+
         this.frame = undefined;
 
         this.__now = undefined;
@@ -37,6 +44,7 @@ export class PlayInstance {
         }
         this.startAudio(this.currentTime, null, onsuccess);
     }
+
     resume(onsuccess) {
         return this.start(onsuccess);
     }
@@ -45,7 +53,7 @@ export class PlayInstance {
         const tmp = this.restart;
         this.stopAudio();
         this.restart = tmp;
-    };
+    }
 
     stop() {
         this.stopAudio();
@@ -60,11 +68,13 @@ export class PlayInstance {
     removeListener() {
         this.onMidiEvent = undefined;
     }
+
     clearAnimation() {
         if (this.animationFrameId)  {
-            cancelAnimationFrame(mthis.animationFrameId);
+            cancelAnimationFrame(this.animationFrameId);
         }
     }
+
     setAnimation(callback) {
         let currentTime = 0;
         let tOurTime = 0;
@@ -72,7 +82,7 @@ export class PlayInstance {
         this.clearAnimation();
         this.frame = () => {
             this.animationFrameId = requestAnimationFrame(this.frame);
-            //
+
             if (this.endTime === 0) {
                 return;
             }
@@ -101,12 +111,12 @@ export class PlayInstance {
 
             if (t2 - t1 < -1.0) {
                 // noinspection UnnecessaryReturnStatementJS
-                return;
+
             } else {
                 callback({
                     now: t1,
                     end: t2,
-                    events: this.noteRegistrar
+                    events: this.noteRegistrar,
                 });
             }
         };
@@ -122,17 +132,19 @@ export class PlayInstance {
 
             this.loadPlugin({
                 // instruments: this.getFileInstruments(),
-                onsuccess: onsuccess,
-                onprogress: onprogress,
-                onerror: onerror
+                onsuccess,
+                onprogress,
+                onerror,
             });
-        } catch(event) {
-            onerror && onerror(event);
+        } catch (event) {
+            if (onerror) {
+                onerror(event);
+            }
         }
     }
 
     loadPlugin(...options) {  // override in subclasses
-        }
+    }
 
     loadFile(file, onsuccess, onprogress, onerror) {
         this.stop();
@@ -151,13 +163,16 @@ export class PlayInstance {
                         const mx = t.length;
                         const scc = String.fromCharCode;
                         for (let z = 0; z < mx; z++) {
+                            // eslint-disable-next-line no-bitwise
                             ff[z] = scc(t.charCodeAt(z) & 255);
                         }
 
                         this.currentData = ff.join('');
                         this.loadMidiFile(onsuccess, onprogress, onerror);
                     } else {
-                        onerror && onerror('Unable to load MIDI file');
+                        if (onerror) {
+                            onerror('Unable to load MIDI file');
+                        }
                     }
                 }
             };
@@ -168,24 +183,31 @@ export class PlayInstance {
     getFileInstruments() {
         const instruments = {};
         const programs = {};
-        for (let n = 0; n < midi.data.length; n ++) {
-            const event = midi.data[n][0].event;
+        for (let n = 0; n < this.data.length; n++) {
+            const event = this.data[n][0].event;
             if (event.type !== 'channel') {
                 continue;
             }
             const channel = event.channel;
-            switch(event.subtype) {
-                case 'controller':
-//                  console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
-                    break;
-                case 'programChange':
-                    programs[channel] = event.programNumber;
-                    break;
-                case 'noteOn':
-                    const program = programs[channel];
-                    const gm = GM.byId[isFinite(program) ? program : channel];
-                    instruments[gm.id] = true;
-                    break;
+            switch (event.subtype) {
+            case 'controller': {
+                // console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
+                break;
+            }
+            case 'programChange': {
+                programs[channel] = event.programNumber;
+                break;
+            }
+            case 'noteOn': {
+                const program = programs[channel];
+                const use_value = !Number.isNaN(parseInt(program)) ? program : channel;
+                const gm = GM.byId[use_value];
+                instruments[gm.id] = true;
+                break;
+            }
+            default: {
+                break;
+            }
             }
         }
         const ret = [];
@@ -201,12 +223,12 @@ export class PlayInstance {
     scheduleTracking(channel, note, currentTime, offset, message, velocity, time) {
         return setTimeout(() => {
             const data = {
-                channel: channel,
-                note: note,
+                channel,
+                note,
                 now: currentTime,
                 end: this.endTime,
-                message: message,
-                velocity: velocity
+                message,
+                velocity,
             };
             if (message === 128) {
                 delete this.noteRegistrar[note];
@@ -228,8 +250,8 @@ export class PlayInstance {
     }
 
     getContext() {
-        if (MIDI.api === 'webaudio') {
-            return MIDI.WebAudio.getContext();
+        if (this.plugin.api === 'webaudio') {
+            return this.plugin.getContext();
         } else {
             this.ctx = {currentTime: 0};
         }
@@ -237,7 +259,7 @@ export class PlayInstance {
     }
 
     getLength() {
-        const data =  this.data;
+        const data = this.data;
         const length = data.length;
         let totalTime = 0.5;
         for (let n = 0; n < length; n++) {
@@ -262,7 +284,9 @@ export class PlayInstance {
             if (typeof currentTime === 'undefined') {
                 currentTime = this.restart;
             }
-            this.playing && this.stopAudio();
+            if (this.playing) {
+                this.stopAudio();
+            }
             this.playing = true;
             this.data = this.replayer.getData();
             this.endTime = this.getLength();
@@ -277,10 +301,10 @@ export class PlayInstance {
 
         this.queuedTime = 0.5;
 
-        const interval = this.eventQueue[0] && this.eventQueue[0].interval || 0;
+        // const interval = this.eventQueue[0] && this.eventQueue[0].interval || 0;
         const foffset = currentTime - this.currentTime;
 
-        if (MIDI.api !== 'webaudio') { // set currentTime on ctx
+        if (this.plugin.api !== 'webaudio') { // set currentTime on ctx
             const now = this.getNow();
             this.__now = this.__now || now;
             ctx.currentTime = (now - this.__now) / 1000;
@@ -290,7 +314,8 @@ export class PlayInstance {
 
         for (let n = 0; n < length && messages < 100; n++) {
             const obj = data[n];
-            if ((this.queuedTime += obj[1]) <= currentTime) {
+            this.queuedTime += obj[1];
+            if (this.queuedTime <= currentTime) {
                 offset = this.queuedTime;
                 continue;
             }
@@ -307,57 +332,63 @@ export class PlayInstance {
             const delay = ctx.currentTime + ((currentTime + foffset + this.startDelay) / 1000);
             const queueTime = this.queuedTime - offset + this.startDelay;
             switch (event.subtype) {
-                case 'controller':
-                    MIDI.setController(channelId, event.controllerType, event.value, delay);
+            case 'controller':
+                // noinspection JSUnresolvedFunction
+                this.plugin.setController(channelId, event.controllerType, event.value, delay);
+                break;
+            case 'programChange':
+                // noinspection JSUnresolvedFunction
+                this.plugin.programChange(channelId, event.programNumber, delay);
+                break;
+            case 'pitchBend':
+                this.plugin.pitchBend(channelId, event.value, delay);
+                break;
+            case 'noteOn':
+                if (channel.mute) { break; }
+                note = event.noteNumber - (this.MIDIOffset || 0);
+                this.eventQueue.push({
+                    event,
+                    time: queueTime,
+                    source: this.plugin.noteOn(channelId, event.noteNumber, event.velocity, delay),
+                    interval: this.scheduleTracking(
+                        channelId,
+                        note,
+                        this.queuedTime + this.startDelay,
+                        offset - foffset,
+                        144,
+                        event.velocity
+                    ),
+                });
+                messages += 1;
+                break;
+            case 'noteOff':
+                if (channel.mute) {
                     break;
-                case 'programChange':
-                    MIDI.programChange(channelId, event.programNumber, delay);
-                    break;
-                case 'pitchBend':
-                    MIDI.pitchBend(channelId, event.value, delay);
-                    break;
-                case 'noteOn':
-                    if (channel.mute) break;
-                    note = event.noteNumber - (this.MIDIOffset || 0);
-                    this.eventQueue.push({
-                        event: event,
-                        time: queueTime,
-                        source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
-                        interval: this.scheduleTracking(
-                            channelId,
-                            note,
-                            this.queuedTime + this.startDelay,
-                            offset - foffset,
-                            144,
-                            event.velocity)
-                    });
-                    messages++;
-                    break;
-                case 'noteOff':
-                    if (channel.mute) {
-                        break;
-                    }
-                    note = event.noteNumber - (this.MIDIOffset || 0);
-                    this.eventQueue.push({
-                        event: event,
-                        time: queueTime,
-                        source: MIDI.noteOff(channelId, event.noteNumber, delay),
-                        interval: this.scheduleTracking(
-                            channelId,
-                            note,
-                            this.queuedTime,
-                            offset - foffset,
-                            128,
-                            0)
-                    });
-                    break;
-                default:
-                    break;
+                }
+                note = event.noteNumber - (this.MIDIOffset || 0);
+                this.eventQueue.push({
+                    event,
+                    time: queueTime,
+                    source: this.plugin.noteOff(channelId, event.noteNumber, delay),
+                    interval: this.scheduleTracking(
+                        channelId,
+                        note,
+                        this.queuedTime,
+                        offset - foffset,
+                        128,
+                        0
+                    ),
+                });
+                break;
+            default:
+                break;
             }
         }
-        //
-        onsuccess && onsuccess(this.eventQueue);
+        if (onsuccess) {
+            onsuccess(this.eventQueue);
+        }
     }
+
     stopAudio() {
         const ctx = this.getContext();
         this.playing = false;
@@ -370,7 +401,7 @@ export class PlayInstance {
             if (!o.source) {
                 continue; // is not webaudio
             }
-            if (typeof(o.source) === 'number') {
+            if (typeof (o.source) === 'number') {
                 window.clearTimeout(o.source);
             } else { // webaudio
                 o.source.disconnect(0);
@@ -387,7 +418,7 @@ export class PlayInstance {
                     now: o.now,
                     end: o.end,
                     message: 128,
-                    velocity: o.velocity
+                    velocity: o.velocity,
                 });
             }
         }

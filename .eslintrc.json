@@ -61,6 +61,7 @@
         "object-property-newline": ["off"],
         "operator-linebreak": ["error", "before"],
         "padded-blocks": ["off"],
+        "prefer-destructuring": ["off"],
         "prefer-template": ["off"],
         "quote-props": ["off"],
         "radix": ["off"],

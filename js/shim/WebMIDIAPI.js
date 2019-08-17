@@ -15,76 +15,72 @@
 
 // Initialize the MIDI library.
 (function (global) {
-    'use strict';
-    var midiIO, _requestMIDIAccess, MIDIAccess, _onReady, MIDIPort, MIDIInput, MIDIOutput, _midiProc;
+    
+    let midiIO; let _requestMIDIAccess; let MIDIAccess; let _onReady; let MIDIPort; let MIDIInput; let MIDIOutput; let 
+        _midiProc;
 
     function Promise() {
 
     }
 
-    Promise.prototype.then = function(accept, reject) {
+    Promise.prototype.then = function (accept, reject) {
         this.accept = accept; 
         this.reject = reject;
-    }
+    };
 
-    Promise.prototype.succeed = function(access) {
-        if (this.accept)
-            this.accept(access);
-    }
+    Promise.prototype.succeed = function (access) {
+        if (this.accept) { this.accept(access); }
+    };
 
-    Promise.prototype.fail = function(error) {
-        if (this.reject)
-            this.reject(error);
-    }
+    Promise.prototype.fail = function (error) {
+        if (this.reject) { this.reject(error); }
+    };
 
     function _JazzInstance() {
         this.inputInUse = false;
         this.outputInUse = false;
 
         // load the Jazz plugin
-        var o1 = document.createElement("object");
-        o1.id = "_Jazz" + Math.random() + "ie";
-        o1.classid = "CLSID:1ACE1618-1C7D-4561-AEE1-34842AA85E90";
+        const o1 = document.createElement('object');
+        o1.id = '_Jazz' + Math.random() + 'ie';
+        o1.classid = 'CLSID:1ACE1618-1C7D-4561-AEE1-34842AA85E90';
 
         this.activeX = o1;
 
-        var o2 = document.createElement("object");
-        o2.id = "_Jazz" + Math.random();
-        o2.type="audio/x-jazz";
+        const o2 = document.createElement('object');
+        o2.id = '_Jazz' + Math.random();
+        o2.type='audio/x-jazz';
         o1.appendChild(o2);
 
         this.objRef = o2;
 
-        var e = document.createElement("p");
-        e.appendChild(document.createTextNode("This page requires the "));
+        const e = document.createElement('p');
+        e.appendChild(document.createTextNode('This page requires the '));
 
-        var a = document.createElement("a");
-        a.appendChild(document.createTextNode("Jazz plugin"));
-        a.href = "http://jazz-soft.net/";
+        const a = document.createElement('a');
+        a.appendChild(document.createTextNode('Jazz plugin'));
+        a.href = 'http://jazz-soft.net/';
 
         e.appendChild(a);
-        e.appendChild(document.createTextNode("."));
+        e.appendChild(document.createTextNode('.'));
         o2.appendChild(e);
 
-        var insertionPoint = document.getElementById("MIDIPlugin");
+        var insertionPoint = document.getElementById('MIDIPlugin');
         if (!insertionPoint) {
             // Create hidden element
-            var insertionPoint = document.createElement("div");
-            insertionPoint.id = "MIDIPlugin";
-            insertionPoint.style.position = "absolute";
-            insertionPoint.style.visibility = "hidden";
-            insertionPoint.style.left = "-9999px";
-            insertionPoint.style.top = "-9999px";
+            var insertionPoint = document.createElement('div');
+            insertionPoint.id = 'MIDIPlugin';
+            insertionPoint.style.position = 'absolute';
+            insertionPoint.style.visibility = 'hidden';
+            insertionPoint.style.left = '-9999px';
+            insertionPoint.style.top = '-9999px';
             document.body.appendChild(insertionPoint);
         }
         insertionPoint.appendChild(o1);
 
-        if (this.objRef.isJazz)
-            this._Jazz = this.objRef;
-        else if (this.activeX.isJazz)
-            this._Jazz = this.activeX;
-        else
-            this._Jazz = null;
+        if (this.objRef.isJazz) { this._Jazz = this.objRef; }
+        else if (this.activeX.isJazz) { this._Jazz = this.activeX; }
+        else { this._Jazz = null; }
         if (this._Jazz) {
             this._Jazz._jazzTimeZero = this._Jazz.Time();
             this._Jazz._perfTimeZero = window.performance.now();
@@ -92,108 +88,98 @@
     }
 
     _requestMIDIAccess = function _requestMIDIAccess() {
-        var access = new MIDIAccess();
+        const access = new MIDIAccess();
         return access._promise;
     };
 
     // API Methods
 
-    MIDIAccess = function() {
-        this._jazzInstances = new Array();
-        this._jazzInstances.push( new _JazzInstance() );
-        this._promise = new Promise;
+    MIDIAccess = function () {
+        this._jazzInstances = [];
+        this._jazzInstances.push(new _JazzInstance());
+        this._promise = new Promise();
 
         if (this._jazzInstances[0]._Jazz) {
             this._Jazz = this._jazzInstances[0]._Jazz;
-            window.setTimeout( _onReady.bind(this), 3 );
+            window.setTimeout(_onReady.bind(this), 3);
         } else {
-            window.setTimeout( _onNotReady.bind(this), 3 );
+            window.setTimeout(_onNotReady.bind(this), 3);
         }
     };
 
     _onReady = function _onReady() {
-        if (this._promise)
-            this._promise.succeed(this);
+        if (this._promise) { this._promise.succeed(this); }
     };
 
     function _onNotReady() {
-        if (this._promise)
-            this._promise.fail( { code: 1 } );
-    };
-
-    MIDIAccess.prototype.inputs = function(  ) {
-        if (!this._Jazz)
-              return null;
-        var list=this._Jazz.MidiInList();
-        var inputs = new Array( list.length );
-
-        for ( var i=0; i<list.length; i++ ) {
-            inputs[i] = new MIDIInput( this, list[i], i );
-        }
-        return inputs;
+        if (this._promise) { this._promise.fail({ code: 1 }); }
     }
 
-    MIDIAccess.prototype.outputs = function(  ) {
-        if (!this._Jazz)
-            return null;
-        var list=this._Jazz.MidiOutList();
-        var outputs = new Array( list.length );
+    MIDIAccess.prototype.inputs = function () {
+        if (!this._Jazz) { return null; }
+        const list=this._Jazz.MidiInList();
+        const inputs = new Array(list.length);
 
-        for ( var i=0; i<list.length; i++ ) {
-            outputs[i] = new MIDIOutput( this, list[i], i );
+        for (let i=0; i<list.length; i++) {
+            inputs[i] = new MIDIInput(this, list[i], i);
+        }
+        return inputs;
+    };
+
+    MIDIAccess.prototype.outputs = function () {
+        if (!this._Jazz) { return null; }
+        const list=this._Jazz.MidiOutList();
+        const outputs = new Array(list.length);
+
+        for (let i=0; i<list.length; i++) {
+            outputs[i] = new MIDIOutput(this, list[i], i);
         }
         return outputs;
     };
 
-    MIDIInput = function MIDIInput( midiAccess, name, index ) {
+    MIDIInput = function MIDIInput(midiAccess, name, index) {
         this._listeners = [];
         this._midiAccess = midiAccess;
         this._index = index;
         this._inLongSysexMessage = false;
         this._sysexBuffer = new Uint8Array();
-        this.id = "" + index + "." + name;
-        this.manufacturer = "";
+        this.id = '' + index + '.' + name;
+        this.manufacturer = '';
         this.name = name;
-        this.type = "input";
-        this.version = "";
+        this.type = 'input';
+        this.version = '';
         this.onmidimessage = null;
 
-        var inputInstance = null;
-        for (var i=0; (i<midiAccess._jazzInstances.length)&&(!inputInstance); i++) {
-            if (!midiAccess._jazzInstances[i].inputInUse)
-                inputInstance=midiAccess._jazzInstances[i];
+        let inputInstance = null;
+        for (let i=0; (i<midiAccess._jazzInstances.length)&&(!inputInstance); i++) {
+            if (!midiAccess._jazzInstances[i].inputInUse) { inputInstance=midiAccess._jazzInstances[i]; }
         }
         if (!inputInstance) {
             inputInstance = new _JazzInstance();
-            midiAccess._jazzInstances.push( inputInstance );
+            midiAccess._jazzInstances.push(inputInstance);
         }
         inputInstance.inputInUse = true;
 
         this._jazzInstance = inputInstance._Jazz;
-        this._input = this._jazzInstance.MidiInOpen( this._index, _midiProc.bind(this) );
+        this._input = this._jazzInstance.MidiInOpen(this._index, _midiProc.bind(this));
     };
 
     // Introduced in DOM Level 2:
-    MIDIInput.prototype.addEventListener = function (type, listener, useCapture ) {
-        if (type !== "midimessage")
-            return;
-        for (var i=0; i<this._listeners.length; i++)
-            if (this._listeners[i] == listener)
-                return;
-        this._listeners.push( listener );
+    MIDIInput.prototype.addEventListener = function (type, listener, useCapture) {
+        if (type !== 'midimessage') { return; }
+        for (let i=0; i<this._listeners.length; i++) { if (this._listeners[i] == listener) { return; } }
+        this._listeners.push(listener);
     };
 
-    MIDIInput.prototype.removeEventListener = function (type, listener, useCapture ) {
-        if (type !== "midimessage")
+    MIDIInput.prototype.removeEventListener = function (type, listener, useCapture) {
+        if (type !== 'midimessage') { return; }
+        for (let i=0; i<this._listeners.length; i++) { if (this._listeners[i] == listener) {
+            this._listeners.splice(i, 1);  //remove it
             return;
-        for (var i=0; i<this._listeners.length; i++)
-            if (this._listeners[i] == listener) {
-                this._listeners.splice( i, 1 );  //remove it
-                return;
-            }
+        } }
     };
 
-    MIDIInput.prototype.preventDefault = function() {
+    MIDIInput.prototype.preventDefault = function () {
         this._pvtDef = true;
     };
 
@@ -201,56 +187,52 @@
         this._pvtDef = false;
 
         // dispatch to listeners
-        for (var i=0; i<this._listeners.length; i++)
-            if (this._listeners[i].handleEvent)
-                this._listeners[i].handleEvent.bind(this)( evt );
-            else
-                this._listeners[i].bind(this)( evt );
+        for (let i=0; i<this._listeners.length; i++) { if (this._listeners[i].handleEvent) { this._listeners[i].handleEvent.bind(this)(evt); }
+        else { this._listeners[i].bind(this)(evt); } }
 
-        if (this.onmidimessage)
-            this.onmidimessage( evt );
+        if (this.onmidimessage) { this.onmidimessage(evt); }
 
         return this._pvtDef;
     };
 
-    MIDIInput.prototype.appendToSysexBuffer = function ( data ) {
-        var oldLength = this._sysexBuffer.length;
-        var tmpBuffer = new Uint8Array( oldLength + data.length );
-        tmpBuffer.set( this._sysexBuffer );
-        tmpBuffer.set( data, oldLength );
+    MIDIInput.prototype.appendToSysexBuffer = function (data) {
+        const oldLength = this._sysexBuffer.length;
+        const tmpBuffer = new Uint8Array(oldLength + data.length);
+        tmpBuffer.set(this._sysexBuffer);
+        tmpBuffer.set(data, oldLength);
         this._sysexBuffer = tmpBuffer;
     };
 
-    MIDIInput.prototype.bufferLongSysex = function ( data, initialOffset ) {
-        var j = initialOffset;
+    MIDIInput.prototype.bufferLongSysex = function (data, initialOffset) {
+        let j = initialOffset;
         while (j<data.length) {
             if (data[j] == 0xF7) {
                 // end of sysex!
                 j++;
-                this.appendToSysexBuffer( data.slice(initialOffset, j) );
+                this.appendToSysexBuffer(data.slice(initialOffset, j));
                 return j;
             }
             j++;
         }
         // didn't reach the end; just tack it on.
-        this.appendToSysexBuffer( data.slice(initialOffset, j) );
+        this.appendToSysexBuffer(data.slice(initialOffset, j));
         this._inLongSysexMessage = true;
         return j;
     };
 
-    _midiProc = function _midiProc( timestamp, data ) {
+    _midiProc = function _midiProc(timestamp, data) {
         // Have to use createEvent/initEvent because IE10 fails on new CustomEvent.  Thanks, IE!
-        var length = 0;
-        var i,j;
-        var isSysexMessage = false;
+        let length = 0;
+        let i; let j;
+        let isSysexMessage = false;
 
         // Jazz sometimes passes us multiple messages at once, so we need to parse them out
         // and pass them one at a time.
 
         for (i=0; i<data.length; i+=length) {
             if (this._inLongSysexMessage) {
-                i = this.bufferLongSysex(data,i);
-                if ( data[i-1] != 0xf7 ) {
+                i = this.bufferLongSysex(data, i);
+                if (data[i-1] != 0xf7) {
                     // ran off the end without hitting the end of the sysex message
                     return;
                 }
@@ -258,77 +240,75 @@
             } else {
                 isSysexMessage = false;
                 switch (data[i] & 0xF0) {
-                    case 0x80:  // note off
-                    case 0x90:  // note on
-                    case 0xA0:  // polyphonic aftertouch
-                    case 0xB0:  // control change
-                    case 0xE0:  // channel mode
-                        length = 3;
+                case 0x80:  // note off
+                case 0x90:  // note on
+                case 0xA0:  // polyphonic aftertouch
+                case 0xB0:  // control change
+                case 0xE0:  // channel mode
+                    length = 3;
+                    break;
+
+                case 0xC0:  // program change
+                case 0xD0:  // channel aftertouch
+                    length = 2;
+                    break;
+
+                case 0xF0:
+                    switch (data[i]) {
+                    case 0xf0:  // variable-length sysex.
+                        i = this.bufferLongSysex(data, i);
+                        if (data[i-1] != 0xf7) {
+                            // ran off the end without hitting the end of the sysex message
+                            return;
+                        }
+                        isSysexMessage = true;
                         break;
 
-                    case 0xC0:  // program change
-                    case 0xD0:  // channel aftertouch
+                    case 0xF1:  // MTC quarter frame
+                    case 0xF3:  // song select
                         length = 2;
                         break;
 
-                    case 0xF0:
-                        switch (data[i]) {
-                            case 0xf0:  // variable-length sysex.
-                                i = this.bufferLongSysex(data,i);
-                                if ( data[i-1] != 0xf7 ) {
-                                    // ran off the end without hitting the end of the sysex message
-                                    return;
-                                }
-                                isSysexMessage = true;
-                                break;
-
-                            case 0xF1:  // MTC quarter frame
-                            case 0xF3:  // song select
-                                length = 2;
-                                break;
-
-                            case 0xF2:  // song position pointer
-                                length = 3;
-                                break;
-
-                            default:
-                                length = 1;
-                                break;
-                        }
+                    case 0xF2:  // song position pointer
+                        length = 3;
                         break;
+
+                    default:
+                        length = 1;
+                        break;
+                    }
+                    break;
                 }
             }
-            var evt = document.createEvent( "Event" );
-            evt.initEvent( "midimessage", false, false );
-            evt.receivedTime = parseFloat( timestamp.toString()) + this._jazzInstance._perfTimeZero;
+            const evt = document.createEvent('Event');
+            evt.initEvent('midimessage', false, false);
+            evt.receivedTime = parseFloat(timestamp.toString()) + this._jazzInstance._perfTimeZero;
             if (isSysexMessage || this._inLongSysexMessage) {
-                evt.data = new Uint8Array( this._sysexBuffer );
+                evt.data = new Uint8Array(this._sysexBuffer);
                 this._sysexBuffer = new Uint8Array(0);
                 this._inLongSysexMessage = false;
-            } else
-                evt.data = new Uint8Array(data.slice(i, length+i));
-            this.dispatchEvent( evt );
+            } else { evt.data = new Uint8Array(data.slice(i, length+i)); }
+            this.dispatchEvent(evt);
         }
     };
 
-    MIDIOutput = function MIDIOutput( midiAccess, name, index ) {
+    MIDIOutput = function MIDIOutput(midiAccess, name, index) {
         this._listeners = [];
         this._midiAccess = midiAccess;
         this._index = index;
-        this.id = "" + index + "." + name;
-        this.manufacturer = "";
+        this.id = '' + index + '.' + name;
+        this.manufacturer = '';
         this.name = name;
-        this.type = "output";
-        this.version = "";
+        this.type = 'output';
+        this.version = '';
 
-        var outputInstance = null;
-        for (var i=0; (i<midiAccess._jazzInstances.length)&&(!outputInstance); i++) {
-            if (!midiAccess._jazzInstances[i].outputInUse)
-                outputInstance=midiAccess._jazzInstances[i];
+        let outputInstance = null;
+        for (let i=0; (i<midiAccess._jazzInstances.length)&&(!outputInstance); i++) {
+            if (!midiAccess._jazzInstances[i].outputInUse) { outputInstance=midiAccess._jazzInstances[i]; }
         }
         if (!outputInstance) {
             outputInstance = new _JazzInstance();
-            midiAccess._jazzInstances.push( outputInstance );
+            midiAccess._jazzInstances.push(outputInstance);
         }
         outputInstance.outputInUse = true;
 
@@ -337,68 +317,66 @@
     };
 
     function _sendLater() {
-        this.jazz.MidiOutLong( this.data );    // handle send as sysex
+        this.jazz.MidiOutLong(this.data);    // handle send as sysex
     }
 
-    MIDIOutput.prototype.send = function( data, timestamp ) {
-        var delayBeforeSend = 0;
-        if (data.length === 0)
-            return false;
+    MIDIOutput.prototype.send = function (data, timestamp) {
+        let delayBeforeSend = 0;
+        if (data.length === 0) { return false; }
 
-        if (timestamp)
-            delayBeforeSend = Math.floor( timestamp - window.performance.now() );
+        if (timestamp) { delayBeforeSend = Math.floor(timestamp - window.performance.now()); }
 
         if (timestamp && (delayBeforeSend>1)) {
-            var sendObj = new Object();
+            const sendObj = new Object();
             sendObj.jazz = this._jazzInstance;
             sendObj.data = data;
 
-            window.setTimeout( _sendLater.bind(sendObj), delayBeforeSend );
+            window.setTimeout(_sendLater.bind(sendObj), delayBeforeSend);
         } else {
-            this._jazzInstance.MidiOutLong( data );
+            this._jazzInstance.MidiOutLong(data);
         }
         return true;
     };
 
     //init: create plugin
-    if (!window.navigator.requestMIDIAccess)
-        window.navigator.requestMIDIAccess = _requestMIDIAccess;
+    if (!window.navigator.requestMIDIAccess) { window.navigator.requestMIDIAccess = _requestMIDIAccess; }
 
 }(window));
 
 // Polyfill window.performance.now() if necessary.
 (function (exports) {
-    var perf = {}, props;
+    const perf = {}; let 
+        props;
 
     function findAlt() {
-        var prefix = ['moz', 'webkit', 'o', 'ms'],
-        i = prefix.length,
-            //worst case, we use Date.now()
-            props = {
-                value: (function (start) {
-                    return function () {
-                        return Date.now() - start;
-                    };
-                }(Date.now()))
-            };
+        const prefix = ['moz', 'webkit', 'o', 'ms'];
+        let i = prefix.length;
+        //worst case, we use Date.now()
+        const props = {
+            value: (function (start) {
+                return function () {
+                    return Date.now() - start;
+                };
+            }(Date.now())),
+        };
 
         //seach for vendor prefixed version
         for (; i >= 0; i--) {
-            if ((prefix[i] + "Now") in exports.performance) {
-                props.value = function (method) {
+            if ((prefix[i] + 'Now') in exports.performance) {
+                props.value = (function (method) {
                     return function () {
                         exports.performance[method]();
-                    }
-                }(prefix[i] + "Now");
+                    };
+                }(prefix[i] + 'Now'));
                 return props;
             }
         }
 
         //otherwise, try to use connectionStart
-        if ("timing" in exports.performance && "connectStart" in exports.performance.timing) {
+        if ('timing' in exports.performance && 'connectStart' in exports.performance.timing) {
             //this pretty much approximates performance.now() to the millisecond
             props.value = (function (start) {
-                return function() {
+                return function () {
                     Date.now() - start;
                 };
             }(exports.performance.timing.connectStart));
@@ -407,15 +385,14 @@
     }
 
     //if already defined, bail
-    if (("performance" in exports) && ("now" in exports.performance))
-        return;
-    if (!("performance" in exports))
-        Object.defineProperty(exports, "performance", {
-            get: function () {
-                return perf;
-            }});
-        //otherwise, performance is there, but not "now()"
+    if (('performance' in exports) && ('now' in exports.performance)) { return; }
+    if (!('performance' in exports)) { Object.defineProperty(exports, 'performance', {
+        get() {
+            return perf;
+        },
+    }); }
+    //otherwise, performance is there, but not "now()"
 
     props = findAlt();
-    Object.defineProperty(exports.performance, "now", props);
+    Object.defineProperty(exports.performance, 'now', props);
 }(window));

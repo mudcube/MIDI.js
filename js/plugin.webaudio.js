@@ -1,24 +1,37 @@
 /*
-	----------------------------------------------------------
-	Web Audio API - OGG or MPEG Soundbank
-	----------------------------------------------------------
-	http://webaudio.github.io/web-audio-api/
-	----------------------------------------------------------
+    ----------------------------------------------------------
+    Web Audio API - OGG or MPEG Sound bank
+    ----------------------------------------------------------
+    http://webaudio.github.io/web-audio-api/
+    ----------------------------------------------------------
 */
 import { DEBUG } from './debug.js';
 import { channels, GM, keyToNote } from './gm.js';
 import * as Base64Binary from './shim/Base64binary.js';
+
+export const api = 'webaudio';
+
 // information to share with loader...
 export const shared_root_info = {};
 
-const audioContext = null; // new AudioContext();
-let useStreamingBuffer = false; // !!audioContext.createMediaElementSource;
+// const audioContext = null; // new AudioContext();
+const useStreamingBuffer = false; // !!audioContext.createMediaElementSource;
 let ctx; // audio context
 const sources = {};
 const effects = {};
 let masterVolume = 127;
 const audioBuffers = {};
 
+export const connect = opts => {
+    setContext(ctx || createAudioContext(), opts.onsuccess);
+};
+
+
+// plugin-common methods
+
+// Not applicable methods
+export const playChannel = () => {};
+export const stopChannel = () => {};
 export const send = (data, delay) => { };
 export const setController = (channelId, type, value, delay) => { };
 
@@ -40,12 +53,12 @@ export const programChange = (channelId, program, delay) => {
     }
 };
 
-export const pitchBend = function(channelId, bend, delay) {
+export const pitchBend = (channelId, bend, delay) => {
     // delay is ignored
     const channel = channels[channelId];
     if (channel) {
         if (delay) {
-            setTimeout(() => channel.pitchBend = bend,
+            setTimeout(() => { channel.pitchBend = bend; return undefined; },
                 delay);
         } else {
             channel.pitchBend = bend;
@@ -65,7 +78,7 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
         if (DEBUG) {
             console.log('no buffer', GM.byId[program].id, program, channelId);
         }
-        return;
+        return undefined;
     }
 
     // convert relative delay to absolute delay
@@ -77,7 +90,7 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
     let source;
     if (useStreamingBuffer) {
         source = ctx.createMediaElementSource(buffer);
-    } else { // XMLHTTP buffer
+    } else { // XMLHttp buffer
         source = ctx.createBufferSource();
         source.buffer = buffer;
     }
@@ -104,11 +117,11 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
         if (delay) {
             return setTimeout(() => {
                 buffer.currentTime = 0;
-                buffer.play()
+                buffer.play();
             }, delay * 1000);
         } else {
             buffer.currentTime = 0;
-            buffer.play()
+            buffer.play();
         }
     } else {
         source.start(delay || 0);
@@ -132,7 +145,7 @@ export const noteOff = (channelId, noteId, delay) => {
             delay += ctx.currentTime;
         }
 
-        let source = sources[channelId + 'x' + noteId];
+        const source = sources[channelId + 'x' + noteId];
         if (source) {
             if (source.gainNode) {
                 // @Miranet: 'the values of 0.2 and 0.3 could of course be used as
@@ -162,6 +175,7 @@ export const noteOff = (channelId, noteId, delay) => {
             return source;
         }
     }
+    return undefined;
 };
 
 export const chordOn = (channel, chord, velocity, delay) => {
@@ -208,29 +222,24 @@ export const setEffects = list => {
             effects[data.type] = effect;
         }
     } else {
-        return console.log('Effects module not installed.');
+        console.log('Effects module not installed.');
     }
 };
 
-export const connect = opts => {
-    setContext(ctx || createAudioContext(), opts.onsuccess);
-};
-
-export const getContext = () => {
-    return ctx;
-};
+export const getContext = () => ctx;
 
 export const setContext = (newCtx, onsuccess, onprogress, onerror) => {
     ctx = newCtx;
 
     // tuna.js effects module - https://github.com/Dinahmoe/tuna
+    // eslint-disable-next-line no-undef
     if (typeof Tuna !== 'undefined' && !(ctx.tunajs instanceof Tuna)) {
-        ctx.tunajs = new Tuna(ctx);
+        ctx.tunajs = new Tuna(ctx);     // eslint-disable-line no-undef
     }
 
     // loading audio files
     const urls = [];
-    for (let key in keyToNote) {
+    for (const key of Object.keys(keyToNote)) {
         urls.push(key);
     }
 
@@ -250,13 +259,14 @@ export const setContext = (newCtx, onsuccess, onprogress, onerror) => {
     const requestAudio = (soundfont, programId, index, key) => {
         const url = soundfont[key];
         if (url) {
-            bufferPending[programId] ++;
+            bufferPending[programId] += 1;
             loadAudio(url, buffer => {
                 buffer.id = key;
                 const noteId = keyToNote[key];
                 audioBuffers[programId + 'x' + noteId] = buffer;
+                bufferPending[programId] -= 1;
 
-                if (--bufferPending[programId] === 0) {
+                if (bufferPending[programId] === 0) {
                     const percent = index / 87;
                     if (DEBUG) {
                         console.log(GM.byId[programId], 'processing: ', percent);
@@ -299,29 +309,28 @@ export const loadAudio = (url, onsuccess, onerror) => {
         audio.src = url;
         audio.controls = false;
         audio.autoplay = false;
-        audio.preload = false;
+        audio.preload = 'none';
         audio.addEventListener('canplay', () => {
-            onsuccess && onsuccess(audio);
+            if (onsuccess) { onsuccess(audio); }
         });
         audio.addEventListener('error', err => {
-            onerror && onerror(err);
+            if (onerror) { onerror(err); }
         });
         document.body.appendChild(audio);
+        return audio;
     } else if (url.indexOf('data:audio') === 0) { // Base64 string
         const base64 = url.split(',')[1];
         const buffer = Base64Binary.decodeArrayBuffer(base64);
         return ctx.decodeAudioData(buffer, onsuccess, onerror);
-    } else {  // XMLHTTP buffer
+    } else {  // XMLHttp buffer
         const request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
-        request.onsuccess = () => {
-            return ctx.decodeAudioData(request.response, onsuccess, onerror);
-        };
+        request.onsuccess = () => ctx.decodeAudioData(request.response, onsuccess, onerror);
         request.send();
+        return undefined;
     }
 };
 
-export const createAudioContext = () => {
-    return new (window.AudioContext || window.webkitAudioContext)();
-};
+// noinspection JSUnresolvedVariable
+export const createAudioContext = () => new (window.AudioContext || window.webkitAudioContext)();
