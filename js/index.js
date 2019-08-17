@@ -119,7 +119,7 @@ export const loadPlugin = opts => {
                 } else if (supports_mpeg && audio_format_precedence === 'mp3') {
                     audioFormat = 'mp3';
                 } else if (supports_ogg) {
-                    audioFormat = 'ogg'
+                    audioFormat = 'ogg';
                 } else if (supports_mpeg) {
                     audioFormat = 'mp3';
                 } else if (api !== 'webmidi') {
