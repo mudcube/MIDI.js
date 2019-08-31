@@ -1,9 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
+const PACKAGE = require('./package.json');
+const version = PACKAGE.version;
+const date_now = new Date().toISOString().replace(/T.*/, '');
 
 const BANNER = `
-midicube <%= pkg.version %> built on
-<%= grunt.template.today("yyyy-mm-dd") %>.
+midicube ${version} built on ${date_now}.
 `;
 
 module.exports = {

@@ -1,6 +1,6 @@
 {
   "name": "midicube",
-  "version": "0.5.7",
+  "version": "0.5.9",
   "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [
@@ -13,6 +13,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "webpack --watch",
+    "prepublishOnly": "webpack && cp build/* releases/",
     "build": "webpack"
   },
   "repository": {
