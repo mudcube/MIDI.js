@@ -66,9 +66,7 @@ export const pitchBend = (channelId, bend, delay) => {
     }
 };
 
-export const noteOn = (channelId, noteId, velocity, delay) => {
-    delay = delay || 0;
-
+export const noteOn = (channelId, noteId, velocity, delay=0) => {
     // check whether the note exists
     const channel = channels[channelId];
     const program = channel.program;
@@ -80,6 +78,13 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
         }
         return undefined;
     }
+    if (!ctx) {
+        if (DEBUG) {
+            console.log('no context!');
+        }
+        return undefined;
+    }
+
 
     // convert relative delay to absolute delay
     if (delay < ctx.currentTime) {
@@ -132,14 +137,19 @@ export const noteOn = (channelId, noteId, velocity, delay) => {
     return source;
 };
 
-export const noteOff = (channelId, noteId, delay) => {
-    delay = delay || 0;
-
+export const noteOff = (channelId, noteId, delay=0) => {
     // check whether the note exists
     const channel = channels[channelId];
     const program = channel.program;
     const bufferId = program + 'x' + noteId;
     const buffer = audioBuffers[bufferId];
+    if (!ctx) {
+        if (DEBUG) {
+            console.log('no context!');
+        }
+        return undefined;
+    }
+
     if (buffer) {
         if (delay < ctx.currentTime) {
             delay += ctx.currentTime;
@@ -197,6 +207,13 @@ export const chordOff = (channel, chord, delay) => {
 
 
 export const stopAllNotes = () => {
+    if (!ctx) {
+        if (DEBUG) {
+            console.log('no context!');
+        }
+        return undefined;
+    }
+
     for (const sid of Object.keys(sources)) {
         let delay = 0;
         if (delay < ctx.currentTime) {

@@ -3,7 +3,7 @@
     midicube
     2019-08-17
 
-    based on MIDI.Plugin : 0.3.4 : 2015-03-26
+    based on MIDI.js.Plugin : 0.3.4 : 2015-03-26
     ----------------------------------------------------------
     https://github.com/mscuthbert/midicube/
     ----------------------------------------------------------
@@ -14,14 +14,17 @@
     ----------------------------------------------------------
         Web MIDI API - native support in Chrome. (Jazz plugin for safari, firefox, opera?)
         Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+, edge 18+
-        HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
+            WebAudioShim allows Firefox < 25 to use, but not imported by default.
+        HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+,
+            opera 9.5+, ios 4+, android 2.3+
     ----------------------------------------------------------
 */
 // not in core-js
 import 'regenerator-runtime/runtime';
 // core-js will monkey patch automatically
 
-import './shim/WebAudioAPI.js';  // imported by default -- webmidi shim needs to be loaded separately
+// no longer imported by default -- webmidi shim needs to be loaded separately
+// import './shim/WebAudioAPI.js';
 import { audioDetect } from './audioDetect.js';
 import * as AudioTag from './plugin.audiotag.js';  // to be "export * as" when fully supported
 import * as WebAudio from './plugin.webaudio.js';  // to be "export * as" when fully supported

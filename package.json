@@ -1,6 +1,6 @@
 {
   "name": "midicube",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "Library to assist in creating ES6 MIDI apps.",
   "author": "Michael Deal",
   "contributors": [

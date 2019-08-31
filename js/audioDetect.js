@@ -66,7 +66,8 @@ export function audioDetect(successCallback) {
 
     // check for webaudio api support
     // noinspection JSUnresolvedVariable
-    if (window.AudioContext || window.webkitAudioContext) {
+    const ctx_constructor = window.AudioContext || window.webkitAudioContext;
+    if (ctx_constructor && !!ctx_constructor.prototype.createGain) {
         supports.webaudio = true;
     }
 

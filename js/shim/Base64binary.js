@@ -26,12 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// noinspection SpellCheckingInspection
 /**
  * Modified by MSC to be a module.
  * @type {string}
  * @private
  */
-
 const _keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
 /* will return a  Uint8Array type */
@@ -57,10 +57,13 @@ export function decode(input, arrayBuffer) {
     } //padding chars, so skip
 
     let uarray;
-    let chr1; let chr2; let 
-        chr3;
-    let enc1; let enc2; let enc3; let 
-        enc4;
+    let chr1;
+    let chr2;
+    let chr3;
+    let enc1;
+    let enc2;
+    let enc3;
+    let enc4;
     let j = 0;
 
     if (arrayBuffer) {
