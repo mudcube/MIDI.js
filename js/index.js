@@ -1,11 +1,13 @@
-/*
+/*!
     ----------------------------------------------------------
     midicube
     2019-08-17
 
     based on MIDI.js.Plugin : 0.3.4 : 2015-03-26
-    ----------------------------------------------------------
+
+    MIT License
     https://github.com/mscuthbert/midicube/
+
     ----------------------------------------------------------
     Inspired by javax.sound.midi (albeit a super simple version):
         http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
