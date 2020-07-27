@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns = "http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<!-- polyfill -->
+	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
+	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
+	<script src="../inc/shim/WebAudioAPI.js" type="text/javascript"></script>
+	<!-- midi.js package -->
+	<script src="../js/midi/audioDetect.js" type="text/javascript"></script>
+	<script src="../js/midi/gm.js" type="text/javascript"></script>
+	<script src="../js/midi/loader.js" type="text/javascript"></script>
+	<script src="../js/midi/plugin.audiotag.js" type="text/javascript"></script>
+	<script src="../js/midi/plugin.webaudio.js" type="text/javascript"></script>
+	<script src="../js/midi/plugin.webmidi.js" type="text/javascript"></script>
+	<!-- utils -->
+	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
+	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
+	<button onclick="play()">Make Noise</button>
+	<canvas id="myCanvas" width="300" height="170" style="border:0px solid #d3d3d3;">
+		Your browser does not support the HTML5 canvas tag.</canvas>
+		
+	<script>
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		// vertical lines
+		ctx.beginPath();
+		ctx.moveTo(10, 0);
+		ctx.lineTo(10, 170);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(40, 0);
+		ctx.lineTo(40, 170);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(70, 0);
+		ctx.lineTo(70, 170);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(100, 0);
+		ctx.lineTo(100, 170);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(130, 0);
+		ctx.lineTo(130, 170);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(160, 0);
+		ctx.lineTo(160, 170);
+		ctx.stroke();
+		// horizontal lines
+		ctx.beginPath();
+		ctx.moveTo(10, 0);
+		ctx.lineTo(160, 0);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(10, 5);
+		ctx.lineTo(160, 5);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(10, 55);
+		ctx.lineTo(160, 55);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(10, 105);
+		ctx.lineTo(160, 105);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(10, 155);
+		ctx.lineTo(160, 155);
+		ctx.stroke();
+	</script>
+</head>
+<body>
+<script type="text/javascript">
+
+function play() {
+	MIDI.loadPlugin({
+		soundfontUrl: "./soundfont_guitar/",
+		instrument: "acoustic_guitar_steel",
+		onprogress: function(state, progress) {
+			console.log(state, progress);
+		},
+		onsuccess: function() {
+			var delay = 0; // play one note every quarter second
+			var note1 = 50; // the MIDI note
+			var velocity = 127; // how hard the note hits
+			// play the note
+			MIDI.programChange(0, MIDI.GM.byName["acoustic_guitar_steel"].number); // select correct instrument
+			MIDI.setVolume(0, 300);
+			MIDI.noteOn(0, note1, velocity, delay);
+			MIDI.noteOff(0, note1, delay + 0.75);
+
+			var note2 = 52; // the MIDI note
+			MIDI.noteOn(0, note2, velocity, delay);
+			MIDI.noteOff(0, note2, delay + 0.75);
+
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			ctx.beginPath();
+			ctx.arc(70,130,10,0,2*Math.PI);
+			ctx.fill();
+		}
+	});
+};
+
+function onStrum(int strumStr) {
+	MIDI.loadPlugin({
+		soundfontUrl: "./soundfont_guitar/",
+		instrument: "acoustic_guitar_steel",
+		onprogress: function(state, progress) {
+			console.log(state, progress);
+		},
+		onsuccess: function() {
+			var delay = 0;
+			var note1 = 50; // the MIDI note
+			var velocity = 127; // how hard the note hits
+			// play the note
+			MIDI.programChange(0, MIDI.GM.byName["acoustic_guitar_steel"].number); // select correct instrument
+			MIDI.setVolume(0, 300);
+			MIDI.noteOn(0, note1, velocity, delay);
+			MIDI.noteOff(0, note1, delay + 0.75);
+
+			var note2 = 52; // the MIDI note
+			MIDI.noteOn(0, note2, velocity, delay);
+			MIDI.noteOff(0, note2, delay + 0.75);
+
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			ctx.beginPath();
+			ctx.arc(70,130,10,0,2*Math.PI);
+			ctx.fill();
+		}
+	});
+}
+
+</script>
+</body>
+</html>
