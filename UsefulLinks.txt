@@ -1,8 +1,5 @@
-	// https://stackoverflow.com/questions/10752055/cross-origin-requests-are-only-supported-for-http-error-when-loading-a-local
-	// go to loadplugin method, change url to http://
-	// soundfontPath = "./soundfont/acoustic_guitar_steel-ogg.js"
-	// soundfontPath = "./soundfont/acoustic_grand_piano-ogg.js"
-	// https://github.com/mudcube/MIDI.js/issues/226
-	// https://github.com/mudcube/MIDI.js/issues/158
-
-	//https://github.com/mudcube/MIDI.js/issues/74
+https://stackoverflow.com/questions/10752055/cross-origin-requests-are-only-supported-for-http-error-when-loading-a-local
+soundfontPath = "./soundfont/acoustic_grand_piano-ogg.js"
+https://github.com/mudcube/MIDI.js/issues/226
+https://github.com/mudcube/MIDI.js/issues/158
+https://github.com/mudcube/MIDI.js/issues/74
