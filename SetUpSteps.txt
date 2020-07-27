@@ -1,0 +1,14 @@
+	----------------------------------------------------------
+	Build environment
+	----------------------------------------------------------
+	1) Install NodeJS:
+		http://nodejs.org/
+	2) Install dev dependencies
+	  npm install
+	3) Install Grunt CLI globally
+		npm install grunt-cli -g
+	----------------------------------------------------------
+
+open chrome with special command:
+"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --allow-file-access-from-files
+	search for Chrome in windows search bar, right click, Properties, use Target string
