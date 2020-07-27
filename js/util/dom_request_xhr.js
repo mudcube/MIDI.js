@@ -109,7 +109,7 @@ if (typeof MIDI === 'undefined') MIDI = {};
 				if (xhr.status === 200 || // Response OK
 					xhr.status === 304 || // Not Modified
 					xhr.status === 308 || // Permanent Redirect
-					xhr.status === 0 && root.client.cordova // Cordova quirk
+					xhr.status === 0 //&& root.client.cordova // Cordova quirk
 				) {
 					if (onsuccess) {
 						var res;
