@@ -17,7 +17,7 @@
 	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
 	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 	<button onclick="play()">Make Noise</button>
-	<canvas id="myCanvas" width="300" height="170" style="border:0px solid #d3d3d3;">
+	<canvas id="myCanvas" width="300" height="200" style="border:0px solid #d3d3d3;">
 		Your browser does not support the HTML5 canvas tag.</canvas>
 		
 	<script>
@@ -25,63 +25,65 @@
 		var ctx = c.getContext("2d");
 		// vertical lines
 		ctx.beginPath();
-		ctx.moveTo(10, 0);
-		ctx.lineTo(10, 170);
+		ctx.moveTo(10, 30);
+		ctx.lineTo(10, 200);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(40, 0);
-		ctx.lineTo(40, 170);
+		ctx.moveTo(40, 30);
+		ctx.lineTo(40, 200);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(70, 0);
-		ctx.lineTo(70, 170);
+		ctx.moveTo(70, 30);
+		ctx.lineTo(70, 200);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(100, 0);
-		ctx.lineTo(100, 170);
+		ctx.moveTo(100, 30);
+		ctx.lineTo(100, 200);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(130, 0);
-		ctx.lineTo(130, 170);
+		ctx.moveTo(130, 30);
+		ctx.lineTo(130, 200);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(160, 0);
-		ctx.lineTo(160, 170);
+		ctx.moveTo(160, 30);
+		ctx.lineTo(160, 200);
 		ctx.stroke();
 		// horizontal lines
 		ctx.beginPath();
-		ctx.moveTo(10, 0);
-		ctx.lineTo(160, 0);
+		ctx.moveTo(10, 30);
+		ctx.lineTo(160, 30);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(10, 5);
-		ctx.lineTo(160, 5);
+		ctx.moveTo(10, 35);
+		ctx.lineTo(160, 35);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(10, 55);
-		ctx.lineTo(160, 55);
+		ctx.moveTo(10, 85);
+		ctx.lineTo(160, 85);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(10, 105);
-		ctx.lineTo(160, 105);
+		ctx.moveTo(10, 135);
+		ctx.lineTo(160, 135);
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.moveTo(10, 155);
-		ctx.lineTo(160, 155);
+		ctx.moveTo(10, 185);
+		ctx.lineTo(160, 185);
 		ctx.stroke();
 	</script>
 </head>
 <body>
 <script type="text/javascript">
+
+// var notes = [{midiId: }];
 
 function play() {
 	MIDI.loadPlugin({
@@ -113,35 +115,6 @@ function play() {
 	});
 };
 
-function onStrum(int strumStr) {
-	MIDI.loadPlugin({
-		soundfontUrl: "./soundfont_guitar/",
-		instrument: "acoustic_guitar_steel",
-		onprogress: function(state, progress) {
-			console.log(state, progress);
-		},
-		onsuccess: function() {
-			var delay = 0;
-			var note1 = 50; // the MIDI note
-			var velocity = 127; // how hard the note hits
-			// play the note
-			MIDI.programChange(0, MIDI.GM.byName["acoustic_guitar_steel"].number); // select correct instrument
-			MIDI.setVolume(0, 300);
-			MIDI.noteOn(0, note1, velocity, delay);
-			MIDI.noteOff(0, note1, delay + 0.75);
-
-			var note2 = 52; // the MIDI note
-			MIDI.noteOn(0, note2, velocity, delay);
-			MIDI.noteOff(0, note2, delay + 0.75);
-
-			var c = document.getElementById("myCanvas");
-			var ctx = c.getContext("2d");
-			ctx.beginPath();
-			ctx.arc(70,130,10,0,2*Math.PI);
-			ctx.fill();
-		}
-	});
-}
 
 </script>
 </body>
