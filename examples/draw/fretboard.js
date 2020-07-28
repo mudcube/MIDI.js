@@ -12,6 +12,9 @@ const fretWidth=30;
 
 const circleRadius=20;
 const fretboardHeight=200;
+const correctFillColor = "#00FF00";
+const neutralFillColor = "#37FDFC";
+var correctChordFlag = false;
 
 (function(root) { 'use strict';
 root.drawFretboard = function () {
@@ -76,7 +79,7 @@ root.drawFretboard = function () {
     ctx.stroke();
     };
 
-    root.drawCircle = function (row, col) {
+    root.drawCircle = function (row, col, correctChord) {
         var c = document.getElementById("fretBoard");
         var ctx = c.getContext("2d");
         ctx.beginPath();
@@ -84,7 +87,11 @@ root.drawFretboard = function () {
         var x = (xStart*scale) + ((col * fretWidth) * scale);
         var y = (yFretStart * scale) + (row * (fretHeight *scale)) - ((fretHeight*scale)/2)
         ctx.arc(x, y ,circleRadius,0,2*Math.PI);
-        ctx.fillStyle="#37FDFC";
+        if (correctChord) {
+            ctx.fillStyle= correctFillColor;
+        } else {
+            ctx.fillStyle= neutralFillColor;
+        }
         ctx.fill();
 
     };
@@ -117,39 +124,51 @@ root.showChord=function(chordName)
      context.clearRect(0, 0, c.width, c.height);
      root.drawFretboard();
 
+     correctChordFlag=false;
+
      switch (chordName) {
         case 'D':
         // D Chord
         frets[1][5]=true;
         frets[1][3]=true;
         frets[2][4]=true;
+        correctChordFlag=true;
         break;
         case 'Em':
         // Em Chord
         frets[1][1]=true;
         frets[1][2]=true;
+        correctChordFlag=true;
         break;
         case 'C':
         // C Chord
         frets[0][4]=true;
         frets[1][2]=true;
         frets[2][1]=true;
+        correctChordFlag=true;
         break;
         case 'G':
         // G Chord
         frets[1][1]=true;
         frets[2][0]=true;
         frets[2][5]=true;
+        correctChordFlag=true;
+        break;
+        case 'X':
+        // X Chord - wrong chord
+        frets[1][0]=true;
+        frets[2][4]=true;
+        frets[2][5]=true;
         break;
 
     }
-    drawChord(frets);
+    drawChord(frets, correctChordFlag);
 
 
 
 }
 
-function drawChord(frets) {
+function drawChord(frets, correctChordFlag) {
 
 var col=0, row=0;
 for (row=0;row<3;row++)
@@ -157,14 +176,14 @@ for (row=0;row<3;row++)
     col=0;
     if (frets[row][col] == true)
     {
-        root.drawCircle(row, col);
+        root.drawCircle(row, col, correctChordFlag);
     }
 
     for (col=0;col<6;col++)
     {
         if (frets[row][col] == true)
         {
-            root.drawCircle(row, col);
+            root.drawCircle(row, col, correctChordFlag);
         }
     }
 }
