@@ -1,5 +1,5 @@
 
-if (typeof DRAWGUITAR === 'undefined') DRAWGUITAR = {}; 
+if (typeof DRAWGUITAR === 'undefined') DRAWGUITAR = {};
 
 const scale=2;
 const xStart =10;
@@ -85,19 +85,19 @@ root.drawFretboard = function () {
         var y = (yFretStart * scale) + (row * (fretHeight *scale)) - ((fretHeight*scale)/2)
         ctx.arc(x, y ,circleRadius,0,2*Math.PI);
         ctx.fillStyle="#37FDFC";
-        ctx.fill();        
-    
+        ctx.fill();
+
     };
 
 
     // frets 0 - 17
     // C chord == [0][4], [1,2], [2,2]
     // Em chord == [1,1], [1,2]
-    // D chord == [1, 5], [1, 3], [2, 2]
+    // D chord == [1, 5], [1, 3], [2, 4]
     // G chord == [1, 1] [2,0][2,5]
 
     var frets = [
-        // 0, 1, 2 , 3, 4 , 5 
+        // 0, 1, 2 , 3, 4 , 5
         [false, false, false, false, false, false],
         // 6, 7, 8, 9, 10, 11
         [false, false, false, false, false, false],
@@ -106,16 +106,61 @@ root.drawFretboard = function () {
       ];
 
 
-root.demoChords= function() {     
-// G Chord 
-frets[1][5]=true;
-frets[1][3]=true;
-frets[2][2]=true;
+root.showChord=function(chordName)
+{
+    // Clear fretBoard
+     frets[0].fill(false);
+     frets[1].fill(false);
+     frets[2].fill(false);
+     var c = document.getElementById("fretBoard");
+     const context = c.getContext('2d');
+     context.clearRect(0, 0, c.width, c.height);
+     root.drawFretboard();
+
+     switch (chordName) {
+        case 'D':
+        // D Chord
+        frets[1][5]=true;
+        frets[1][3]=true;
+        frets[2][4]=true;
+        break;
+        case 'Em':
+        // Em Chord
+        frets[1][1]=true;
+        frets[1][2]=true;
+        break;
+        case 'C':
+        // C Chord
+        frets[0][4]=true;
+        frets[1][2]=true;
+        frets[2][1]=true;
+        break;
+        case 'G':
+        // G Chord
+        frets[1][1]=true;
+        frets[2][0]=true;
+        frets[2][5]=true;
+        break;
+
+    }
+    drawChord(frets);
+
+
+
+}
+
+function drawChord(frets) {
 
 var col=0, row=0;
-for (row=0;row<2;row++)
+for (row=0;row<3;row++)
 {
-    for (col=0;col<5;col++)
+    col=0;
+    if (frets[row][col] == true)
+    {
+        root.drawCircle(row, col);
+    }
+
+    for (col=0;col<6;col++)
     {
         if (frets[row][col] == true)
         {
@@ -124,16 +169,6 @@ for (row=0;row<2;row++)
     }
 }
 
-
-
-
-
 }
-
-
-
-
-
-
 
 })(DRAWGUITAR);
