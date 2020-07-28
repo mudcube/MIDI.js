@@ -76,16 +76,6 @@ root.drawFretboard = function () {
     ctx.stroke();
     };
 
-    // root.drawCircle = function () {
-    //     var c = document.getElementById("fretBoard");
-    //     var ctx = c.getContext("2d");
-    //     ctx.beginPath();
-    //     ctx.arc(xStart*scale, ((yStart + topWidth) * scale) + ((fretHeight *scale) /2)    ,circleRadius,0,2*Math.PI);
-    //     ctx.fillStyle="#37FDFC";
-    //     ctx.fill();        
-    
-    // };    
-
     root.drawCircle = function (row, col) {
         var c = document.getElementById("fretBoard");
         var ctx = c.getContext("2d");
@@ -116,19 +106,20 @@ root.drawFretboard = function () {
       ];
 
 
-function displayString() {     // C Chord
-frets[0][4]=true;
-frets[1][2]=true;
+root.demoChords= function() {     
+// G Chord 
+frets[1][5]=true;
+frets[1][3]=true;
 frets[2][2]=true;
 
 var col=0, row=0;
-for (row=0;1<2;row++)
+for (row=0;row<2;row++)
 {
-    for (col=0;1<5;col++)
+    for (col=0;col<5;col++)
     {
-        if (frets[row,col] === true)
+        if (frets[row][col] == true)
         {
-            drawCircle(row, col);
+            root.drawCircle(row, col);
         }
     }
 }
