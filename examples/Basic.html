@@ -29,12 +29,21 @@
 			<button onclick="DRAWGUITAR.showChord('X')">Wrong Chord</button> 
 		
         </div>
-        <div class="flex-container-vert">
-            <canvas id="fretBoard" width="340" height="400" style="border:0px solid #000000;">
+		<div class="flex-container-vert" style="margin-left: 60px">
+			<div style="font: italic  bold 18px Arial;margin-left: 15px;">
+				You are playing a: 
+			</div>
+			<div style="font: italic  bold 48px Arial;margin-left: 15px;text-align: center;">
+				C
+			</div>
+			<canvas id="fretBoard" width="340" height="400" style="border:0px solid #000000;">
                 Your browser does not support the HTML5 canvas tag.</canvas>
             <canvas id="strummer" width="300" height="200" style="border:0px solid #d3d3d3;">
                 Your browser does not support the HTML5 canvas tag.</canvas>
-        </div>
+		</div>
+        <div class="flex-container-vert" style="margin-left: 60px">
+			<img src="./images/BrownEyedGirlSheet.png" />
+		</div>
     </div>
 	<!-- <button onclick="play()">Make Noise</button>
 	<button onclick="DRAWGUITAR.showChord('D')">D Chord</button> 

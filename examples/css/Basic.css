@@ -2,11 +2,20 @@
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
+
 }
 
 .flex-container-horiz {
     display: flex;
     flex-wrap: wrap;
+    /* margin-top: 100px;
+      
+    margin-bottom: 100px;
+ 
+    margin-right: 150px;
+ 
+    margin-left: 80px; */
+
 }
 
 /* add to head with this tag: */
