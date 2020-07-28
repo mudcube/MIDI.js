@@ -2,6 +2,7 @@
 <html xmlns = "http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<link href="./css/Basic.css" rel="stylesheet" text="text/css"/>
 	<!-- polyfill -->
 	<script src="../inc/shim/Base64.js" type="text/javascript"></script>
 	<script src="../inc/shim/Base64binary.js" type="text/javascript"></script>
@@ -17,17 +18,34 @@
 	<script src="../js/util/dom_request_xhr.js" type="text/javascript"></script>
 	<script src="../js/util/dom_request_script.js" type="text/javascript"></script>
 	<script src="./draw/fretboard.js" type="text/javascript"></script>
-	
-	<!-- <button onclick="play()">Make Noise</button> -->
+	<div class="flex-container-horiz">
+        <div class="flex-container-vert">
+            <button onclick="play()">Make Noise</button>
+			<button onclick="strumAll()">Strum All</button>
+			<button onclick="DRAWGUITAR.showChord('D')">D Chord</button> 
+			<button onclick="DRAWGUITAR.showChord('G')">G Chord</button> 
+			<button onclick="DRAWGUITAR.showChord('Em')">Em Chord</button> 
+			<button onclick="DRAWGUITAR.showChord('C')">C Chord</button> 
+			<button onclick="DRAWGUITAR.showChord('X')">Wrong Chord</button> 
+		
+        </div>
+        <div class="flex-container-vert">
+            <canvas id="fretBoard" width="340" height="400" style="border:0px solid #000000;">
+                Your browser does not support the HTML5 canvas tag.</canvas>
+            <canvas id="strummer" width="300" height="200" style="border:0px solid #d3d3d3;">
+                Your browser does not support the HTML5 canvas tag.</canvas>
+        </div>
+    </div>
+	<!-- <button onclick="play()">Make Noise</button>
 	<button onclick="DRAWGUITAR.showChord('D')">D Chord</button> 
 	<button onclick="DRAWGUITAR.showChord('G')">G Chord</button> 
 	<button onclick="DRAWGUITAR.showChord('Em')">Em Chord</button> 
 	<button onclick="DRAWGUITAR.showChord('C')">C Chord</button> 
 	<button onclick="DRAWGUITAR.showChord('X')">Wrong Chord</button> 
-
+ -->
 	<!-- <button onclick="test()">All Positions</button>  -->
 
-	<canvas id="fretBoard" width="340" height="400" style="border:0px solid #000000;position: absolute; left: 20; top: 60; z-index: 0;"/> 
+	<!-- <canvas id="fretBoard" width="340" height="400" style="border:0px solid #000000;position: absolute; left: 20; top: 60; z-index: 0;"/>  -->
 
 
 <script>
@@ -58,6 +76,84 @@ function test() {
 	DRAWGUITAR.drawCircle(2, 5);
 	
 }
+
+		var c = document.getElementById("strummer");
+		var ctx = c.getContext("2d");
+		// vertical lines
+		ctx.beginPath();
+		ctx.moveTo(10, 35);
+		ctx.lineTo(10, 85);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(40, 35);
+		ctx.lineTo(40, 85);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(70, 35);
+		ctx.lineTo(70, 85);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(100, 35);
+		ctx.lineTo(100, 85);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(130, 35);
+		ctx.lineTo(130, 85);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(160, 35);
+		ctx.lineTo(160, 85);
+		ctx.stroke();
+		// horizontal lines
+		ctx.beginPath();
+		ctx.moveTo(10, 35);
+		ctx.lineTo(160, 35);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(10, 85);
+		ctx.lineTo(160, 85);
+		ctx.stroke();
+
+		function strumAll() {
+	var c = document.getElementById("strummer");
+	var ctx = c.getContext("2d");
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(5, 45, 10, 30);
+	ctx.fill();
+
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(35, 45, 10, 30);
+	ctx.fill();
+
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(65, 45, 10, 30);
+	ctx.fill();
+
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(95, 45, 10, 30);
+	ctx.fill();
+
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(125, 45, 10, 30);
+	ctx.fill();
+
+	ctx.beginPath();
+	ctx.fillStyle = "blue";
+	ctx.rect(155, 45, 10, 30);
+	ctx.fill();
+}
+
 </script>		
 </head>
 <body>

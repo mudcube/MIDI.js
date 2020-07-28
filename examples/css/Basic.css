@@ -1,0 +1,13 @@
+.flex-container-vert {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.flex-container-horiz {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* add to head with this tag: */
+/* 	<link href="./css/Basic.css" rel="stylesheet" type="text/css" /> */
