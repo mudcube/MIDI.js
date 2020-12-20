@@ -277,7 +277,7 @@ def midi_to_audio(source, target)
   digest = Digest::SHA1.hexdigest source
   raw_file = FLUIDSYNTH_RAW % [digest]
   run_command "#{FLUIDSYNTH} -C 1 -R 1 -g 0.5 -F #{raw_file} #{SOUNDFONT} #{source}"
-  run_command "#{SOX} -b 16 -c 2 -s -r 44100 #{raw_file} #{target}"
+  run_command "#{SOX} -b 16 -c 2 -e signed-integer -r 44100 #{raw_file} #{target}"
   run_command "#{OGGENC} -m 32 -M 64 #{target}"
   run_command "#{LAME} -v -b 8 -B 32 #{target}"
   rm target
