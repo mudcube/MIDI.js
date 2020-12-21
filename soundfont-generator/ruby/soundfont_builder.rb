@@ -35,21 +35,6 @@ SOUNDFONT = "./FluidR3_GM.sf2"        # Soundfont file path
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
 INSTRUMENTS = [
-  # 0,     # Acoustic Grand Piano
-  # 24,    # Acoustic Guitar (nylon)
-  # 25,    # Acoustic Guitar (steel)
-  # 26,    # Electric Guitar (jazz)
-  # 30,    # Distortion Guitar
-  # 33,    # Electric Bass (finger)
-  # 34,    # Electric Bass (pick)
-  # 56,    # Trumpet
-  # 61,    # Brass Section
-  # 64,    # Soprano Sax
-  # 65,    # Alto Sax
-  # 66,    # Tenor Sax
-  # 67,    # Baritone Sax
-  # 73,    # Flute
-  # 118    # Synth Drum
   0,
   1,
   2,
@@ -445,7 +430,7 @@ end
 
 def generate_audio(program)
   instrument = MIDIJS_PATCH_NAMES[program]
-  program_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s+/, "_")
+  program_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s/, "_")
 
   puts "Generating audio for: " + instrument + "(#{program_key})"
 
