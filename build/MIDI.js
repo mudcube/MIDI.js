@@ -1,925 +1,650 @@
 /*
-	-------------------------------------
-	MIDI.audioDetect : 0.3
-	-------------------------------------
+	----------------------------------------------------------
+	MIDI.audioDetect : 0.3.2 : 2015-03-26
+	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
-	-------------------------------------
+	----------------------------------------------------------
 	Probably, Maybe, No... Absolutely!
-	-------------------------------------
 	Test to see what types of <audio> MIME types are playable by the browser.
-	-------------------------------------
+	----------------------------------------------------------
 */
 
-if (typeof(MIDI) === "undefined") var MIDI = {};
+if (typeof MIDI === 'undefined') MIDI = {};
 
-(function() { "use strict";
+(function(root) { 'use strict';
 
-var supports = {};	
-var canPlayThrough = function (src) {
-	var audio = new Audio();
-	var mime = src.split(";")[0];
-	audio.id = "audio";
-	audio.setAttribute("preload", "auto");
-	audio.setAttribute("audiobuffer", true);
-	audio.addEventListener("canplaythrough", function() {
-		supports[mime] = true;
-	}, false);
-	audio.src = "data:" + src;
-	document.body.appendChild(audio);
-};
-
-MIDI.audioDetect = function(callback) {
-	// check whether <audio> tag is supported
-	if (typeof(Audio) === "undefined") return callback({});
-	// check whether canPlayType is supported
-	var audio = new Audio();
-	if (typeof(audio.canPlayType) === "undefined") return callback(supports);
-	// see what we can learn from the browser
-	var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
-	vorbis = (vorbis === "probably" || vorbis === "maybe");
-	var mpeg = audio.canPlayType('audio/mpeg');
-	mpeg = (mpeg === "probably" || mpeg === "maybe");
-	// maybe nothing is supported
-	if (!vorbis && !mpeg) {
-		callback(supports);
-		return;
-	}
-	// or maybe something is supported
-	if (vorbis) canPlayThrough("audio/ogg;base64,T2dnUwACAAAAAAAAAADqnjMlAAAAAOyyzPIBHgF2b3JiaXMAAAAAAUAfAABAHwAAQB8AAEAfAACZAU9nZ1MAAAAAAAAAAAAA6p4zJQEAAAANJGeqCj3//////////5ADdm9yYmlzLQAAAFhpcGguT3JnIGxpYlZvcmJpcyBJIDIwMTAxMTAxIChTY2hhdWZlbnVnZ2V0KQAAAAABBXZvcmJpcw9CQ1YBAAABAAxSFCElGVNKYwiVUlIpBR1jUFtHHWPUOUYhZBBTiEkZpXtPKpVYSsgRUlgpRR1TTFNJlVKWKUUdYxRTSCFT1jFloXMUS4ZJCSVsTa50FkvomWOWMUYdY85aSp1j1jFFHWNSUkmhcxg6ZiVkFDpGxehifDA6laJCKL7H3lLpLYWKW4q91xpT6y2EGEtpwQhhc+211dxKasUYY4wxxsXiUyiC0JBVAAABAABABAFCQ1YBAAoAAMJQDEVRgNCQVQBABgCAABRFcRTHcRxHkiTLAkJDVgEAQAAAAgAAKI7hKJIjSZJkWZZlWZameZaouaov+64u667t6roOhIasBACAAAAYRqF1TCqDEEPKQ4QUY9AzoxBDDEzGHGNONKQMMogzxZAyiFssLqgQBKEhKwKAKAAAwBjEGGIMOeekZFIi55iUTkoDnaPUUcoolRRLjBmlEluJMYLOUeooZZRCjKXFjFKJscRUAABAgAMAQICFUGjIigAgCgCAMAYphZRCjCnmFHOIMeUcgwwxxiBkzinoGJNOSuWck85JiRhjzjEHlXNOSuekctBJyaQTAAAQ4AAAEGAhFBqyIgCIEwAwSJKmWZomipamiaJniqrqiaKqWp5nmp5pqqpnmqpqqqrrmqrqypbnmaZnmqrqmaaqiqbquqaquq6nqrZsuqoum65q267s+rZru77uqapsm6or66bqyrrqyrbuurbtS56nqqKquq5nqq6ruq5uq65r25pqyq6purJtuq4tu7Js664s67pmqq5suqotm64s667s2rYqy7ovuq5uq7Ks+6os+75s67ru2rrwi65r66os674qy74x27bwy7ouHJMnqqqnqq7rmarrqq5r26rr2rqmmq5suq4tm6or26os67Yry7aumaosm64r26bryrIqy77vyrJui67r66Ys67oqy8Lu6roxzLat+6Lr6roqy7qvyrKuu7ru+7JuC7umqrpuyrKvm7Ks+7auC8us27oxuq7vq7It/KosC7+u+8Iy6z5jdF1fV21ZGFbZ9n3d95Vj1nVhWW1b+V1bZ7y+bgy7bvzKrQvLstq2scy6rSyvrxvDLux8W/iVmqratum6um7Ksq/Lui60dd1XRtf1fdW2fV+VZd+3hV9pG8OwjK6r+6os68Jry8ov67qw7MIvLKttK7+r68ow27qw3L6wLL/uC8uq277v6rrStXVluX2fsSu38QsAABhwAAAIMKEMFBqyIgCIEwBAEHIOKQahYgpCCKGkEEIqFWNSMuakZM5JKaWUFEpJrWJMSuaclMwxKaGUlkopqYRSWiqlxBRKaS2l1mJKqcVQSmulpNZKSa2llGJMrcUYMSYlc05K5pyUklJrJZXWMucoZQ5K6iCklEoqraTUYuacpA46Kx2E1EoqMZWUYgupxFZKaq2kFGMrMdXUWo4hpRhLSrGVlFptMdXWWqs1YkxK5pyUzDkqJaXWSiqtZc5J6iC01DkoqaTUYiopxco5SR2ElDLIqJSUWiupxBJSia20FGMpqcXUYq4pxRZDSS2WlFosqcTWYoy1tVRTJ6XFklKMJZUYW6y5ttZqDKXEVkqLsaSUW2sx1xZjjqGkFksrsZWUWmy15dhayzW1VGNKrdYWY40x5ZRrrT2n1mJNMdXaWqy51ZZbzLXnTkprpZQWS0oxttZijTHmHEppraQUWykpxtZara3FXEMpsZXSWiypxNhirLXFVmNqrcYWW62ltVprrb3GVlsurdXcYqw9tZRrrLXmWFNtBQAADDgAAASYUAYKDVkJAEQBAADGMMYYhEYpx5yT0ijlnHNSKucghJBS5hyEEFLKnINQSkuZcxBKSSmUklJqrYVSUmqttQIAAAocAAACbNCUWByg0JCVAEAqAIDBcTRNFFXVdX1fsSxRVFXXlW3jVyxNFFVVdm1b+DVRVFXXtW3bFn5NFFVVdmXZtoWiqrqybduybgvDqKqua9uybeuorqvbuq3bui9UXVmWbVu3dR3XtnXd9nVd+Bmzbeu2buu+8CMMR9/4IeTj+3RCCAAAT3AAACqwYXWEk6KxwEJDVgIAGQAAgDFKGYUYM0gxphhjTDHGmAAAgAEHAIAAE8pAoSErAoAoAADAOeecc84555xzzjnnnHPOOeecc44xxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY0wAwE6EA8BOhIVQaMhKACAcAABACCEpKaWUUkoRU85BSSmllFKqFIOMSkoppZRSpBR1lFJKKaWUIqWgpJJSSimllElJKaWUUkoppYw6SimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaVUSimllFJKKaWUUkoppRQAYPLgAACVYOMMK0lnhaPBhYasBAByAwAAhRiDEEJpraRUUkolVc5BKCWUlEpKKZWUUqqYgxBKKqmlklJKKbXSQSihlFBKKSWUUkooJYQQSgmhlFRCK6mEUkoHoYQSQimhhFRKKSWUzkEoIYUOQkmllNRCSB10VFIpIZVSSiklpZQ6CKGUklJLLZVSWkqpdBJSKamV1FJqqbWSUgmhpFZKSSWl0lpJJbUSSkklpZRSSymFVFJJJYSSUioltZZaSqm11lJIqZWUUkqppdRSSiWlkEpKqZSSUmollZRSaiGVlEpJKaTUSimlpFRCSamlUlpKLbWUSkmptFRSSaWUlEpJKaVSSksppRJKSqmllFpJKYWSUkoplZJSSyW1VEoKJaWUUkmptJRSSymVklIBAEAHDgAAAUZUWoidZlx5BI4oZJiAAgAAQABAgAkgMEBQMApBgDACAQAAAADAAAAfAABHARAR0ZzBAUKCwgJDg8MDAAAAAAAAAAAAAACAT2dnUwAEAAAAAAAAAADqnjMlAgAAADzQPmcBAQA=");
-	if (mpeg) canPlayThrough("audio/mpeg;base64,/+MYxAAAAANIAUAAAASEEB/jwOFM/0MM/90b/+RhST//w4NFwOjf///PZu////9lns5GFDv//l9GlUIEEIAAAgIg8Ir/JGq3/+MYxDsLIj5QMYcoAP0dv9HIjUcH//yYSg+CIbkGP//8w0bLVjUP///3Z0x5QCAv/yLjwtGKTEFNRTMuOTeqqqqqqqqqqqqq/+MYxEkNmdJkUYc4AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
-	// lets find out!
-	var time = (new Date()).getTime(); 
-	var interval = window.setInterval(function() {
-		for (var key in supports) {}
-		var now = (new Date()).getTime();
-		var maxExecution = now - time > 5000;
-		if (key || maxExecution) {
-			window.clearInterval(interval);
-			callback(supports);
-		}
-	}, 1);
-};
-
-})();
-/*
-	-----------------------------------------------------------
-	MIDI.loadPlugin : 0.1.2 : 01/18/2012
-	-----------------------------------------------------------
-	https://github.com/mudcube/MIDI.js
-	-----------------------------------------------------------
-	MIDI.loadPlugin({
-		instrument: "acoustic_grand_piano", // or 1 (default)
-		instruments: [ "acoustic_grand_piano", "acoustic_guitar_nylon" ], // or multiple instruments
-		callback: function() { }
-	});
-*/
-
-if (typeof (MIDI) === "undefined") var MIDI = {};
-if (typeof (MIDI.Soundfont) === "undefined") MIDI.Soundfont = {};
-
-(function() { "use strict";
-
-// Turn on to get "onprogress" event. XHR will not work from file://
-var USE_XHR = false; 
-
-MIDI.loadPlugin = function(conf) {
-	if (typeof(conf) === "function") conf = { callback: conf };
-	/// Get the instrument name.
-	var instruments = conf.instruments || conf.instrument || "acoustic_grand_piano";
-	if (typeof(instruments) !== "object") instruments = [ instruments ];
-	instruments.map(function(data) {
-		if (typeof(data) === "number") data = MIDI.GeneralMIDI.byId[data];
-		return data;		
-	});
-	///
-	MIDI.soundfontUrl = conf.soundfontUrl || MIDI.soundfontUrl || "./soundfont/";
-	/// Detect the best type of audio to use.
-	MIDI.audioDetect(function(types) {
-		var type = "";
-		// use the most appropriate plugin if not specified
-		if (typeof(type) === 'undefined') {
-			if (plugins[window.location.hash]) {
-				type = window.location.hash.substr(1);
-			} else { //
-				type = "";
-			}
-		}
-		if (type === "") {
-			if (navigator.requestMIDIAccess) {
-				type = "webmidi";
-			} else if (window.webkitAudioContext) { // Chrome
-				type = "webaudio";
-			} else if (window.Audio) { // Firefox
-				type = "audiotag";
-			} else { // Internet Explorer
-				type = "flash";
-			}
-		}
-		if (!connect[type]) return;
-		// use audio/ogg when supported
-		var filetype = types["audio/ogg"] ? "ogg" : "mp3";
-		// load the specified plugin
-		connect[type](filetype, instruments, conf.callback);
-	});
-};
-
-///
-
-var connect = {};
-
-connect.webmidi = function(filetype, instruments, callback) {
-	if (MIDI.loader) MIDI.loader.message("Web MIDI API...");
-	MIDI.WebMIDI.connect(callback);
-};
-
-connect.flash = function(filetype, instruments, callback) {
-	// fairly quick, but requires loading of individual MP3s (more http requests).
-	if (MIDI.loader) MIDI.loader.message("Flash API...");
-	DOMLoader.script.add({
-		src: "./inc/SoundManager2/script/soundmanager2.js",
-		verify: "SoundManager",
-		callback: function () {
-			MIDI.Flash.connect(callback);
-		}
-	});
-};
-
-connect.audiotag = function(filetype, instruments, callback) {
-	if (MIDI.loader) MIDI.loader.message("HTML5 Audio API...");
-	// works ok, kinda like a drunken tuna fish, across the board.
-	var queue = createQueue({
-		items: instruments,
-		getNext: function(instrumentId) {
-			if (USE_XHR) {
-				DOMLoader.sendRequest({
-					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function (response) {
-						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading", 100);
-						queue.getNext();
-					}
-				});
-			} else {
-				DOMLoader.script.add({
-					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: "MIDI.Soundfont." + instrumentId,
-					callback: function() {
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			}
-		},
-		onComplete: function() {
-			MIDI.AudioTag.connect(callback);
-		}
-	});
-};
-
-connect.webaudio = function(filetype, instruments, callback) {
-	if (MIDI.loader) MIDI.loader.message("Web Audio API...");
-	// works awesome! safari and chrome support
-	var queue = createQueue({
-		items: instruments,
-		getNext: function(instrumentId) {
-			if (USE_XHR) {
-				DOMLoader.sendRequest({
-					url: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					onprogress: getPercent,
-					onload: function(response) {
-						MIDI.Soundfont[instrumentId] = JSON.parse(response.responseText);
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			} else {
-				DOMLoader.script.add({
-					src: MIDI.soundfontUrl + instrumentId + "-" + filetype + ".js",
-					verify: "MIDI.Soundfont." + instrumentId,
-					callback: function() {
-						if (MIDI.loader) MIDI.loader.update(null, "Downloading...", 100);
-						queue.getNext();
-					}
-				});
-			}
-		},
-		onComplete: function() {
-			MIDI.WebAudioAPI.connect(callback);
-		}
-	});
-};
-
-/// Helpers
-
-var plugins = {
-	"#webmidi": true, 
-	"#webaudio": true, 
-	"#audiotag": true, 
-	"#flash": true 
-};
-
-var getPercent = function(event) {
-	if (!this.totalSize) {
-		if (this.getResponseHeader("Content-Length-Raw")) {
-			this.totalSize = parseInt(this.getResponseHeader("Content-Length-Raw"));
-		} else {
-			this.totalSize = event.total;
-		}
-	}
-	var percent = this.totalSize ? Math.round(event.loaded / this.totalSize * 100) : "";
-	if (MIDI.loader) MIDI.loader.update(null, "Downloading...", percent);
-};
-
-var createQueue = function(conf) {
-	var self = {};
-	self.queue = [];
-	for (var key in conf.items) {
-		self.queue.push(conf.items[key]);
-	}
-	self.getNext = function() {
-		if (!self.queue.length) return conf.onComplete();
-		conf.getNext(self.queue.shift());
+	var supports = {}; // object of supported file types
+	var pending = 0; // pending file types to process
+	var canPlayThrough = function (src) { // check whether format plays through
+		pending ++;
+		var body = document.body;
+		var audio = new Audio();
+		var mime = src.split(';')[0];
+		audio.id = 'audio';
+		audio.setAttribute('preload', 'auto');
+		audio.setAttribute('audiobuffer', true);
+		audio.addEventListener('error', function() {
+			body.removeChild(audio);
+			supports[mime] = false;
+			pending --;
+		}, false);
+		audio.addEventListener('canplaythrough', function() {
+			body.removeChild(audio);
+			supports[mime] = true;
+			pending --;
+		}, false);
+		audio.src = 'data:' + src;
+		body.appendChild(audio);
 	};
-	setTimeout(self.getNext, 1);
-	return self;
-};
 
-})();
+	root.audioDetect = function(onsuccess) {
+		/// detect jazz-midi plugin
+		if (navigator.requestMIDIAccess) {
+			var isNative = Function.prototype.toString.call(navigator.requestMIDIAccess).indexOf('[native code]');
+			if (isNative) { // has native midiapi support
+				supports['webmidi'] = true;
+			} else { // check for jazz plugin midiapi support
+				for (var n = 0; navigator.plugins.length > n; n ++) {
+					var plugin = navigator.plugins[n];
+					if (plugin.name.indexOf('Jazz-Plugin') >= 0) {
+						supports['webmidi'] = true;
+					}
+				}
+			}
+		}
+
+		/// check whether <audio> tag is supported
+		if (typeof(Audio) === 'undefined') {
+			return onsuccess({});
+		} else {
+			supports['audiotag'] = true;
+		}
+
+		/// check for webaudio api support
+		if (window.AudioContext || window.webkitAudioContext) {
+			supports['webaudio'] = true;
+		}
+
+		/// check whether canPlayType is supported
+		var audio = new Audio();
+		if (typeof(audio.canPlayType) === 'undefined') {
+			return onsuccess(supports);
+		}
+
+		/// see what we can learn from the browser
+		var vorbis = audio.canPlayType('audio/ogg; codecs="vorbis"');
+		vorbis = (vorbis === 'probably' || vorbis === 'maybe');
+		var mpeg = audio.canPlayType('audio/mpeg');
+		mpeg = (mpeg === 'probably' || mpeg === 'maybe');
+		// maybe nothing is supported
+		if (!vorbis && !mpeg) {
+			onsuccess(supports);
+			return;
+		}
+
+		/// or maybe something is supported
+		if (vorbis) canPlayThrough('audio/ogg;base64,T2dnUwACAAAAAAAAAADqnjMlAAAAAOyyzPIBHgF2b3JiaXMAAAAAAUAfAABAHwAAQB8AAEAfAACZAU9nZ1MAAAAAAAAAAAAA6p4zJQEAAAANJGeqCj3//////////5ADdm9yYmlzLQAAAFhpcGguT3JnIGxpYlZvcmJpcyBJIDIwMTAxMTAxIChTY2hhdWZlbnVnZ2V0KQAAAAABBXZvcmJpcw9CQ1YBAAABAAxSFCElGVNKYwiVUlIpBR1jUFtHHWPUOUYhZBBTiEkZpXtPKpVYSsgRUlgpRR1TTFNJlVKWKUUdYxRTSCFT1jFloXMUS4ZJCSVsTa50FkvomWOWMUYdY85aSp1j1jFFHWNSUkmhcxg6ZiVkFDpGxehifDA6laJCKL7H3lLpLYWKW4q91xpT6y2EGEtpwQhhc+211dxKasUYY4wxxsXiUyiC0JBVAAABAABABAFCQ1YBAAoAAMJQDEVRgNCQVQBABgCAABRFcRTHcRxHkiTLAkJDVgEAQAAAAgAAKI7hKJIjSZJkWZZlWZameZaouaov+64u667t6roOhIasBACAAAAYRqF1TCqDEEPKQ4QUY9AzoxBDDEzGHGNONKQMMogzxZAyiFssLqgQBKEhKwKAKAAAwBjEGGIMOeekZFIi55iUTkoDnaPUUcoolRRLjBmlEluJMYLOUeooZZRCjKXFjFKJscRUAABAgAMAQICFUGjIigAgCgCAMAYphZRCjCnmFHOIMeUcgwwxxiBkzinoGJNOSuWck85JiRhjzjEHlXNOSuekctBJyaQTAAAQ4AAAEGAhFBqyIgCIEwAwSJKmWZomipamiaJniqrqiaKqWp5nmp5pqqpnmqpqqqrrmqrqypbnmaZnmqrqmaaqiqbquqaquq6nqrZsuqoum65q267s+rZru77uqapsm6or66bqyrrqyrbuurbtS56nqqKquq5nqq6ruq5uq65r25pqyq6purJtuq4tu7Js664s67pmqq5suqotm64s667s2rYqy7ovuq5uq7Ks+6os+75s67ru2rrwi65r66os674qy74x27bwy7ouHJMnqqqnqq7rmarrqq5r26rr2rqmmq5suq4tm6or26os67Yry7aumaosm64r26bryrIqy77vyrJui67r66Ys67oqy8Lu6roxzLat+6Lr6roqy7qvyrKuu7ru+7JuC7umqrpuyrKvm7Ks+7auC8us27oxuq7vq7It/KosC7+u+8Iy6z5jdF1fV21ZGFbZ9n3d95Vj1nVhWW1b+V1bZ7y+bgy7bvzKrQvLstq2scy6rSyvrxvDLux8W/iVmqratum6um7Ksq/Lui60dd1XRtf1fdW2fV+VZd+3hV9pG8OwjK6r+6os68Jry8ov67qw7MIvLKttK7+r68ow27qw3L6wLL/uC8uq277v6rrStXVluX2fsSu38QsAABhwAAAIMKEMFBqyIgCIEwBAEHIOKQahYgpCCKGkEEIqFWNSMuakZM5JKaWUFEpJrWJMSuaclMwxKaGUlkopqYRSWiqlxBRKaS2l1mJKqcVQSmulpNZKSa2llGJMrcUYMSYlc05K5pyUklJrJZXWMucoZQ5K6iCklEoqraTUYuacpA46Kx2E1EoqMZWUYgupxFZKaq2kFGMrMdXUWo4hpRhLSrGVlFptMdXWWqs1YkxK5pyUzDkqJaXWSiqtZc5J6iC01DkoqaTUYiopxco5SR2ElDLIqJSUWiupxBJSia20FGMpqcXUYq4pxRZDSS2WlFosqcTWYoy1tVRTJ6XFklKMJZUYW6y5ttZqDKXEVkqLsaSUW2sx1xZjjqGkFksrsZWUWmy15dhayzW1VGNKrdYWY40x5ZRrrT2n1mJNMdXaWqy51ZZbzLXnTkprpZQWS0oxttZijTHmHEppraQUWykpxtZara3FXEMpsZXSWiypxNhirLXFVmNqrcYWW62ltVprrb3GVlsurdXcYqw9tZRrrLXmWFNtBQAADDgAAASYUAYKDVkJAEQBAADGMMYYhEYpx5yT0ijlnHNSKucghJBS5hyEEFLKnINQSkuZcxBKSSmUklJqrYVSUmqttQIAAAocAAACbNCUWByg0JCVAEAqAIDBcTRNFFXVdX1fsSxRVFXXlW3jVyxNFFVVdm1b+DVRVFXXtW3bFn5NFFVVdmXZtoWiqrqybduybgvDqKqua9uybeuorqvbuq3bui9UXVmWbVu3dR3XtnXd9nVd+Bmzbeu2buu+8CMMR9/4IeTj+3RCCAAAT3AAACqwYXWEk6KxwEJDVgIAGQAAgDFKGYUYM0gxphhjTDHGmAAAgAEHAIAAE8pAoSErAoAoAADAOeecc84555xzzjnnnHPOOeecc44xxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY0wAwE6EA8BOhIVQaMhKACAcAABACCEpKaWUUkoRU85BSSmllFKqFIOMSkoppZRSpBR1lFJKKaWUIqWgpJJSSimllElJKaWUUkoppYw6SimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaVUSimllFJKKaWUUkoppRQAYPLgAACVYOMMK0lnhaPBhYasBAByAwAAhRiDEEJpraRUUkolVc5BKCWUlEpKKZWUUqqYgxBKKqmlklJKKbXSQSihlFBKKSWUUkooJYQQSgmhlFRCK6mEUkoHoYQSQimhhFRKKSWUzkEoIYUOQkmllNRCSB10VFIpIZVSSiklpZQ6CKGUklJLLZVSWkqpdBJSKamV1FJqqbWSUgmhpFZKSSWl0lpJJbUSSkklpZRSSymFVFJJJYSSUioltZZaSqm11lJIqZWUUkqppdRSSiWlkEpKqZSSUmollZRSaiGVlEpJKaTUSimlpFRCSamlUlpKLbWUSkmptFRSSaWUlEpJKaVSSksppRJKSqmllFpJKYWSUkoplZJSSyW1VEoKJaWUUkmptJRSSymVklIBAEAHDgAAAUZUWoidZlx5BI4oZJiAAgAAQABAgAkgMEBQMApBgDACAQAAAADAAAAfAABHARAR0ZzBAUKCwgJDg8MDAAAAAAAAAAAAAACAT2dnUwAEAAAAAAAAAADqnjMlAgAAADzQPmcBAQA=');
+		if (mpeg) canPlayThrough('audio/mpeg;base64,/+MYxAAAAANIAUAAAASEEB/jwOFM/0MM/90b/+RhST//w4NFwOjf///PZu////9lns5GFDv//l9GlUIEEIAAAgIg8Ir/JGq3/+MYxDsLIj5QMYcoAP0dv9HIjUcH//yYSg+CIbkGP//8w0bLVjUP///3Z0x5QCAv/yLjwtGKTEFNRTMuOTeqqqqqqqqqqqqq/+MYxEkNmdJkUYc4AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq');
+
+		/// lets find out!
+		var time = (new Date()).getTime(); 
+		var interval = window.setInterval(function() {
+			var now = (new Date()).getTime();
+			var maxExecution = now - time > 5000;
+			if (!pending || maxExecution) {
+				window.clearInterval(interval);
+				onsuccess(supports);
+			}
+		}, 1);
+	};
+
+})(MIDI);
 /*
-	--------------------------------------------
-	MIDI.Plugin : 0.3.2 : 2013/01/24
-	--------------------------------------------
+	----------------------------------------------------------
+	GeneralMIDI
+	----------------------------------------------------------
+*/
+
+(function(root) { 'use strict';
+
+	root.GM = (function(arr) {
+		var clean = function(name) {
+			return name.replace(/[^a-z0-9 ]/gi, '').replace(/[ ]/g, '_').toLowerCase();
+		};
+		var res = {
+			byName: { },
+			byId: { },
+			byCategory: { }
+		};
+		for (var key in arr) {
+			var list = arr[key];
+			for (var n = 0, length = list.length; n < length; n++) {
+				var instrument = list[n];
+				if (!instrument) continue;
+				var num = parseInt(instrument.substr(0, instrument.indexOf(' ')), 10);
+				instrument = instrument.replace(num + ' ', '');
+				res.byId[--num] = 
+				res.byName[clean(instrument)] = 
+				res.byCategory[clean(key)] = {
+					id: clean(instrument),
+					instrument: instrument,
+					number: num,
+					category: key
+				};
+			}
+		}
+		return res;
+	})({
+		'Piano': ['1 Acoustic Grand Piano', '2 Bright Acoustic Piano', '3 Electric Grand Piano', '4 Honky-tonk Piano', '5 Electric Piano 1', '6 Electric Piano 2', '7 Harpsichord', '8 Clavinet'],
+		'Chromatic Percussion': ['9 Celesta', '10 Glockenspiel', '11 Music Box', '12 Vibraphone', '13 Marimba', '14 Xylophone', '15 Tubular Bells', '16 Dulcimer'],
+		'Organ': ['17 Drawbar Organ', '18 Percussive Organ', '19 Rock Organ', '20 Church Organ', '21 Reed Organ', '22 Accordion', '23 Harmonica', '24 Tango Accordion'],
+		'Guitar': ['25 Acoustic Guitar (nylon)', '26 Acoustic Guitar (steel)', '27 Electric Guitar (jazz)', '28 Electric Guitar (clean)', '29 Electric Guitar (muted)', '30 Overdriven Guitar', '31 Distortion Guitar', '32 Guitar Harmonics'],
+		'Bass': ['33 Acoustic Bass', '34 Electric Bass (finger)', '35 Electric Bass (pick)', '36 Fretless Bass', '37 Slap Bass 1', '38 Slap Bass 2', '39 Synth Bass 1', '40 Synth Bass 2'],
+		'Strings': ['41 Violin', '42 Viola', '43 Cello', '44 Contrabass', '45 Tremolo Strings', '46 Pizzicato Strings', '47 Orchestral Harp', '48 Timpani'],
+		'Ensemble': ['49 String Ensemble 1', '50 String Ensemble 2', '51 Synth Strings 1', '52 Synth Strings 2', '53 Choir Aahs', '54 Voice Oohs', '55 Synth Choir', '56 Orchestra Hit'],
+		'Brass': ['57 Trumpet', '58 Trombone', '59 Tuba', '60 Muted Trumpet', '61 French Horn', '62 Brass Section', '63 Synth Brass 1', '64 Synth Brass 2'],
+		'Reed': ['65 Soprano Sax', '66 Alto Sax', '67 Tenor Sax', '68 Baritone Sax', '69 Oboe', '70 English Horn', '71 Bassoon', '72 Clarinet'],
+		'Pipe': ['73 Piccolo', '74 Flute', '75 Recorder', '76 Pan Flute', '77 Blown Bottle', '78 Shakuhachi', '79 Whistle', '80 Ocarina'],
+		'Synth Lead': ['81 Lead 1 (square)', '82 Lead 2 (sawtooth)', '83 Lead 3 (calliope)', '84 Lead 4 (chiff)', '85 Lead 5 (charang)', '86 Lead 6 (voice)', '87 Lead 7 (fifths)', '88 Lead 8 (bass + lead)'],
+		'Synth Pad': ['89 Pad 1 (new age)', '90 Pad 2 (warm)', '91 Pad 3 (polysynth)', '92 Pad 4 (choir)', '93 Pad 5 (bowed)', '94 Pad 6 (metallic)', '95 Pad 7 (halo)', '96 Pad 8 (sweep)'],
+		'Synth Effects': ['97 FX 1 (rain)', '98 FX 2 (soundtrack)', '99 FX 3 (crystal)', '100 FX 4 (atmosphere)', '101 FX 5 (brightness)', '102 FX 6 (goblins)', '103 FX 7 (echoes)', '104 FX 8 (sci-fi)'],
+		'Ethnic': ['105 Sitar', '106 Banjo', '107 Shamisen', '108 Koto', '109 Kalimba', '110 Bagpipe', '111 Fiddle', '112 Shanai'],
+		'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
+		'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
+	});
+
+	/* get/setInstrument
+	--------------------------------------------------- */
+	root.getInstrument = function(channelId) {
+		var channel = root.channels[channelId];
+		return channel && channel.instrument;
+	};
+
+	root.setInstrument = function(channelId, program, delay) {
+		var channel = root.channels[channelId];
+		if (delay) {
+			return setTimeout(function() {
+				channel.instrument = program;
+			}, delay);
+		} else {
+			channel.instrument = program;
+		}
+	};
+
+	/* get/setMono
+	--------------------------------------------------- */
+	root.getMono = function(channelId) {
+		var channel = root.channels[channelId];
+		return channel && channel.mono;
+	};
+
+	root.setMono = function(channelId, truthy, delay) {
+		var channel = root.channels[channelId];
+		if (delay) {
+			return setTimeout(function() {
+				channel.mono = truthy;
+			}, delay);
+		} else {
+			channel.mono = truthy;
+		}
+	};
+
+	/* get/setOmni
+	--------------------------------------------------- */
+	root.getOmni = function(channelId) {
+		var channel = root.channels[channelId];
+		return channel && channel.omni;
+	};
+
+	root.setOmni = function(channelId, truthy) {
+		var channel = root.channels[channelId];
+		if (delay) {
+			return setTimeout(function() {
+				channel.omni = truthy;	
+			}, delay);
+		} else {
+			channel.omni = truthy;
+		}
+	};
+
+	/* get/setSolo
+	--------------------------------------------------- */
+	root.getSolo = function(channelId) {
+		var channel = root.channels[channelId];
+		return channel && channel.solo;
+	};
+
+	root.setSolo = function(channelId, truthy) {
+		var channel = root.channels[channelId];
+		if (delay) {
+			return setTimeout(function() {
+				channel.solo = truthy;	
+			}, delay);
+		} else {
+			channel.solo = truthy;
+		}
+	};
+
+	/* channels
+	--------------------------------------------------- */
+	root.channels = (function() { // 0 - 15 channels
+		var channels = {};
+		for (var i = 0; i < 16; i++) {
+			channels[i] = { // default values
+				instrument: i,
+				pitchBend: 0,
+				mute: false,
+				mono: false,
+				omni: false,
+				solo: false
+			};
+		}
+		return channels;
+	})();
+
+	/* note conversions
+	--------------------------------------------------- */
+	root.keyToNote = {}; // C8  == 108
+	root.noteToKey = {}; // 108 ==  C8
+
+	(function() {
+		var A0 = 0x15; // first note
+		var C8 = 0x6C; // last note
+		var number2key = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+		for (var n = A0; n <= C8; n++) {
+			var octave = (n - 12) / 12 >> 0;
+			var name = number2key[n % 12] + octave;
+			root.keyToNote[name] = n;
+			root.noteToKey[n] = name;
+		}
+	})();
+
+})(MIDI);
+/*
+	----------------------------------------------------------
+	MIDI.Plugin : 0.3.4 : 2015-03-26
+	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
-	--------------------------------------------
+	----------------------------------------------------------
 	Inspired by javax.sound.midi (albeit a super simple version): 
 		http://docs.oracle.com/javase/6/docs/api/javax/sound/midi/package-summary.html
-	--------------------------------------------
-	Technologies:
-		MIDI.WebMIDIAPI
-		MIDI.WebAudioAPI
-		MIDI.Flash
-		MIDI.HTML5
-	--------------------------------------------
-	Helpers:
-		MIDI.GeneralMIDI
-		MIDI.channels
-		MIDI.keyToNote
-		MIDI.noteToKey
+	----------------------------------------------------------
+	Technologies
+	----------------------------------------------------------
+		Web MIDI API - no native support yet (jazzplugin)
+		Web Audio API - firefox 25+, chrome 10+, safari 6+, opera 15+
+		HTML5 Audio Tag - ie 9+, firefox 3.5+, chrome 4+, safari 4+, opera 9.5+, ios 4+, android 2.3+
+	----------------------------------------------------------
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
+if (typeof MIDI === 'undefined') MIDI = {};
 
-(function() { "use strict";
+MIDI.Soundfont = MIDI.Soundfont || {};
+MIDI.Player = MIDI.Player || {};
 
-/*
-	--------------------------------------------
-	Web MIDI API - Native Soundbank
-	--------------------------------------------
-	https://dvcs.w3.org/hg/audio/raw-file/tip/midi/specification.html
-*/
+(function(root) { 'use strict';
 
-(function () {
-	var plugin = null;
-	var output = null;
-	var channels = [];
-	var root = MIDI.WebMIDI = {};
+	root.DEBUG = true;
+	root.USE_XHR = true;
+	root.soundfontUrl = './soundfont/';
 
-	root.setVolume = function (channel, volume) { // set channel volume
-		output.send([0xB0 + channel, 0x07, volume]);
-	};
-
-	root.programChange = function (channel, program) { // change channel instrument
-		output.send([0xC0 + channel, program]);
-	};
-
-	root.noteOn = function (channel, note, velocity, delay) {
-		output.send([0x90 + channel, note, velocity], delay * 1000);
-	};
-
-	root.noteOff = function (channel, note, delay) {
-		output.send([0x80 + channel, note], delay * 1000);
-	};
-
-	root.chordOn = function (channel, chord, velocity, delay) {
-		for (var n = 0; n < chord.length; n ++) {
-			var note = chord[n];
-			output.send([0x90 + channel, note, velocity], delay * 1000);
-		}
-	};
-	
-	root.chordOff = function (channel, chord, delay) {
-		for (var n = 0; n < chord.length; n ++) {
-			var note = chord[n];
-			output.send([0x80, channel, note, velocity], delay * 1000);
-		}
-	};
-	
-	root.stopAllNotes = function () {
-		for (var channel = 0; channel < 16; channel ++) {
-			output.send([0xB0 + channel, 0x7B, 0]);
-		}
-	};
-
-	root.getInput = function () {
-		return plugin.getInputs();
-	};
-	
-	root.getOutputs = function () {
-		return plugin.getOutputs();
-	};
-
-	root.connect = function (callback) {
-		MIDI.technology = "Web MIDI API";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
-		MIDI.stopAllNotes = root.stopAllNotes;
-		MIDI.getInput = root.getInput;
-		MIDI.getOutputs = root.getOutputs;
-
-		navigator.requestMIDIAccess(function (access) {
-			plugin = access;
-			output = plugin.getOutput(0);
-			if (callback) callback();
-		}, function (err) {
-			console.log("uh-oh! Something went wrong!  Error code: " + err.code );
+	/*
+		MIDI.loadPlugin({
+			onsuccess: function() { },
+			onprogress: function(state, percent) { },
+			targetFormat: 'mp3', // optionally can force to use MP3 (for instance on mobile networks)
+			instrument: 'acoustic_grand_piano', // or 1 (default)
+			instruments: [ 'acoustic_grand_piano', 'acoustic_guitar_nylon' ] // or multiple instruments
 		});
-	};
-})();
+	*/
 
-/*
-	--------------------------------------------
-	Web Audio API - OGG or MPEG Soundbank
-	--------------------------------------------
-	https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
-	--------------------------------------------
-*/
+	root.loadPlugin = function(opts) {
+		if (typeof opts === 'function') {
+			opts = {onsuccess: opts};
+		}
 
-if (typeof (MIDI.WebAudioAPI) === "undefined") MIDI.WebAudioAPI = {};
+		root.soundfontUrl = opts.soundfontUrl || root.soundfontUrl;
 
-if (window.AudioContext || window.webkitAudioContext) (function () {
+		/// Detect the best type of audio to use
+		root.audioDetect(function(supports) {
+			var hash = window.location.hash;
+			var api = '';
 
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
-	var root = MIDI.WebAudioAPI;
-	var ctx;
-	var sources = {};
-	var masterVolume = 1;
-	var audioBuffers = {};
-	var audioLoader = function (instrument, urlList, index, bufferList, callback) {
-		var synth = MIDI.GeneralMIDI.byName[instrument];
-		var instrumentId = synth.number;
-		var url = urlList[index];
-		var base64 = MIDI.Soundfont[instrument][url].split(",")[1];
-		var buffer = Base64Binary.decodeArrayBuffer(base64);
-		ctx.decodeAudioData(buffer, function (buffer) {
-			var msg = url;
-			while (msg.length < 3) msg += "&nbsp;";
-			if (typeof (MIDI.loader) !== "undefined") {
-				MIDI.loader.update(null, synth.instrument + "<br>Processing: " + (index / 87 * 100 >> 0) + "%<br>" + msg);
+			/// use the most appropriate plugin if not specified
+			if (supports[opts.api]) {
+				api = opts.api;
+			} else if (supports[hash.substr(1)]) {
+				api = hash.substr(1);
+			} else if (supports.webmidi) {
+				api = 'webmidi';
+			} else if (window.AudioContext) { // Chrome
+				api = 'webaudio';
+			} else if (window.Audio) { // Firefox
+				api = 'audiotag';
 			}
-			buffer.id = url;
-			bufferList[index] = buffer;
-			//
-			if (bufferList.length === urlList.length) {
-				while (bufferList.length) {
-					buffer = bufferList.pop();
-					if (!buffer) continue;
-					var nodeId = MIDI.keyToNote[buffer.id];
-					audioBuffers[instrumentId + "" + nodeId] = buffer;
+
+			if (connect[api]) {
+				/// use audio/ogg when supported
+				if (opts.targetFormat) {
+					var audioFormat = opts.targetFormat;
+				} else { // use best quality
+					var audioFormat = supports['audio/ogg'] ? 'ogg' : 'mp3';
 				}
-				callback(instrument);
+
+				/// load the specified plugin
+				root.__api = api;
+				root.__audioFormat = audioFormat;
+				root.supports = supports;
+				root.loadResource(opts);
 			}
 		});
 	};
 
-	root.setVolume = function (n) {
-		masterVolume = n;
-	};
+	/*
+		root.loadResource({
+			onsuccess: function() { },
+			onprogress: function(state, percent) { },
+			instrument: 'banjo'
+		})
+	*/
 
-	root.programChange = function (channel, program) {
-		MIDI.channels[channel].instrument = program;
-	};
-
-	root.noteOn = function (channel, note, velocity, delay) {
-		/// check whether the note exists
-		if (!MIDI.channels[channel]) return;
-		var instrument = MIDI.channels[channel].instrument;
-		if (!audioBuffers[instrument + "" + note]) return;
-		/// convert relative delay to absolute delay
-		if (delay < ctx.currentTime) delay += ctx.currentTime;
-		/// crate audio buffer
-		var source = ctx.createBufferSource();
-		sources[channel + "" + note] = source;
-		source.buffer = audioBuffers[instrument + "" + note];
-		source.connect(ctx.destination);
+	root.loadResource = function(opts) {
+		var instruments = opts.instruments || opts.instrument || 'acoustic_grand_piano';
 		///
-		var gainNode = ctx.createGainNode();
-		var value = (velocity / 100) * masterVolume * 2 - 1;
-		gainNode.connect(ctx.destination);
-		gainNode.gain.value = Math.max(-1, value);
-		source.connect(gainNode);
-		source.noteOn(delay || 0);
-		return source;
-	};
-
-	root.noteOff = function (channel, note, delay) {
-		delay = delay || 0;
-		if (delay < ctx.currentTime) delay += ctx.currentTime;
-		var source = sources[channel + "" + note];
-		if (!source) return;
-		// @Miranet: "the values of 0.2 and 0.3 could ofcourse be used as 
-		// a 'release' parameter for ADSR like time settings."
-		source.gain.linearRampToValueAtTime(1, delay);
-		source.gain.linearRampToValueAtTime(0, delay + 0.2);
-		source.noteOff(delay + 0.3);
-		return source;
-	};
-
-	root.chordOn = function (channel, chord, velocity, delay) {
-		var ret = {}, note;
-		for (var n = 0, length = chord.length; n < length; n++) {
-			ret[note = chord[n]] = root.noteOn(channel, note, velocity, delay);
-		}
-		return ret;
-	};
-
-	root.chordOff = function (channel, chord, delay) {
-		var ret = {}, note;
-		for (var n = 0, length = chord.length; n < length; n++) {
-			ret[note = chord[n]] = root.noteOff(channel, note, delay);
-		}
-		return ret;
-	};
-
-	root.connect = function (callback) {
-		MIDI.technology = "Web Audio API";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
-		//
-		MIDI.Player.ctx = ctx = new AudioContext();
-		///
-		var urlList = [];
-		var keyToNote = MIDI.keyToNote;
-		for (var key in keyToNote) urlList.push(key);
-		var bufferList = [];
-		var pending = {};
-		var oncomplete = function(instrument) {
-			delete pending[instrument];
-			for (var key in pending) break;
-			if (!key) callback();
-		};
-		for (var instrument in MIDI.Soundfont) {
-			pending[instrument] = true;
-			for (var i = 0; i < urlList.length; i++) {
-				audioLoader(instrument, urlList, i, bufferList, oncomplete);
+		if (typeof instruments !== 'object') {
+			if (instruments || instruments === 0) {
+				instruments = [instruments];
+			} else {
+				instruments = [];
 			}
 		}
-	};
-})();
-
-/*
-	AudioTag <audio> - OGG or MPEG Soundbank
-	--------------------------------------
-	http://dev.w3.org/html5/spec/Overview.html#the-audio-element
-*/
-
-if (window.Audio) (function () {
-
-	var root = MIDI.AudioTag = {};
-	var note2id = {};
-	var volume = 1; // floating point 
-	var channel_nid = -1; // current channel
-	var channels = []; // the audio channels
-	var notes = {}; // the piano keys
-	for (var nid = 0; nid < 12; nid++) {
-		channels[nid] = new Audio();
-	}
-
-	var playChannel = function (channel, note) {
-		if (!MIDI.channels[channel]) return;
-		var instrument = MIDI.channels[channel].instrument;
-		var id = MIDI.GeneralMIDI.byId[instrument].id;
-		var note = notes[note];
-		if (!note) return;
-		var nid = (channel_nid + 1) % channels.length;
-		var time = (new Date()).getTime();
-		var audio = channels[nid];
-		audio.src = MIDI.Soundfont[id][note.id];
-		audio.volume = volume;
-		audio.play();
-		channel_nid = nid;
-	};
-
-	root.programChange = function (channel, program) {
-		MIDI.channels[channel].instrument = program;
-	};
-
-	root.setVolume = function (n) {
-		volume = n;
-	};
-
-	root.noteOn = function (channel, note, velocity, delay) {
-		var id = note2id[note];
-		if (!notes[id]) return;
-		if (delay) {
-			return window.setTimeout(function () {
-				playChannel(channel, id);
-			}, delay * 1000);
-		} else {
-			playChannel(channel, id);
-		}
-	};
-	
-	root.noteOff = function (channel, note, delay) {
-
-	};
-	
-	root.chordOn = function (channel, chord, velocity, delay) {
-		for (var key in chord) {
-			var n = chord[key];
-			var id = note2id[n];
-			if (!notes[id]) continue;
-			playChannel(channel, id);
-		}
-	};
-	
-	root.chordOff = function (channel, chord, delay) {
-
-	};
-	
-	root.stopAllNotes = function () {
-		for (var nid = 0, length = channels.length; nid < length; nid++) {
-			channels[nid].pause();
-		}
-	};
-	root.connect = function (callback) {
-		var loading = {};
-		for (var key in MIDI.keyToNote) {
-			note2id[MIDI.keyToNote[key]] = key;
-			notes[key] = {
-				id: key
-			};
-		}
-		MIDI.technology = "HTML Audio Tag";
-		MIDI.setVolume = root.setVolume;
-		MIDI.programChange = root.programChange;
-		MIDI.noteOn = root.noteOn;
-		MIDI.noteOff = root.noteOff;
-		MIDI.chordOn = root.chordOn;
-		MIDI.chordOff = root.chordOff;
-		///
-		if (callback) callback();
-	};
-})();
-
-/*
-	--------------------------------------------
-	Flash - MP3 Soundbank
-	--------------------------------------------
-	http://www.schillmania.com/projects/soundmanager2/
-	--------------------------------------------
-*/
-	
-(function () {
-
-	var root = MIDI.Flash = {};
-	var noteReverse = {};
-	var notes = {};
-
-	root.programChange = function (channel, program) {
-		MIDI.channels[channel].instrument = program;
-	};
-
-	root.setVolume = function (channel, note) {
-
-	};
-
-	root.noteOn = function (channel, note, velocity, delay) {
-		if (!MIDI.channels[channel]) return;
-		var instrument = MIDI.channels[channel].instrument;
-		var id = MIDI.GeneralMIDI.byId[instrument].number;
-		note = id + "" + noteReverse[note];
-		if (!notes[note]) return;
-		if (delay) {
-			return window.setTimeout(function() { 
-				notes[note].play({ volume: velocity * 2 });
-			}, delay * 1000);
-		} else {
-			notes[note].play({ volume: velocity * 2 });
-		}
-	};
-
-	root.noteOff = function (channel, note, delay) {
-
-	};
-
-	root.chordOn = function (channel, chord, velocity, delay) {
-		if (!MIDI.channels[channel]) return;
-		var instrument = MIDI.channels[channel].instrument;
-		var id = MIDI.GeneralMIDI.byId[instrument].number;
-		for (var key in chord) {
-			var n = chord[key];
-			var note = id + "" + noteReverse[n];
-			if (notes[note]) {
-				notes[note].play({ volume: velocity * 2 });
-			}
-		}
-	};
-
-	root.chordOff = function (channel, chord, delay) {
-
-	};
-
-	root.stopAllNotes = function () {
-
-	};
-
-	root.connect = function (callback) {
-		soundManager.flashVersion = 9;
-		soundManager.useHTML5Audio = true;
-		soundManager.url = '../inc/SoundManager2/swf/';
-		soundManager.useHighPerformance = true;
-		soundManager.wmode = 'transparent';
-		soundManager.flashPollingInterval = 1;
-		soundManager.debugMode = false;
-		soundManager.onload = function () {
-			var createBuffer = function(instrument, id, onload) {
-				var synth = MIDI.GeneralMIDI.byName[instrument];
-				var instrumentId = synth.number;
-				notes[instrumentId+""+id] = soundManager.createSound({
-					id: id,
-					url: MIDI.soundfontUrl + instrument + "-mp3/" + id + ".mp3",
-					multiShot: true,
-					autoLoad: true,
-					onload: onload
-				});			
-			};
-			for (var instrument in MIDI.Soundfont) {
-				var loaded = [];
-				var onload = function () {
-					loaded.push(this.sID);
-					if (typeof (MIDI.loader) === "undefined") return;
-					MIDI.loader.update(null, "Processing: " + this.sID);
-				};
-				for (var i = 0; i < 88; i++) {
-					var id = noteReverse[i + 21];
-					createBuffer(instrument, id, onload);
+		/// convert numeric ids into strings
+		for (var i = 0; i < instruments.length; i ++) {
+			var instrument = instruments[i];
+			if (instrument === +instrument) { // is numeric
+				if (root.GM.byId[instrument]) {
+					instruments[i] = root.GM.byId[instrument].id;
 				}
 			}
-			///
-			MIDI.technology = "Flash";
-			MIDI.setVolume = root.setVolume;
-			MIDI.programChange = root.programChange;
-			MIDI.noteOn = root.noteOn;
-			MIDI.noteOff = root.noteOff;
-			MIDI.chordOn = root.chordOn;
-			MIDI.chordOff = root.chordOff;
-			//
-			var interval = window.setInterval(function () {
-				if (loaded.length !== 88) return;
-				window.clearInterval(interval);
-				if (callback) callback();
-			}, 25);
-		};
-		soundManager.onerror = function () {
+		}
+		///
+		opts.format = root.__audioFormat;
+		opts.instruments = instruments;
+		///
+		connect[root.__api](opts);
+	};
 
-		};
-		for (var key in MIDI.keyToNote) {
-			noteReverse[MIDI.keyToNote[key]] = key;
+	var connect = {
+		webmidi: function(opts) {
+			// cant wait for this to be standardized!
+			root.WebMIDI.connect(opts);
+		},
+		audiotag: function(opts) {
+			// works ok, kinda like a drunken tuna fish, across the board
+			// http://caniuse.com/audio
+			requestQueue(opts, 'AudioTag');
+		},
+		webaudio: function(opts) {
+			// works awesome! safari, chrome and firefox support
+			// http://caniuse.com/web-audio
+			requestQueue(opts, 'WebAudio');
 		}
 	};
-})();
 
-/*
-	helper functions
-*/
-
-// instrument-tracker
-MIDI.GeneralMIDI = (function (arr) {
-	var clean = function(v) {
-		return v.replace(/[^a-z0-9 ]/gi, "").replace(/[ ]/g, "_").toLowerCase();
-	};
-	var ret = {
-		byName: {},
-		byId: {},
-		byCategory: {}
-	};
-	for (var key in arr) {
-		var list = arr[key];
-		for (var n = 0, length = list.length; n < length; n++) {
-			var instrument = list[n];
-			if (!instrument) continue;
-			var num = parseInt(instrument.substr(0, instrument.indexOf(" ")), 10);
-			instrument = instrument.replace(num + " ", "");
-			ret.byId[--num] = 
-			ret.byName[clean(instrument)] = 
-			ret.byCategory[clean(key)] = {
-				id: clean(instrument),
-				instrument: instrument,
-				number: num,
-				category: key
-			};
-		}
-	}
-	return ret;
-})({
-	'Piano': ['1 Acoustic Grand Piano', '2 Bright Acoustic Piano', '3 Electric Grand Piano', '4 Honky-tonk Piano', '5 Electric Piano 1', '6 Electric Piano 2', '7 Harpsichord', '8 Clavinet'],
-	'Chromatic Percussion': ['9 Celesta', '10 Glockenspiel', '11 Music Box', '12 Vibraphone', '13 Marimba', '14 Xylophone', '15 Tubular Bells', '16 Dulcimer'],
-	'Organ': ['17 Drawbar Organ', '18 Percussive Organ', '19 Rock Organ', '20 Church Organ', '21 Reed Organ', '22 Accordion', '23 Harmonica', '24 Tango Accordion'],
-	'Guitar': ['25 Acoustic Guitar (nylon)', '26 Acoustic Guitar (steel)', '27 Electric Guitar (jazz)', '28 Electric Guitar (clean)', '29 Electric Guitar (muted)', '30 Overdriven Guitar', '31 Distortion Guitar', '32 Guitar Harmonics'],
-	'Bass': ['33 Acoustic Bass', '34 Electric Bass (finger)', '35 Electric Bass (pick)', '36 Fretless Bass', '37 Slap Bass 1', '38 Slap Bass 2', '39 Synth Bass 1', '40 Synth Bass 2'],
-	'Strings': ['41 Violin', '42 Viola', '43 Cello', '44 Contrabass', '45 Tremolo Strings', '46 Pizzicato Strings', '47 Orchestral Harp', '48 Timpani'],
-	'Ensemble': ['49 String Ensemble 1', '50 String Ensemble 2', '51 Synth Strings 1', '52 Synth Strings 2', '53 Choir Aahs', '54 Voice Oohs', '55 Synth Choir', '56 Orchestra Hit'],
-	'Brass': ['57 Trumpet', '58 Trombone', '59 Tuba', '60 Muted Trumpet', '61 French Horn', '62 Brass Section', '63 Synth Brass 1', '64 Synth Brass 2'],
-	'Reed': ['65 Soprano Sax', '66 Alto Sax', '67 Tenor Sax', '68 Baritone Sax', '69 Oboe', '70 English Horn', '71 Bassoon', '72 Clarinet'],
-	'Pipe': ['73 Piccolo', '74 Flute', '75 Recorder', '76 Pan Flute', '77 Blown Bottle', '78 Shakuhachi', '79 Whistle', '80 Ocarina'],
-	'Synth Lead': ['81 Lead 1 (square)', '82 Lead 2 (sawtooth)', '83 Lead 3 (calliope)', '84 Lead 4 (chiff)', '85 Lead 5 (charang)', '86 Lead 6 (voice)', '87 Lead 7 (fifths)', '88 Lead 8 (bass + lead)'],
-	'Synth Pad': ['89 Pad 1 (new age)', '90 Pad 2 (warm)', '91 Pad 3 (polysynth)', '92 Pad 4 (choir)', '93 Pad 5 (bowed)', '94 Pad 6 (metallic)', '95 Pad 7 (halo)', '96 Pad 8 (sweep)'],
-	'Synth Effects': ['97 FX 1 (rain)', '98 FX 2 (soundtrack)', '99 FX 3 (crystal)', '100 FX 4 (atmosphere)', '101 FX 5 (brightness)', '102 FX 6 (goblins)', '103 FX 7 (echoes)', '104 FX 8 (sci-fi)'],
-	'Ethnic': ['105 Sitar', '106 Banjo', '107 Shamisen', '108 Koto', '109 Kalimba', '110 Bagpipe', '111 Fiddle', '112 Shanai'],
-	'Percussive': ['113 Tinkle Bell', '114 Agogo', '115 Steel Drums', '116 Woodblock', '117 Taiko Drum', '118 Melodic Tom', '119 Synth Drum'],
-	'Sound effects': ['120 Reverse Cymbal', '121 Guitar Fret Noise', '122 Breath Noise', '123 Seashore', '124 Bird Tweet', '125 Telephone Ring', '126 Helicopter', '127 Applause', '128 Gunshot']
-});
-
-// channel-tracker
-MIDI.channels = (function () { // 0 - 15 channels
-	var channels = {};
-	for (var n = 0; n < 16; n++) {
-		channels[n] = { // default values
-			instrument: 0,
-			// Acoustic Grand Piano
-			mute: false,
-			mono: false,
-			omni: false,
-			solo: false
+	var requestQueue = function(opts, context) {
+		var audioFormat = opts.format;
+		var instruments = opts.instruments;
+		var onprogress = opts.onprogress;
+		var onerror = opts.onerror;
+		///
+		var length = instruments.length;
+		var pending = length;
+		var waitForEnd = function() {
+			if (!--pending) {
+				onprogress && onprogress('load', 1.0);
+				root[context].connect(opts);
+			}
 		};
-	}
-	return channels;
-})();
+		///
+		for (var i = 0; i < length; i ++) {
+			var instrumentId = instruments[i];
+			if (MIDI.Soundfont[instrumentId]) { // already loaded
+				waitForEnd();
+			} else { // needs to be requested
+				sendRequest(instruments[i], audioFormat, function(evt, progress) {
+					var fileProgress = progress / length;
+					var queueProgress = (length - pending) / length;
+					onprogress && onprogress('load', fileProgress + queueProgress, instrumentId);
+				}, function() {
+					waitForEnd();
+				}, onerror);
+			}
+		};
+	};
 
-//
-MIDI.pianoKeyOffset = 21;
+	var sendRequest = function(instrumentId, audioFormat, onprogress, onsuccess, onerror) {
+		var soundfontPath = root.soundfontUrl + instrumentId + '-' + audioFormat + '.js';
+		if (root.USE_XHR) {
+			root.util.request({
+				url: soundfontPath,
+				format: 'text',
+				onerror: onerror,
+				onprogress: onprogress,
+				onsuccess: function(event, responseText) {
+					var script = document.createElement('script');
+					script.language = 'javascript';
+					script.type = 'text/javascript';
+					script.text = responseText;
+					document.body.appendChild(script);
+					///
+					onsuccess();
+				}
+			});
+		} else {
+			dom.loadScript.add({
+				url: soundfontPath,
+				verify: 'MIDI.Soundfont["' + instrumentId + '"]',
+				onerror: onerror,
+				onsuccess: function() {
+					onsuccess();
+				}
+			});
+		}
+	};
 
-// note conversions
-MIDI.keyToNote = {}; // C8  == 108
-MIDI.noteToKey = {}; // 108 ==  C8
-(function () {
-	var A0 = 0x15; // first note
-	var C8 = 0x6C; // last note
-	var number2key = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
-	for (var n = A0; n <= C8; n++) {
-		var octave = (n - 12) / 12 >> 0;
-		var name = number2key[n % 12] + octave;
-		MIDI.keyToNote[name] = n;
-		MIDI.noteToKey[n] = name;
-	}
-})();
+	root.setDefaultPlugin = function(midi) {
+		for (var key in midi) {
+			root[key] = midi[key];
+		}
+	};
 
-})();
+})(MIDI);
 /*
-	-------------------------------------
-	MIDI.Player : 0.3
-	-------------------------------------
+	----------------------------------------------------------
+	MIDI.Player : 0.3.1 : 2015-03-26
+	----------------------------------------------------------
 	https://github.com/mudcube/MIDI.js
-	-------------------------------------
-	#jasmid
-	-------------------------------------
+	----------------------------------------------------------
 */
 
-if (typeof (MIDI) === "undefined") var MIDI = {};
-if (typeof (MIDI.Player) === "undefined") MIDI.Player = {};
+if (typeof MIDI === 'undefined') MIDI = {};
+if (typeof MIDI.Player === 'undefined') MIDI.Player = {};
 
-(function() { "use strict";
+(function() { 'use strict';
 
-var root = MIDI.Player;
-root.callback = undefined; // your custom callback goes here!
-root.currentTime = 0;
-root.endTime = 0; 
-root.restart = 0; 
-root.playing = false;
-root.timeWarp = 1;
+var midi = MIDI.Player;
+midi.currentTime = 0;
+midi.endTime = 0; 
+midi.restart = 0; 
+midi.playing = false;
+midi.timeWarp = 1;
+midi.startDelay = 0;
+midi.BPM = 120;
 
-//
-root.start =
-root.resume = function () {
-	if (root.currentTime < -1) root.currentTime = -1;
-	startAudio(root.currentTime);
+midi.start =
+midi.resume = function(onsuccess) {
+    if (midi.currentTime < -1) {
+    	midi.currentTime = -1;
+    }
+    startAudio(midi.currentTime, null, onsuccess);
 };
 
-root.pause = function () {
-	var tmp = root.restart;
+midi.pause = function() {
+	var tmp = midi.restart;
 	stopAudio();
-	root.restart = tmp;
+	midi.restart = tmp;
 };
 
-root.stop = function () {
+midi.stop = function() {
 	stopAudio();
-	root.restart = 0;
-	root.currentTime = 0;
+	midi.restart = 0;
+	midi.currentTime = 0;
 };
 
-root.addListener = function(callback) {
-	onMidiEvent = callback;
+midi.addListener = function(onsuccess) {
+	onMidiEvent = onsuccess;
 };
 
-root.removeListener = function() {
+midi.removeListener = function() {
 	onMidiEvent = undefined;
 };
 
-root.clearAnimation = function() {
-	if (root.interval)  {
-		window.clearInterval(root.interval);
+midi.clearAnimation = function() {
+	if (midi.animationFrameId)  {
+		cancelAnimationFrame(midi.animationFrameId);
 	}
 };
 
-root.setAnimation = function(config) {
-	var callback = (typeof(config) === "function") ? config : config.callback;
-	var interval = config.interval || 30;
+midi.setAnimation = function(callback) {
 	var currentTime = 0;
 	var tOurTime = 0;
 	var tTheirTime = 0;
 	//
-	root.clearAnimation();
-	root.interval = window.setInterval(function () {
-		if (root.endTime === 0) return;
-		if (root.playing) {
-			currentTime = (tTheirTime === root.currentTime) ? tOurTime - (new Date).getTime() : 0;
-			if (root.currentTime === 0) {
+	midi.clearAnimation();
+	///
+	var frame = function() {
+		midi.animationFrameId = requestAnimationFrame(frame);
+		///
+		if (midi.endTime === 0) {
+			return;
+		}
+		if (midi.playing) {
+			currentTime = (tTheirTime === midi.currentTime) ? tOurTime - Date.now() : 0;
+			if (midi.currentTime === 0) {
 				currentTime = 0;
 			} else {
-				currentTime = root.currentTime - currentTime;
+				currentTime = midi.currentTime - currentTime;
 			}
-			if (tTheirTime !== root.currentTime) {
-				tOurTime = (new Date).getTime();
-				tTheirTime = root.currentTime;
+			if (tTheirTime !== midi.currentTime) {
+				tOurTime = Date.now();
+				tTheirTime = midi.currentTime;
 			}
 		} else { // paused
-			currentTime = root.currentTime;
+			currentTime = midi.currentTime;
 		}
-		var endTime = root.endTime;
+		///
+		var endTime = midi.endTime;
 		var percent = currentTime / endTime;
 		var total = currentTime / 1000;
 		var minutes = total / 60;
 		var seconds = total - (minutes * 60);
 		var t1 = minutes * 60 + seconds;
 		var t2 = (endTime / 1000);
-		if (t2 - t1 < -1) return;
-		callback({
-			now: t1,
-			end: t2,
-			events: noteRegistrar
-		});
-	}, interval);
+		///
+		if (t2 - t1 < -1.0) {
+			return;
+		} else {
+			callback({
+				now: t1,
+				end: t2,
+				events: noteRegistrar
+			});
+		}
+	};
+	///
+	requestAnimationFrame(frame);
 };
 
 // helpers
 
-root.loadMidiFile = function() { // reads midi into javascript array of events
-	root.replayer = new Replayer(MidiFile(root.currentData), root.timeWarp);
-	root.data = root.replayer.getData();
-	root.endTime = getLength();
+midi.loadMidiFile = function(onsuccess, onprogress, onerror) {
+	try {
+		midi.replayer = new Replayer(MidiFile(midi.currentData), midi.timeWarp, null, midi.BPM);
+		midi.data = midi.replayer.getData();
+		midi.endTime = getLength();
+		///
+		MIDI.loadPlugin({
+// 			instruments: midi.getFileInstruments(),
+			onsuccess: onsuccess,
+			onprogress: onprogress,
+			onerror: onerror
+		});
+	} catch(event) {
+		onerror && onerror(event);
+	}
 };
 
-root.loadFile = function (file, callback) {
-	root.stop();
-	if (file.indexOf("base64,") !== -1) {
-		var data = window.atob(file.split(",")[1]);
-		root.currentData = data;
-		root.loadMidiFile();
-		if (callback) callback(data);
-		return;
-	}
-	///
-	var title = file.split(" - ")[1] || file;
-	document.getElementById("playback-title").innerHTML = title.replace(".mid","");
-	///
-	var fetch = new XMLHttpRequest();
-	fetch.open('GET', file);
-	fetch.overrideMimeType("text/plain; charset=x-user-defined");
-	fetch.onreadystatechange = function () {
-		if (this.readyState === 4 && this.status === 200) {
-			var t = this.responseText || "";
-			var ff = [];
-			var mx = t.length;
-			var scc = String.fromCharCode;
-			for (var z = 0; z < mx; z++) {
-				ff[z] = scc(t.charCodeAt(z) & 255);
+midi.loadFile = function(file, onsuccess, onprogress, onerror) {
+	midi.stop();
+	if (file.indexOf('base64,') !== -1) {
+		var data = window.atob(file.split(',')[1]);
+		midi.currentData = data;
+		midi.loadMidiFile(onsuccess, onprogress, onerror);
+	} else {
+		var fetch = new XMLHttpRequest();
+		fetch.open('GET', file);
+		fetch.overrideMimeType('text/plain; charset=x-user-defined');
+		fetch.onreadystatechange = function() {
+			if (this.readyState === 4) {
+				if (this.status === 200) {
+					var t = this.responseText || '';
+					var ff = [];
+					var mx = t.length;
+					var scc = String.fromCharCode;
+					for (var z = 0; z < mx; z++) {
+						ff[z] = scc(t.charCodeAt(z) & 255);
+					}
+					///
+					var data = ff.join('');
+					midi.currentData = data;
+					midi.loadMidiFile(onsuccess, onprogress, onerror);
+				} else {
+					onerror && onerror('Unable to load MIDI file');
+				}
 			}
-			var data = ff.join("");
-			root.currentData = data;
-			root.loadMidiFile();
-			if (callback) callback(data);
+		};
+		fetch.send();
+	}
+};
+
+midi.getFileInstruments = function() {
+	var instruments = {};
+	var programs = {};
+	for (var n = 0; n < midi.data.length; n ++) {
+		var event = midi.data[n][0].event;
+		if (event.type !== 'channel') {
+			continue;
 		}
-	};
-	fetch.send();
+		var channel = event.channel;
+		switch(event.subtype) {
+			case 'controller':
+//				console.log(event.channel, MIDI.defineControl[event.controllerType], event.value);
+				break;
+			case 'programChange':
+				programs[channel] = event.programNumber;
+				break;
+			case 'noteOn':
+				var program = programs[channel];
+				var gm = MIDI.GM.byId[isFinite(program) ? program : channel];
+				instruments[gm.id] = true;
+				break;
+		}
+	}
+	var ret = [];
+	for (var key in instruments) {
+		ret.push(key);
+	}
+	return ret;
 };
 
 // Playing the audio
@@ -928,14 +653,14 @@ var eventQueue = []; // hold events to be triggered
 var queuedTime; // 
 var startTime = 0; // to measure time elapse
 var noteRegistrar = {}; // get event for requested note
-var onMidiEvent = undefined; // listener callback
-var scheduleTracking = function (channel, note, currentTime, offset, message, velocity) {
-	var interval = window.setTimeout(function () {
+var onMidiEvent = undefined; // listener
+var scheduleTracking = function(channel, note, currentTime, offset, message, velocity, time) {
+	return setTimeout(function() {
 		var data = {
 			channel: channel,
 			note: note,
 			now: currentTime,
-			end: root.endTime,
+			end: midi.endTime,
 			message: message,
 			velocity: velocity
 		};
@@ -948,25 +673,29 @@ var scheduleTracking = function (channel, note, currentTime, offset, message, ve
 		if (onMidiEvent) {
 			onMidiEvent(data);
 		}
-		root.currentTime = currentTime;
-		if (root.currentTime === queuedTime && queuedTime < root.endTime) { // grab next sequence
+		midi.currentTime = currentTime;
+		///
+		eventQueue.shift();
+		///
+		if (eventQueue.length < 1000) {
+			startAudio(queuedTime, true);
+		} else if (midi.currentTime === queuedTime && queuedTime < midi.endTime) { // grab next sequence
 			startAudio(queuedTime, true);
 		}
 	}, currentTime - offset);
-	return interval;
 };
 
 var getContext = function() {
-	if (MIDI.lang === 'WebAudioAPI') {
-		return MIDI.Player.ctx;
-	} else if (!root.ctx) {
-		root.ctx = { currentTime: 0 };
+	if (MIDI.api === 'webaudio') {
+		return MIDI.WebAudio.getContext();
+	} else {
+		midi.ctx = {currentTime: 0};
 	}
-	return root.ctx;
+	return midi.ctx;
 };
 
 var getLength = function() {
-	var data =  root.data;
+	var data =  midi.data;
 	var length = data.length;
 	var totalTime = 0.5;
 	for (var n = 0; n < length; n++) {
@@ -975,76 +704,120 @@ var getLength = function() {
 	return totalTime;
 };
 
-var startAudio = function (currentTime, fromCache) {
-	if (!root.replayer) return;
-	if (!fromCache) {
-		if (typeof (currentTime) === "undefined") currentTime = root.restart;
-		if (root.playing) stopAudio();
-		root.playing = true;
-		root.data = root.replayer.getData();
-		root.endTime = getLength();
+var __now;
+var getNow = function() {
+    if (window.performance && window.performance.now) {
+        return window.performance.now();
+    } else {
+		return Date.now();
 	}
+};
+
+var startAudio = function(currentTime, fromCache, onsuccess) {
+	if (!midi.replayer) {
+		return;
+	}
+	if (!fromCache) {
+		if (typeof currentTime === 'undefined') {
+			currentTime = midi.restart;
+		}
+		///
+		midi.playing && stopAudio();
+		midi.playing = true;
+		midi.data = midi.replayer.getData();
+		midi.endTime = getLength();
+	}
+	///
 	var note;
 	var offset = 0;
 	var messages = 0;
-	var data = root.data;	
+	var data = midi.data;
 	var ctx = getContext();
 	var length = data.length;
 	//
 	queuedTime = 0.5;
+	///
+	var interval = eventQueue[0] && eventQueue[0].interval || 0;
+	var foffset = currentTime - midi.currentTime;
+	///
+	if (MIDI.api !== 'webaudio') { // set currentTime on ctx
+		var now = getNow();
+		__now = __now || now;
+		ctx.currentTime = (now - __now) / 1000;
+	}
+	///
 	startTime = ctx.currentTime;
-	//
+	///
 	for (var n = 0; n < length && messages < 100; n++) {
-		queuedTime += data[n][1];
-		if (queuedTime < currentTime) {
+		var obj = data[n];
+		if ((queuedTime += obj[1]) <= currentTime) {
 			offset = queuedTime;
 			continue;
 		}
+		///
 		currentTime = queuedTime - offset;
-		var event = data[n][0].event;
-		if (event.type !== "channel") continue;
-		var channel = event.channel;
+		///
+		var event = obj[0].event;
+		if (event.type !== 'channel') {
+			continue;
+		}
+		///
+		var channelId = event.channel;
+		var channel = MIDI.channels[channelId];
+		var delay = ctx.currentTime + ((currentTime + foffset + midi.startDelay) / 1000);
+		var queueTime = queuedTime - offset + midi.startDelay;
 		switch (event.subtype) {
+			case 'controller':
+				MIDI.setController(channelId, event.controllerType, event.value, delay);
+				break;
+			case 'programChange':
+				MIDI.programChange(channelId, event.programNumber, delay);
+				break;
+			case 'pitchBend':
+				MIDI.pitchBend(channelId, event.value, delay);
+				break;
 			case 'noteOn':
-				if (MIDI.channels[channel].mute) break;
-				note = event.noteNumber - (root.MIDIOffset || 0);
+				if (channel.mute) break;
+				note = event.noteNumber - (midi.MIDIOffset || 0);
 				eventQueue.push({
-					event: event,
-					source: MIDI.noteOn(channel, event.noteNumber, event.velocity, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 144, event.velocity)
+				    event: event,
+				    time: queueTime,
+				    source: MIDI.noteOn(channelId, event.noteNumber, event.velocity, delay),
+				    interval: scheduleTracking(channelId, note, queuedTime + midi.startDelay, offset - foffset, 144, event.velocity)
 				});
-				messages ++;
+				messages++;
 				break;
 			case 'noteOff':
-				if (MIDI.channels[channel].mute) break;
-				note = event.noteNumber - (root.MIDIOffset || 0);
+				if (channel.mute) break;
+				note = event.noteNumber - (midi.MIDIOffset || 0);
 				eventQueue.push({
-					event: event,
-					source: MIDI.noteOff(channel, event.noteNumber, currentTime / 1000 + ctx.currentTime),
-					interval: scheduleTracking(channel, note, queuedTime, offset, 128)
+				    event: event,
+				    time: queueTime,
+				    source: MIDI.noteOff(channelId, event.noteNumber, delay),
+				    interval: scheduleTracking(channelId, note, queuedTime, offset - foffset, 128, 0)
 				});
 				break;
 			default:
 				break;
 		}
 	}
+	///
+	onsuccess && onsuccess(eventQueue);
 };
 
-var stopAudio = function () {
+var stopAudio = function() {
 	var ctx = getContext();
-	root.playing = false;
-	root.restart += (ctx.currentTime - startTime) * 1000;
+	midi.playing = false;
+	midi.restart += (ctx.currentTime - startTime) * 1000;
 	// stop the audio, and intervals
 	while (eventQueue.length) {
 		var o = eventQueue.pop();
 		window.clearInterval(o.interval);
 		if (!o.source) continue; // is not webaudio
-		if (typeof(o.source) === "number") {
+		if (typeof(o.source) === 'number') {
 			window.clearTimeout(o.source);
 		} else { // webaudio
-			var source = o.source;
-			source.disconnect(0);
-			source.noteOff(0);
+			o.source.disconnect(0);
 		}
 	}
 	// run callback to cancel any notes still playing
@@ -1067,195 +840,780 @@ var stopAudio = function () {
 
 })();
 /*
-
-	DOMLoader.XMLHttp
-	--------------------------
-	DOMLoader.sendRequest({
-		url: "./dir/something.extension",
-		data: "test!",
-		onerror: function(event) {
-			console.log(event);
-		},
-		onload: function(response) {
-			console.log(response.responseText);
-		}, 
-		onprogress: function (event) {
-			var percent = event.loaded / event.total * 100 >> 0;
-			loader.message("loading: " + percent + "%");
-		}
-	});
-	
+	----------------------------------------------------------------------
+	AudioTag <audio> - OGG or MPEG Soundbank
+	----------------------------------------------------------------------
+	http://dev.w3.org/html5/spec/Overview.html#the-audio-element
+	----------------------------------------------------------------------
 */
 
-if (typeof(DOMLoader) === "undefined") var DOMLoader = {};
+(function(root) { 'use strict';
 
-// Add XMLHttpRequest when not available
-
-if (typeof (XMLHttpRequest) === "undefined") {
-	var XMLHttpRequest;
-	(function () { // find equivalent for IE
-		var factories = [
-		function () {
-			return new ActiveXObject("Msxml2.XMLHTTP")
-		}, function () {
-			return new ActiveXObject("Msxml3.XMLHTTP")
-		}, function () {
-			return new ActiveXObject("Microsoft.XMLHTTP")
-		}];
-		for (var i = 0; i < factories.length; i++) {
-			try {
-				factories[i]();
-			} catch (e) {
-				continue;
-			}
-			break;
+	window.Audio && (function() {
+		var midi = root.AudioTag = { api: 'audiotag' };
+		var noteToKey = {};
+		var volume = 127; // floating point 
+		var buffer_nid = -1; // current channel
+		var audioBuffers = []; // the audio channels
+		var notesOn = []; // instrumentId + noteId that is currently playing in each 'channel', for routing noteOff/chordOff calls
+		var notes = {}; // the piano keys
+		for (var nid = 0; nid < 12; nid ++) {
+			audioBuffers[nid] = new Audio();
 		}
-		XMLHttpRequest = factories[i];
-	})();
-}
 
-if (typeof ((new XMLHttpRequest()).responseText) === "undefined") {
-	// http://stackoverflow.com/questions/1919972/how-do-i-access-xhr-responsebody-for-binary-data-from-javascript-in-ie
-    var IEBinaryToArray_ByteStr_Script =
-    "<!-- IEBinaryToArray_ByteStr -->\r\n"+
-    "<script type='text/vbscript'>\r\n"+
-    "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
-    "   IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
-    "End Function\r\n"+
-    "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
-    "   Dim lastIndex\r\n"+
-    "   lastIndex = LenB(Binary)\r\n"+
-    "   if lastIndex mod 2 Then\r\n"+
-    "       IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
-    "   Else\r\n"+
-    "       IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
-    "   End If\r\n"+
-    "End Function\r\n"+
-    "</script>\r\n";
-
-	// inject VBScript
-	document.write(IEBinaryToArray_ByteStr_Script);
-
-	DOMLoader.sendRequest = function(conf) {
-		// helper to convert from responseBody to a "responseText" like thing
-		function getResponseText(binary) {
-			var byteMapping = {};
-			for (var i = 0; i < 256; i++) {
-				for (var j = 0; j < 256; j++) {
-					byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
-				}
-			}
-			// call into VBScript utility fns
-			var rawBytes = IEBinaryToArray_ByteStr(binary);
-			var lastChr = IEBinaryToArray_ByteStr_Last(binary);
-			return rawBytes.replace(/[\s\S]/g, function (match) {
-				return byteMapping[match];
-			}) + lastChr;
-		};
-		//
-		var req = XMLHttpRequest();
-		req.open("GET", conf.url, true);
-		if (conf.responseType) req.responseType = conf.responseType;
-		if (conf.onerror) req.onerror = conf.onerror;
-		if (conf.onprogress) req.onprogress = conf.onprogress;
-		req.onreadystatechange = function (event) {
-			if (req.readyState === 4) {
-				if (req.status === 200) {
-					req.responseText = getResponseText(req.responseBody);
-				} else {
-					req = false;
-				}
-				if (conf.onload) conf.onload(req);
-			}
-		};
-		req.setRequestHeader("Accept-Charset", "x-user-defined");
-		req.send(null);
-		return req;
-	}
-} else {
-	DOMLoader.sendRequest = function(conf) {
-		var req = new XMLHttpRequest();
-		req.open(conf.data ? "POST" : "GET", conf.url, true);
-		if (req.overrideMimeType) req.overrideMimeType("text/plain; charset=x-user-defined");
-		if (conf.data) req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
-		if (conf.responseType) req.responseType = conf.responseType;
-		if (conf.onerror) req.onerror = conf.onerror;
-		if (conf.onprogress) req.onprogress = conf.onprogress;
-		req.onreadystatechange = function (event) {
-			if (req.readyState === 4) {
-				if (req.status !== 200 && req.status != 304) {
-					if (conf.onerror) conf.onerror(event, false);
+		var playChannel = function(channel, note) {
+			if (!root.channels[channel]) return;
+			var instrument = root.channels[channel].instrument;
+			var instrumentId = root.GM.byId[instrument].id;
+			var note = notes[note];
+			if (note) {
+				var instrumentNoteId = instrumentId + '' + note.id;
+				var nid = (buffer_nid + 1) % audioBuffers.length;
+				var audio = audioBuffers[nid];
+				notesOn[ nid ] = instrumentNoteId;
+				if (!root.Soundfont[instrumentId]) {
+					if (root.DEBUG) {
+						console.log('404', instrumentId);
+					}
 					return;
 				}
-				if (conf.onload) {
-					conf.onload(req);
+				audio.src = root.Soundfont[instrumentId][note.id];
+				audio.volume = volume / 127;
+				audio.play();
+				buffer_nid = nid;
+			}
+		};
+
+		var stopChannel = function(channel, note) {
+			if (!root.channels[channel]) return;
+			var instrument = root.channels[channel].instrument;
+			var instrumentId = root.GM.byId[instrument].id;
+			var note = notes[note];
+			if (note) {
+				var instrumentNoteId = instrumentId + '' + note.id;
+				for (var i = 0, len = audioBuffers.length; i < len; i++) {
+				    var nid = (i + buffer_nid + 1) % len;
+				    var cId = notesOn[nid];
+				    if (cId && cId == instrumentNoteId) {
+				        audioBuffers[nid].pause();
+				        notesOn[nid] = null;
+				        return;
+				    }
 				}
 			}
 		};
-		req.send(conf.data);
-		return req;
-	};
-}
+	
+		midi.audioBuffers = audioBuffers;
+		midi.send = function(data, delay) { };
+		midi.setController = function(channel, type, value, delay) { };
+		midi.setVolume = function(channel, n) {
+			volume = n; //- should be channel specific volume
+		};
+
+		midi.programChange = function(channel, program) {
+			root.channels[channel].instrument = program;
+		};
+
+		midi.pitchBend = function(channel, program, delay) { };
+
+		midi.noteOn = function(channel, note, velocity, delay) {
+			var id = noteToKey[note];
+			if (!notes[id]) return;
+			if (delay) {
+				return setTimeout(function() {
+					playChannel(channel, id);
+				}, delay * 1000);
+			} else {
+				playChannel(channel, id);
+			}
+		};
+	
+		midi.noteOff = function(channel, note, delay) {
+// 			var id = noteToKey[note];
+// 			if (!notes[id]) return;
+// 			if (delay) {
+// 				return setTimeout(function() {
+// 					stopChannel(channel, id);
+// 				}, delay * 1000)
+// 			} else {
+// 				stopChannel(channel, id);
+// 			}
+		};
+	
+		midi.chordOn = function(channel, chord, velocity, delay) {
+			for (var idx = 0; idx < chord.length; idx ++) {
+				var n = chord[idx];
+				var id = noteToKey[n];
+				if (!notes[id]) continue;
+				if (delay) {
+					return setTimeout(function() {
+						playChannel(channel, id);
+					}, delay * 1000);
+				} else {
+					playChannel(channel, id);
+				}
+			}
+		};
+	
+		midi.chordOff = function(channel, chord, delay) {
+			for (var idx = 0; idx < chord.length; idx ++) {
+				var n = chord[idx];
+				var id = noteToKey[n];
+				if (!notes[id]) continue;
+				if (delay) {
+					return setTimeout(function() {
+						stopChannel(channel, id);
+					}, delay * 1000);
+				} else {
+					stopChannel(channel, id);
+				}
+			}
+		};
+	
+		midi.stopAllNotes = function() {
+			for (var nid = 0, length = audioBuffers.length; nid < length; nid++) {
+				audioBuffers[nid].pause();
+			}
+		};
+	
+		midi.connect = function(opts) {
+			root.setDefaultPlugin(midi);
+			///
+			for (var key in root.keyToNote) {
+				noteToKey[root.keyToNote[key]] = key;
+				notes[key] = {id: key};
+			}
+			///
+			opts.onsuccess && opts.onsuccess();
+		};
+	})();
+
+})(MIDI);
 /*
-	----------------------------------------------------
-	DOMLoader.script.js : 0.1.2 : 2012/09/08 : http://mudcu.be
-	----------------------------------------------------
-	Copyright 2011-2012 Mudcube. All rights reserved.
-	----------------------------------------------------
+	----------------------------------------------------------
+	Web Audio API - OGG or MPEG Soundbank
+	----------------------------------------------------------
+	http://webaudio.github.io/web-audio-api/
+	----------------------------------------------------------
+*/
+
+(function(root) { 'use strict';
+
+	window.AudioContext && (function() {
+		var audioContext = null; // new AudioContext();
+		var useStreamingBuffer = false; // !!audioContext.createMediaElementSource;
+		var midi = root.WebAudio = {api: 'webaudio'};
+		var ctx; // audio context
+		var sources = {};
+		var effects = {};
+		var masterVolume = 127;
+		var audioBuffers = {};
+		///
+		midi.audioBuffers = audioBuffers;
+		midi.send = function(data, delay) { };
+		midi.setController = function(channelId, type, value, delay) { };
+
+		midi.setVolume = function(channelId, volume, delay) {
+			if (delay) {
+				setTimeout(function() {
+					masterVolume = volume;
+				}, delay * 1000);
+			} else {
+				masterVolume = volume;
+			}
+		};
+
+		midi.programChange = function(channelId, program, delay) {
+// 			if (delay) {
+// 				return setTimeout(function() {
+// 					var channel = root.channels[channelId];
+// 					channel.instrument = program;
+// 				}, delay);
+// 			} else {
+				var channel = root.channels[channelId];
+				channel.instrument = program;
+// 			}
+		};
+
+		midi.pitchBend = function(channelId, program, delay) {
+// 			if (delay) {
+// 				setTimeout(function() {
+// 					var channel = root.channels[channelId];
+// 					channel.pitchBend = program;
+// 				}, delay);
+// 			} else {
+				var channel = root.channels[channelId];
+				channel.pitchBend = program;
+// 			}
+		};
+
+		midi.noteOn = function(channelId, noteId, velocity, delay) {
+			delay = delay || 0;
+
+			/// check whether the note exists
+			var channel = root.channels[channelId];
+			var instrument = channel.instrument;
+			var bufferId = instrument + '' + noteId;
+			var buffer = audioBuffers[bufferId];
+			if (!buffer) {
+// 				console.log(MIDI.GM.byId[instrument].id, instrument, channelId);
+				return;
+			}
+
+			/// convert relative delay to absolute delay
+			if (delay < ctx.currentTime) {
+				delay += ctx.currentTime;
+			}
+		
+			/// create audio buffer
+			if (useStreamingBuffer) {
+				var source = ctx.createMediaElementSource(buffer);
+			} else { // XMLHTTP buffer
+				var source = ctx.createBufferSource();
+				source.buffer = buffer;
+			}
+
+			/// add effects to buffer
+			if (effects) {
+				var chain = source;
+				for (var key in effects) {
+					chain.connect(effects[key].input);
+					chain = effects[key];
+				}
+			}
+
+			/// add gain + pitchShift
+			var gain = (velocity / 127) * (masterVolume / 127) * 2 - 1;
+			source.connect(ctx.destination);
+			source.playbackRate.value = 1; // pitch shift 
+			source.gainNode = ctx.createGain(); // gain
+			source.gainNode.connect(ctx.destination);
+			source.gainNode.gain.value = Math.min(1.0, Math.max(-1.0, gain));
+			source.connect(source.gainNode);
+			///
+			if (useStreamingBuffer) {
+				if (delay) {
+					return setTimeout(function() {
+						buffer.currentTime = 0;
+						buffer.play()
+					}, delay * 1000);
+				} else {
+					buffer.currentTime = 0;
+					buffer.play()
+				}
+			} else {
+				source.start(delay || 0);
+			}
+			///
+			sources[channelId + '' + noteId] = source;
+			///
+			return source;
+		};
+
+		midi.noteOff = function(channelId, noteId, delay) {
+			delay = delay || 0;
+
+			/// check whether the note exists
+			var channel = root.channels[channelId];
+			var instrument = channel.instrument;
+			var bufferId = instrument + '' + noteId;
+			var buffer = audioBuffers[bufferId];
+			if (buffer) {
+				if (delay < ctx.currentTime) {
+					delay += ctx.currentTime;
+				}
+				///
+				var source = sources[channelId + '' + noteId];
+				if (source) {
+					if (source.gainNode) {
+						// @Miranet: 'the values of 0.2 and 0.3 could of course be used as 
+						// a 'release' parameter for ADSR like time settings.'
+						// add { 'metadata': { release: 0.3 } } to soundfont files
+						var gain = source.gainNode.gain;
+						gain.linearRampToValueAtTime(gain.value, delay);
+						gain.linearRampToValueAtTime(-1.0, delay + 0.3);
+					}
+					///
+					if (useStreamingBuffer) {
+						if (delay) {
+							setTimeout(function() {
+								buffer.pause();
+							}, delay * 1000);
+						} else {
+							buffer.pause();
+						}
+					} else {
+						if (source.noteOff) {
+							source.noteOff(delay + 0.5);
+						} else {
+							source.stop(delay + 0.5);
+						}
+					}
+					///
+					delete sources[channelId + '' + noteId];
+					///
+					return source;
+				}
+			}
+		};
+
+		midi.chordOn = function(channel, chord, velocity, delay) {
+			var res = {};
+			for (var n = 0, note, len = chord.length; n < len; n++) {
+				res[note = chord[n]] = midi.noteOn(channel, note, velocity, delay);
+			}
+			return res;
+		};
+
+		midi.chordOff = function(channel, chord, delay) {
+			var res = {};
+			for (var n = 0, note, len = chord.length; n < len; n++) {
+				res[note = chord[n]] = midi.noteOff(channel, note, delay);
+			}
+			return res;
+		};
+
+		midi.stopAllNotes = function() {
+			for (var sid in sources) {
+				var delay = 0;
+				if (delay < ctx.currentTime) {
+					delay += ctx.currentTime;
+				}
+				var source = sources[sid];
+				source.gain.linearRampToValueAtTime(1, delay);
+				source.gain.linearRampToValueAtTime(0, delay + 0.3);
+				if (source.noteOff) { // old api
+					source.noteOff(delay + 0.3);
+				} else { // new api
+					source.stop(delay + 0.3);
+				}
+				delete sources[sid];
+			}
+		};
+
+		midi.setEffects = function(list) {
+			if (ctx.tunajs) {
+				for (var n = 0; n < list.length; n ++) {
+					var data = list[n];
+					var effect = new ctx.tunajs[data.type](data);
+					effect.connect(ctx.destination);
+					effects[data.type] = effect;
+				}
+			} else {
+				return console.log('Effects module not installed.');
+			}
+		};
+
+		midi.connect = function(opts) {
+			root.setDefaultPlugin(midi);
+			midi.setContext(ctx || createAudioContext(), opts.onsuccess);
+		};
+	
+		midi.getContext = function() {
+			return ctx;
+		};
+	
+		midi.setContext = function(newCtx, onload, onprogress, onerror) {
+			ctx = newCtx;
+
+			/// tuna.js effects module - https://github.com/Dinahmoe/tuna
+			if (typeof Tuna !== 'undefined' && !ctx.tunajs) {
+				ctx.tunajs = new Tuna(ctx);
+			}
+		
+			/// loading audio files
+			var urls = [];
+			var notes = root.keyToNote;
+			for (var key in notes) urls.push(key);
+			///
+			var waitForEnd = function(instrument) {
+				for (var key in bufferPending) { // has pending items
+					if (bufferPending[key]) return;
+				}
+				///
+				if (onload) { // run onload once
+					onload();
+					onload = null;
+				}
+			};
+			///
+			var requestAudio = function(soundfont, instrumentId, index, key) {
+				var url = soundfont[key];
+				if (url) {
+					bufferPending[instrumentId] ++;
+					loadAudio(url, function(buffer) {
+						buffer.id = key;
+						var noteId = root.keyToNote[key];
+						audioBuffers[instrumentId + '' + noteId] = buffer;
+						///
+						if (-- bufferPending[instrumentId] === 0) {
+							var percent = index / 87;
+// 							console.log(MIDI.GM.byId[instrumentId], 'processing: ', percent);
+							soundfont.isLoaded = true;
+							waitForEnd(instrument);
+						}
+					}, function(err) {
+		// 				console.log(err);
+					});
+				}
+			};
+			///
+			var bufferPending = {};
+			for (var instrument in root.Soundfont) {
+				var soundfont = root.Soundfont[instrument];
+				if (soundfont.isLoaded) {
+					continue;
+				}
+				///
+				var synth = root.GM.byName[instrument];
+				var instrumentId = synth.number;
+				///
+				bufferPending[instrumentId] = 0;
+				///
+				for (var index = 0; index < urls.length; index++) {
+					var key = urls[index];
+					requestAudio(soundfont, instrumentId, index, key);
+				}
+			}
+			///
+			setTimeout(waitForEnd, 1);
+		};
+
+		/* Load audio file: streaming | base64 | arraybuffer
+		---------------------------------------------------------------------- */
+		function loadAudio(url, onload, onerror) {
+			if (useStreamingBuffer) {
+				var audio = new Audio();
+				audio.src = url;
+				audio.controls = false;
+				audio.autoplay = false;
+				audio.preload = false;
+				audio.addEventListener('canplay', function() {
+					onload && onload(audio);
+				});
+				audio.addEventListener('error', function(err) {
+					onerror && onerror(err);
+				});
+				document.body.appendChild(audio);
+			} else if (url.indexOf('data:audio') === 0) { // Base64 string
+				var base64 = url.split(',')[1];
+				var buffer = Base64Binary.decodeArrayBuffer(base64);
+				ctx.decodeAudioData(buffer, onload, onerror);
+			} else { // XMLHTTP buffer
+				var request = new XMLHttpRequest();
+				request.open('GET', url, true);
+				request.responseType = 'arraybuffer';
+				request.onload = function() {
+					ctx.decodeAudioData(request.response, onload, onerror);
+				};
+				request.send();
+			}
+		};
+		
+		function createAudioContext() {
+			return new (window.AudioContext || window.webkitAudioContext)();
+		};
+	})();
+})(MIDI);
+/*
+	----------------------------------------------------------------------
+	Web MIDI API - Native Soundbanks
+	----------------------------------------------------------------------
+	http://webaudio.github.io/web-midi-api/
+	----------------------------------------------------------------------
+*/
+
+(function(root) { 'use strict';
+
+	var plugin = null;
+	var output = null;
+	var channels = [];
+	var midi = root.WebMIDI = {api: 'webmidi'};
+	midi.send = function(data, delay) { // set channel volume
+		output.send(data, delay * 1000);
+	};
+
+	midi.setController = function(channel, type, value, delay) {
+		output.send([channel, type, value], delay * 1000);
+	};
+
+	midi.setVolume = function(channel, volume, delay) { // set channel volume
+		output.send([0xB0 + channel, 0x07, volume], delay * 1000);
+	};
+
+	midi.programChange = function(channel, program, delay) { // change patch (instrument)
+		output.send([0xC0 + channel, program], delay * 1000);
+	};
+
+	midi.pitchBend = function(channel, program, delay) { // pitch bend
+		output.send([0xE0 + channel, program], delay * 1000);
+	};
+
+	midi.noteOn = function(channel, note, velocity, delay) {
+		output.send([0x90 + channel, note, velocity], delay * 1000);
+	};
+
+	midi.noteOff = function(channel, note, delay) {
+		output.send([0x80 + channel, note, 0], delay * 1000);
+	};
+
+	midi.chordOn = function(channel, chord, velocity, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x90 + channel, note, velocity], delay * 1000);
+		}
+	};
+
+	midi.chordOff = function(channel, chord, delay) {
+		for (var n = 0; n < chord.length; n ++) {
+			var note = chord[n];
+			output.send([0x80 + channel, note, 0], delay * 1000);
+		}
+	};
+
+	midi.stopAllNotes = function() {
+		output.cancel();
+		for (var channel = 0; channel < 16; channel ++) {
+			output.send([0xB0 + channel, 0x7B, 0]);
+		}
+	};
+
+	midi.connect = function(opts) {
+		root.setDefaultPlugin(midi);
+		var errFunction = function(err) { // well at least we tried!
+			if (window.AudioContext) { // Chrome
+				opts.api = 'webaudio';
+			} else if (window.Audio) { // Firefox
+				opts.api = 'audiotag';
+			} else { // no support
+				return;
+			}
+			root.loadPlugin(opts);
+		};
+		///
+		navigator.requestMIDIAccess().then(function(access) {
+			plugin = access;
+			var pluginOutputs = plugin.outputs;
+			if (typeof pluginOutputs == 'function') { // Chrome pre-43
+			  output = pluginOutputs()[0];
+			} else { // Chrome post-43
+        output = pluginOutputs[0];
+			}
+			if (output === undefined) { // nothing there...
+			  errFunction();
+			} else {
+			  opts.onsuccess && opts.onsuccess();			
+			}
+		}, errFunction);
+	};
+
+})(MIDI);
+/*
+	----------------------------------------------------------
+	util/Request : 0.1.1 : 2015-03-26
+	----------------------------------------------------------
+	util.request({
+		url: './dir/something.extension',
+		data: 'test!',
+		format: 'text', // text | xml | json | binary
+		responseType: 'text', // arraybuffer | blob | document | json | text
+		headers: {},
+		withCredentials: true, // true | false
+		///
+		onerror: function(evt, percent) {
+			console.log(evt);
+		},
+		onsuccess: function(evt, responseText) {
+			console.log(responseText);
+		},
+		onprogress: function(evt, percent) {
+			percent = Math.round(percent * 100);
+			loader.create('thread', 'loading... ', percent);
+		}
+	});
+*/
+
+if (typeof MIDI === 'undefined') MIDI = {};
+
+(function(root) {
+
+	var util = root.util || (root.util = {});
+
+	util.request = function(opts, onsuccess, onerror, onprogress) { 'use strict';
+		if (typeof opts === 'string') opts = {url: opts};
+		///
+		var data = opts.data;
+		var url = opts.url;
+		var method = opts.method || (opts.data ? 'POST' : 'GET');
+		var format = opts.format;
+		var headers = opts.headers;
+		var responseType = opts.responseType;
+		var withCredentials = opts.withCredentials || false;
+		///
+		var onsuccess = onsuccess || opts.onsuccess;
+		var onerror = onerror || opts.onerror;
+		var onprogress = onprogress || opts.onprogress;
+		///
+		if (typeof NodeFS !== 'undefined' && root.loc.isLocalUrl(url)) {
+			NodeFS.readFile(url, 'utf8', function(err, res) {
+				if (err) {
+					onerror && onerror(err);
+				} else {
+					onsuccess && onsuccess({responseText: res});
+				}
+			});
+			return;
+		}
+		///
+		var xhr = new XMLHttpRequest();
+		xhr.open(method, url, true);
+		///
+		if (headers) {
+			for (var type in headers) {
+				xhr.setRequestHeader(type, headers[type]);
+			}
+		} else if (data) { // set the default headers for POST
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		}
+		if (format === 'binary') { //- default to responseType="blob" when supported
+			if (xhr.overrideMimeType) {
+				xhr.overrideMimeType('text/plain; charset=x-user-defined');
+			}
+		}
+		if (responseType) {
+			xhr.responseType = responseType;
+		}
+		if (withCredentials) {
+			xhr.withCredentials = 'true';
+		}
+		if (onerror && 'onerror' in xhr) {
+			xhr.onerror = onerror;
+		}
+		if (onprogress && xhr.upload && 'onprogress' in xhr.upload) {
+			if (data) {
+				xhr.upload.onprogress = function(evt) {
+					onprogress.call(xhr, evt, event.loaded / event.total);
+				};
+			} else {
+				xhr.addEventListener('progress', function(evt) {
+					var totalBytes = 0;
+					if (evt.lengthComputable) {
+						totalBytes = evt.total;
+					} else if (xhr.totalBytes) {
+						totalBytes = xhr.totalBytes;
+					} else {
+						var rawBytes = parseInt(xhr.getResponseHeader('Content-Length-Raw'));
+						if (isFinite(rawBytes)) {
+							xhr.totalBytes = totalBytes = rawBytes;
+						} else {
+							return;
+						}
+					}
+					onprogress.call(xhr, evt, evt.loaded / totalBytes);
+				});
+			}
+		}
+		///
+		xhr.onreadystatechange = function(evt) {
+			if (xhr.readyState === 4) { // The request is complete
+				if (xhr.status === 200 || // Response OK
+					xhr.status === 304 || // Not Modified
+					xhr.status === 308 || // Permanent Redirect
+					xhr.status === 0 && root.client.cordova // Cordova quirk
+				) {
+					if (onsuccess) {
+						var res;
+						if (format === 'xml') {
+							res = evt.target.responseXML;
+						} else if (format === 'text') {
+							res = evt.target.responseText;
+						} else if (format === 'json') {
+							try {
+								res = JSON.parse(evt.target.response);
+							} catch(err) {
+								onerror && onerror.call(xhr, evt);
+							}
+						}
+						///
+						onsuccess.call(xhr, evt, res);
+					}
+				} else {
+					onerror && onerror.call(xhr, evt);
+				}
+			}
+		};
+		xhr.send(data);
+		return xhr;
+	};
+
+	/// NodeJS
+	if (typeof module !== 'undefined' && module.exports) {
+		var NodeFS = require('fs');
+		XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+		module.exports = root.util.request;
+	}
+
+})(MIDI);
+/*
+	-----------------------------------------------------------
+	dom.loadScript.js : 0.1.4 : 2014/02/12 : http://mudcu.be
+	-----------------------------------------------------------
+	Copyright 2011-2014 Mudcube. All rights reserved.
+	-----------------------------------------------------------
 	/// No verification
-	DOMLoader.script.add("../js/jszip/jszip.js");
+	dom.loadScript.add("../js/jszip/jszip.js");
 	/// Strict loading order and verification.
-	DOMLoader.script.add({
+	dom.loadScript.add({
 		strictOrder: true,
-		srcs: [
+		urls: [
 			{
-				src: "../js/jszip/jszip.js",
+				url: "../js/jszip/jszip.js",
 				verify: "JSZip",
-				callback: function() {
+				onsuccess: function() {
 					console.log(1)
 				}
 			},
 			{ 
-				src: "../inc/downloadify/js/swfobject.js",
+				url: "../inc/downloadify/js/swfobject.js",
 				verify: "swfobject",
-				callback: function() {
+				onsuccess: function() {
 					console.log(2)
 				}
 			}
 		],
-		callback: function() {
+		onsuccess: function() {
 			console.log(3)
 		}
 	});
 	/// Just verification.
-	DOMLoader.script.add({
-		src: "../js/jszip/jszip.js",
+	dom.loadScript.add({
+		url: "../js/jszip/jszip.js",
 		verify: "JSZip",
-		callback: function() {
+		onsuccess: function() {
 			console.log(1)
 		}
 	});
 */
 
-if (typeof(DOMLoader) === "undefined") var DOMLoader = {};
+if (typeof(dom) === "undefined") var dom = {};
 
 (function() { "use strict";
 
-DOMLoader.script = function() {
+dom.loadScript = function() {
 	this.loaded = {};
 	this.loading = {};
 	return this;
 };
 
-DOMLoader.script.prototype.add = function(config) {
+dom.loadScript.prototype.add = function(config) {
 	var that = this;
 	if (typeof(config) === "string") {
-		config = { src: config };
+		config = { url: config };
 	}
-	var srcs = config.srcs;
-	if (typeof(srcs) === "undefined") {
-		srcs = [{ 
-			src: config.src, 
+	var urls = config.urls;
+	if (typeof(urls) === "undefined") {
+		urls = [{ 
+			url: config.url, 
 			verify: config.verify
 		}];
 	}
@@ -1263,36 +1621,37 @@ DOMLoader.script.prototype.add = function(config) {
 	var doc = document.getElementsByTagName("head")[0];
 	/// 
 	var testElement = function(element, test) {
-		if (that.loaded[element.src]) return;
-		if (test && typeof(window[test]) === "undefined") return;
-		that.loaded[element.src] = true;
+		if (that.loaded[element.url]) return;
+		if (test && globalExists(test) === false) return;
+		that.loaded[element.url] = true;
 		//
-		if (that.loading[element.src]) that.loading[element.src]();
-		delete that.loading[element.src];
+		if (that.loading[element.url]) that.loading[element.url]();
+		delete that.loading[element.url];
 		//
-		if (element.callback) element.callback();
+		if (element.onsuccess) element.onsuccess();
 		if (typeof(getNext) !== "undefined") getNext();
 	};
 	///
+	var hasError = false;
 	var batchTest = [];
 	var addElement = function(element) {
 		if (typeof(element) === "string") {
 			element = {
-				src: element,
+				url: element,
 				verify: config.verify
 			};
 		}
-		if (/([\w\d.])$/.test(element.verify)) { // check whether its a variable reference
-			element.test = element.verify;
-			if (typeof(element.test) === "object") {
-				for (var key in element.test) {
-					batchTest.push(element.test[key]);
+		if (/([\w\d.\[\]\'\"])$/.test(element.verify)) { // check whether its a variable reference
+			var verify = element.test = element.verify;
+			if (typeof(verify) === "object") {
+				for (var n = 0; n < verify.length; n ++) {
+					batchTest.push(verify[n]);
 				}			
 			} else {
-				batchTest.push(element.test);
+				batchTest.push(verify);
 			}
 		}
-		if (that.loaded[element.src]) return;
+		if (that.loaded[element.url]) return;
 		var script = document.createElement("script");
 		script.onreadystatechange = function() {
 			if (this.readyState !== "loaded" && this.readyState !== "complete") return;
@@ -1302,46 +1661,52 @@ DOMLoader.script.prototype.add = function(config) {
 			testElement(element);
 		};
 		script.onerror = function() {
-
+			hasError = true;
+			delete that.loading[element.url];
+			if (typeof(element.test) === "object") {
+				for (var key in element.test) {
+					removeTest(element.test[key]);
+				}			
+			} else {
+				removeTest(element.test);
+			}
 		};
 		script.setAttribute("type", "text/javascript");
-		script.setAttribute("src", element.src);
+		script.setAttribute("src", element.url);
 		doc.appendChild(script);
-		that.loading[element.src] = function() {};
+		that.loading[element.url] = function() {};
 	};
 	/// checking to see whether everything loaded properly
+	var removeTest = function(test) {
+		var ret = [];
+		for (var n = 0; n < batchTest.length; n ++) {
+			if (batchTest[n] === test) continue;
+			ret.push(batchTest[n]);
+		}
+		batchTest = ret;
+	};
 	var onLoad = function(element) {
 		if (element) {
 			testElement(element, element.test);
 		} else {
-			for (var n = 0; n < srcs.length; n ++) {
-				testElement(srcs[n], srcs[n].test);
+			for (var n = 0; n < urls.length; n ++) {
+				testElement(urls[n], urls[n].test);
 			}
 		}
 		var istrue = true;
 		for (var n = 0; n < batchTest.length; n ++) {
-			var test = batchTest[n];
-			if (test && test.indexOf(".") !== -1) {
-				test = test.split(".");
-				var level0 = window[test[0]];
-				if (typeof(level0) === "undefined") continue;
-				if (test.length === 2) { //- this is a bit messy and could handle more cases
-					if (typeof(level0[test[1]]) === "undefined") {
-						istrue = false;
-					}
-				} else if (test.length === 3) {
-					if (typeof(level0[test[1]][test[2]]) === "undefined") {
-						istrue = false;
-					}
-				}
-			} else {
-				if (typeof(window[test]) === "undefined") {
-					istrue = false;
-				}
+			if (globalExists(batchTest[n]) === false) {
+				istrue = false;
 			}
 		}
 		if (!config.strictOrder && istrue) { // finished loading all the requested scripts
-			if (config.callback) config.callback();
+			if (hasError) {
+				if (config.error) {
+					config.error();
+				}
+			} else if (config.onsuccess) {
+				config.onsuccess();
+			}
 		} else { // keep calling back the function
 			setTimeout(function() { //- should get slower over time?
 				onLoad(element);
@@ -1353,17 +1718,23 @@ DOMLoader.script.prototype.add = function(config) {
 		var ID = -1;
 		var getNext = function() {
 			ID ++;
-			if (!srcs[ID]) { // all elements are loaded
-				if (config.callback) config.callback();
+			if (!urls[ID]) { // all elements are loaded
+				if (hasError) {
+					if (config.error) {
+						config.error();
+					}
+				} else if (config.onsuccess) {
+					config.onsuccess();
+				}
 			} else { // loading new script
-				var element = srcs[ID];
-				var src = element.src;
-				if (that.loading[src]) { // already loading from another call (attach to event)
-					that.loading[src] = function() {
-						if (element.callback) element.callback();
+				var element = urls[ID];
+				var url = element.url;
+				if (that.loading[url]) { // already loading from another call (attach to event)
+					that.loading[url] = function() {
+						if (element.onsuccess) element.onsuccess();
 						getNext();
 					}
-				} else if (!that.loaded[src]) { // create script element
+				} else if (!that.loaded[url]) { // create script element
 					addElement(element);
 					onLoad(element);
 				} else { // it's already been successfully loaded
@@ -1373,13 +1744,38 @@ DOMLoader.script.prototype.add = function(config) {
 		};
 		getNext();
 	} else { // loose ordering
-		for (var ID = 0; ID < srcs.length; ID ++) {
-			addElement(srcs[ID]);
+		for (var ID = 0; ID < urls.length; ID ++) {
+			addElement(urls[ID]);
+			onLoad(urls[ID]);
 		}
-		onLoad();
 	}
 };
 
-DOMLoader.script = (new DOMLoader.script());
+dom.loadScript = new dom.loadScript();
+
+var globalExists = function(path, root) {
+	try {
+		path = path.split('"').join('').split("'").join('').split(']').join('').split('[').join('.');
+		var parts = path.split(".");
+		var length = parts.length;
+		var object = root || window;
+		for (var n = 0; n < length; n ++) {
+			var key = parts[n];
+			if (object[key] == null) {
+				return false;
+			} else { //
+				object = object[key];
+			}
+		}
+		return true;
+	} catch(e) {
+		return false;
+	}
+};
 
 })();
+
+/// For NodeJS
+if (typeof (module) !== "undefined" && module.exports) {
+	module.exports = dom.loadScript;
+}

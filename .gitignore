@@ -1,3 +1,17 @@
-.DS_Store
-FluidR3_GM.sf2
-/node_modules/
+generator/sf2/*
+generator/ruby/soundfont*
+**/source*
+**/build*
+*/soundfont/*
+!examples/soundfont/acoustic_grand_piano*
+!examples/soundfont/synth_drum*
+oggenc
+oggdec
+
+# NODE/NPM
+node_modules*
+npm-debug.log
+
+# FORMATS
+*.gz
+*.DS_Store
