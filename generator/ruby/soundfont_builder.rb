@@ -8,10 +8,9 @@
 #   FluidSynth
 #   Lame
 #   OggEnc (from vorbis-tools)
-#   SOX
 #   Ruby Gems: midilib parallel
 #
-#   $ brew install fluidsynth vorbis-tools lame sox (on OSX)
+#   $ brew install fluidsynth vorbis-tools lame (on OSX)
 #   $ gem install midilib parallel
 #
 # You'll need to download a GM soundbank to generate audio.
@@ -31,8 +30,8 @@ require 'parallel'
 require 'zlib'
 include FileUtils
 
-BUILD_DIR = "./soundfont-musyng" # Output path
-SOUNDFONT = "../sf2/Musyng.sf2" # Soundfont file path
+BUILD_DIR = "./soundfont-fatboy" # Output path
+SOUNDFONT = "../sf2/FatBoy.sf2" # Soundfont file path
 
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
@@ -309,7 +308,6 @@ MIDIJS_PATCH_NAMES = [
 OGGENC = `which oggenc`.chomp
 LAME = `which lame`.chomp
 FLUIDSYNTH = `which fluidsynth`.chomp
-SOX = `which sox`.chomp
 
 puts "Building the following instruments using font: " + SOUNDFONT
 
@@ -322,7 +320,6 @@ puts
 puts "Using OGG encoder: " + OGGENC
 puts "Using MP3 encoder: " + LAME
 puts "Using FluidSynth encoder: " + FLUIDSYNTH
-puts "Using SOX encoder: " + SOX
 puts
 puts "Sending output to: " + BUILD_DIR
 puts
