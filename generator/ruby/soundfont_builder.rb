@@ -8,11 +8,10 @@
 #   FluidSynth
 #   Lame
 #   OggEnc (from vorbis-tools)
-#   Ruby Gem: midilib
+#   Ruby Gems: midilib parallel
 #
-#   $ brew install --with-libsndfile fluidsynth
-#   $ brew install vorbis-tools lame
-#   $ gem install midilib
+#   $ brew install fluidsynth vorbis-tools lame (on OSX)
+#   $ gem install midilib parallel
 #
 # You'll need to download a GM soundbank to generate audio.
 #
@@ -23,36 +22,286 @@
 # 3) Run without any argument.
 
 require 'base64'
+require 'digest/sha1'
+require 'etc'
 require 'fileutils'
 require 'midilib'
+require 'parallel'
 require 'zlib'
 include FileUtils
 
-BUILD_DIR = "./soundfont" # Output path
-SOUNDFONT = "../sf2/redco/TR-808-Drums.SF2" # Soundfont file path
+BUILD_DIR = "./soundfont-fatboy" # Output path
+SOUNDFONT = "../sf2/FatBoy.sf2" # Soundfont file path
 
 # This script will generate MIDI.js-compatible instrument JS files for
 # all instruments in the below array. Add or remove as necessary.
 INSTRUMENTS = [
-  0     # Acoustic Grand Piano
-];
-# INSTRUMENTS = [
-#   0,     # Acoustic Grand Piano
-#   24,    # Acoustic Guitar (nylon)
-#   25,    # Acoustic Guitar (steel)
-#   26,    # Electric Guitar (jazz)
-#   30,    # Distortion Guitar
-#   33,    # Electric Bass (finger)
-#   34,    # Electric Bass (pick)
-#   56,    # Trumpet
-#   61,    # Brass Section
-#   64,    # Soprano Sax
-#   65,    # Alto Sax
-#   66,    # Tenor Sax
-#   67,    # Baritone Sax
-#   73,    # Flute
-#   118    # Synth Drum
-# ];
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  38,
+  39,
+  40,
+  41,
+  42,
+  43,
+  44,
+  45,
+  46,
+  47,
+  48,
+  49,
+  50,
+  51,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  58,
+  59,
+  60,
+  61,
+  62,
+  63,
+  64,
+  65,
+  66,
+  67,
+  68,
+  69,
+  70,
+  71,
+  72,
+  73,
+  74,
+  75,
+  76,
+  77,
+  78,
+  79,
+  80,
+  81,
+  82,
+  83,
+  84,
+  85,
+  86,
+  87,
+  88,
+  89,
+  90,
+  91,
+  92,
+  93,
+  94,
+  95,
+  96,
+  97,
+  98,
+  99,
+  100,
+  101,
+  102,
+  103,
+  104,
+  105,
+  106,
+  107,
+  108,
+  109,
+  110,
+  111,
+  112,
+  113,
+  114,
+  115,
+  116,
+  117,
+  118,
+  119,
+  120,
+  121,
+  122,
+  123,
+  124,
+  125,
+  126,
+  127
+]
+
+# It was found that midilib uses names that are incompatible with MIDI.js
+# For example, midilib uses "SynthBrass 1" -> https://github.com/jimm/midilib/blob/6c8e481ae72cd9f00a38eb3700ddfca6b549f153/lib/midilib/consts.rb#L280
+# and the MIDI association uses "SynthBrass 1" -> https://www.midi.org/specifications-old/item/gm-level-1-sound-set
+# but the MIDI.js calls this "Synth Brass 1" -> https://github.com/mudcube/MIDI.js/blob/a8a84257afa70721ae462448048a87301fc1554a/js/midi/gm.js#L44
+# there are others like "Bag pipe" vs "Bagpipe", etc.
+# here, we use the MIDI.js definitions because that is how most users will interact with the generated soundfonts.
+MIDIJS_PATCH_NAMES = [
+  "Acoustic Grand Piano",
+  "Bright Acoustic Piano",
+  "Electric Grand Piano",
+  "Honky-tonk Piano",
+  "Electric Piano 1",
+  "Electric Piano 2",
+  "Harpsichord",
+  "Clavinet",
+  "Celesta",
+  "Glockenspiel",
+  "Music Box",
+  "Vibraphone",
+  "Marimba",
+  "Xylophone",
+  "Tubular Bells",
+  "Dulcimer",
+  "Drawbar Organ",
+  "Percussive Organ",
+  "Rock Organ",
+  "Church Organ",
+  "Reed Organ",
+  "Accordion",
+  "Harmonica",
+  "Tango Accordion",
+  "Acoustic Guitar (nylon)",
+  "Acoustic Guitar (steel)",
+  "Electric Guitar (jazz)",
+  "Electric Guitar (clean)",
+  "Electric Guitar (muted)",
+  "Overdriven Guitar",
+  "Distortion Guitar",
+  "Guitar Harmonics",
+  "Acoustic Bass",
+  "Electric Bass (finger)",
+  "Electric Bass (pick)",
+  "Fretless Bass",
+  "Slap Bass 1",
+  "Slap Bass 2",
+  "Synth Bass 1",
+  "Synth Bass 2",
+  "Violin",
+  "Viola",
+  "Cello",
+  "Contrabass",
+  "Tremolo Strings",
+  "Pizzicato Strings",
+  "Orchestral Harp",
+  "Timpani",
+  "String Ensemble 1",
+  "String Ensemble 2",
+  "Synth Strings 1",
+  "Synth Strings 2",
+  "Choir Aahs",
+  "Voice Oohs",
+  "Synth Choir",
+  "Orchestra Hit",
+  "Trumpet",
+  "Trombone",
+  "Tuba",
+  "Muted Trumpet",
+  "French Horn",
+  "Brass Section",
+  "Synth Brass 1",
+  "Synth Brass 2",
+  "Soprano Sax",
+  "Alto Sax",
+  "Tenor Sax",
+  "Baritone Sax",
+  "Oboe",
+  "English Horn",
+  "Bassoon",
+  "Clarinet",
+  "Piccolo",
+  "Flute",
+  "Recorder",
+  "Pan Flute",
+  "Blown Bottle",
+  "Shakuhachi",
+  "Whistle",
+  "Ocarina",
+  "Lead 1 (square)",
+  "Lead 2 (sawtooth)",
+  "Lead 3 (calliope)",
+  "Lead 4 (chiff)",
+  "Lead 5 (charang)",
+  "Lead 6 (voice)",
+  "Lead 7 (fifths)",
+  "Lead 8 (bass + lead)",
+  "Pad 1 (new age)",
+  "Pad 2 (warm)",
+  "Pad 3 (polysynth)",
+  "Pad 4 (choir)",
+  "Pad 5 (bowed)",
+  "Pad 6 (metallic)",
+  "Pad 7 (halo)",
+  "Pad 8 (sweep)",
+  "FX 1 (rain)",
+  "FX 2 (soundtrack)",
+  "FX 3 (crystal)",
+  "FX 4 (atmosphere)",
+  "FX 5 (brightness)",
+  "FX 6 (goblins)",
+  "FX 7 (echoes)",
+  "FX 8 (sci-fi)",
+  "Sitar",
+  "Banjo",
+  "Shamisen",
+  "Koto",
+  "Kalimba",
+  "Bagpipe",
+  "Fiddle",
+  "Shanai",
+  "Tinkle Bell",
+  "Agogo",
+  "Steel Drums",
+  "Woodblock",
+  "Taiko Drum",
+  "Melodic Tom",
+  "Synth Drum",
+  "Reverse Cymbal",
+  "Guitar Fret Noise",
+  "Breath Noise",
+  "Seashore",
+  "Bird Tweet",
+  "Telephone Ring",
+  "Helicopter",
+  "Applause",
+  "Gunshot"
+]
 
 # The encoders and tools are expected in your PATH. You can supply alternate
 # paths by changing the constants below.
@@ -64,7 +313,7 @@ puts "Building the following instruments using font: " + SOUNDFONT
 
 # Display instrument names.
 INSTRUMENTS.each do |i|
-  puts "    #{i}: " + MIDI::GM_PATCH_NAMES[i]
+  puts "    #{i}: " + MIDIJS_PATCH_NAMES[i]
 end
 
 puts
@@ -102,7 +351,8 @@ NOTES = {
 MIDI_C0 = 12
 VELOCITY = 85
 DURATION = Integer(3000)
-TEMP_FILE = "#{BUILD_DIR}/temp.midi"
+TEMP_FILE = "#{BUILD_DIR}/%s%stemp.midi"
+FLUIDSYNTH_RAW = "%s.wav"
 
 def deflate(string, level)
   z = Zlib::Deflate.new(level)
@@ -175,16 +425,15 @@ def close_js_file(file)
 end
 
 def base64js(note, file, type)
-  output = '"' + note + '": ' 
+  output = '"' + note + '": '
   output += '"' + "data:audio/#{type};base64,"
   output += Base64.strict_encode64(File.read(file)) + '"'
   return output
 end
 
 def generate_audio(program)
-  include MIDI
-  instrument = GM_PATCH_NAMES[program]
-  instrument_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/\s+/, "_")
+  instrument = MIDIJS_PATCH_NAMES[program]
+  instrument_key = instrument.downcase.gsub(/[^a-z0-9 ]/, "").gsub(/[ ]/, "_")
 
   puts "Generating audio for: " + instrument + "(#{instrument_key})"
 
@@ -195,24 +444,25 @@ def generate_audio(program)
   note_to_int("A", 0).upto(note_to_int("C", 8)) do |note_value|
     note = int_to_note(note_value)
     output_name = "#{note[:key]}#{note[:octave]}"
-    output_path_prefix = BUILD_DIR + "/" + output_name
+    output_path_prefix = BUILD_DIR + "/#{instrument_key}" + output_name
 
     puts "Generating: #{output_name}"
-    generate_midi(program, note_value, TEMP_FILE)
-    midi_to_audio(TEMP_FILE, output_path_prefix + ".wav")
+    temp_file_specific = TEMP_FILE % [output_name, instrument_key]
+    generate_midi(program, note_value, temp_file_specific)
+    midi_to_audio(temp_file_specific, output_path_prefix + ".wav")
 
     puts "Updating JS files..."
     ogg_js_file.write(base64js(output_name, output_path_prefix + ".ogg", "ogg") + ",\n")
     mp3_js_file.write(base64js(output_name, output_path_prefix + ".mp3", "mp3") + ",\n")
 
-    mv output_path_prefix + ".mp3", "#{BUILD_DIR}/#{instrument_key}-mp3"
+    mv output_path_prefix + ".mp3", "#{BUILD_DIR}/#{instrument_key}-mp3/#{output_name}.mp3"
     rm output_path_prefix + ".ogg"
-    rm TEMP_FILE
+    rm temp_file_specific
   end
 
   close_js_file(ogg_js_file)
   close_js_file(mp3_js_file)
-  
+
   ogg_js_file = File.read("#{BUILD_DIR}/#{instrument_key}-ogg.js")
   ojsz = File.open("#{BUILD_DIR}/#{instrument_key}-ogg.js.gz", "w")
   ojsz.write(deflate(ogg_js_file, 9));
@@ -223,4 +473,4 @@ def generate_audio(program)
 
 end
 
-INSTRUMENTS.each {|i| generate_audio(i)}
+Parallel.each(INSTRUMENTS, :in_processes=>Etc.nprocessors){|i| generate_audio(i)}
