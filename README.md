@@ -6,7 +6,7 @@
 
 ## Demos
 
-* [3D Piano Player w/ Three.js](http://www.rgba.org/r3d/3d-piano-player/) by Borja Morales @reality3d
+* [3D Piano Player w/ Three.js](https://www.borjamorales.com/3d-piano-player/) by Borja Morales @reality3d
 * [Brite Lite](http://labs.uxmonk.com/brite-lite/) by Daniel Christopher @uxmonk
 * [Color Piano](http://mudcu.be/piano) by Michael Deal @mudcube
 * [Euphony 3D Piano](http://qiao.github.com/euphony/) by Xueqiao Xu @qiao
