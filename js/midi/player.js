@@ -287,12 +287,13 @@ var startAudio = function(currentTime, fromCache, onsuccess) {
 	///
 	startTime = ctx.currentTime;
 	///
+	var skipping=true;
 	for (var n = 0; n < length && messages < 100; n++) {
 		var obj = data[n];
 		if ((queuedTime += obj[1]) <= currentTime) {
-			offset = queuedTime;
 			continue;
 		}
+		if ( skipping ) { skipping = false; offset = queuedTime }
 		///
 		currentTime = queuedTime - offset;
 		///
