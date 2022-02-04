@@ -130,7 +130,7 @@
 		var channels = {};
 		for (var i = 0; i < 16; i++) {
 			channels[i] = { // default values
-				instrument: i,
+				instrument: 0,
 				pitchBend: 0,
 				mute: false,
 				mono: false,
