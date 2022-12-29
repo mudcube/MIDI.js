@@ -22,7 +22,7 @@ export class PlayInstance {
         this.playing = false;
         this.timeWarp = 1;
         this.startDelay = 0;
-        this.BPM = 120;
+        this.BPM = undefined;
 
         this.data = [];
         this.eventQueue = []; // hold events to be triggered
