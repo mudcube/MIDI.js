@@ -1,6 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const PACKAGE = require('./package.json');
+
 const version = PACKAGE.version;
 const date_now = new Date().toISOString().replace(/T.*/, '');
 
@@ -50,5 +52,6 @@ module.exports = {
     },
     plugins: [
         new webpack.BannerPlugin({banner: BANNER}),
+        new ESLintPlugin(),
     ],
 };

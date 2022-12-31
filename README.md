@@ -275,8 +275,21 @@ rename to "midicube" in honor of Mudcube.
 
 ## ES6 Conversion
 
-ES6 Conversion by Michael Scott Cuthbert:
+ES6 Conversion by Michael Scott Asato Cuthbert:
 
 * [Github](https://github.com/mscuthbert)
 * [MIT cuthbertLab Github](https://github.com/cuthbertLab)
 
+## Development
+
+Build midicube with:
+
+```
+npm run watch
+```
+
+to publish a new version change the version tag in package.json and run
+
+```
+npm publish
+```

@@ -2,7 +2,7 @@
     ----------------------------------------------------------
     MIDI.audioDetect : 0.3.2 : 2015-03-26
     ----------------------------------------------------------
-    https://github.com/mudcube/MIDI.js
+    https://github.com/mscuthbert/midicube
     ----------------------------------------------------------
     Probably, Maybe, No... Absolutely!
     Test to see what types of <audio> MIME types are playable by the browser.

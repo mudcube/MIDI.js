@@ -58,8 +58,10 @@ export const pitchBend = (channelId, bend, delay) => {
     const channel = channels[channelId];
     if (channel) {
         if (delay) {
-            setTimeout(() => { channel.pitchBend = bend; return undefined; },
-                delay);
+            setTimeout(
+                () => { channel.pitchBend = bend; return undefined; },
+                delay
+            );
         } else {
             channel.pitchBend = bend;
         }
@@ -229,6 +231,7 @@ export const stopAllNotes = () => {
         }
         delete sources[sid];
     }
+    return undefined;
 };
 
 export const setEffects = list => {

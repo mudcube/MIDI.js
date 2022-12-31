@@ -126,7 +126,7 @@ export const noteOn = (channel, note, velocity, delay) => {
 };
 
 export const noteOff = (channel, note, delay) => {
-    // MSC: Commented out in MudCube version...
+    // MASC: Already commented out in MudCube version...
     //      I see why!  clips all the notes!
 
     // const id = noteToKey[note];

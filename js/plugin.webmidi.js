@@ -25,6 +25,7 @@ export const connect = opts => {
         const plugin = access;
         const pluginOutputs = plugin.outputs;
         if (typeof pluginOutputs === 'function') { // Chrome pre-43
+            // noinspection JSValidateTypes
             output = pluginOutputs()[0];
         } else { // Chrome post-43
             output = pluginOutputs[0];

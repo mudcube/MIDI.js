@@ -50,10 +50,10 @@ export function decode(input, arrayBuffer) {
 
     let bytes = Math.ceil((3 * input.length) / 4.0);
     if (lkey1 === 64) {
-        bytes--;
+        bytes -= 1;
     } //padding chars, so skip
     if (lkey2 === 64) {
-        bytes--;
+        bytes -= 1;
     } //padding chars, so skip
 
     let uarray;
@@ -72,13 +72,17 @@ export function decode(input, arrayBuffer) {
         uarray = new Uint8Array(bytes);
     }
 
-    input = input.replace(/[^A-Za-z0-9+\/=]/g, '');
+    input = input.replace(/[^A-Za-z0-9+/=]/g, '');
 
     for (let i = 0; i < bytes; i += 3) {
         // get the 3 octets in 4 ascii chars
+        // eslint-disable-next-line no-plusplus
         enc1 = _keyStr.indexOf(input.charAt(j++));
+        // eslint-disable-next-line no-plusplus
         enc2 = _keyStr.indexOf(input.charAt(j++));
+        // eslint-disable-next-line no-plusplus
         enc3 = _keyStr.indexOf(input.charAt(j++));
+        // eslint-disable-next-line no-plusplus
         enc4 = _keyStr.indexOf(input.charAt(j++));
 
         chr1 = (enc1 << 2) | (enc2 >> 4);

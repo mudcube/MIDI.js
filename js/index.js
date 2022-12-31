@@ -98,8 +98,8 @@ export const loadPlugin = opts => {
         // use the most appropriate plugin if not specified
         if (supports[opts.api]) {
             api = opts.api;
-        } else if (supports[hash.substr(1)]) {
-            api = hash.substr(1);
+        } else if (supports[hash.substring(1)]) {
+            api = hash.substring(1);
         } else {
             for (const apiInOrder of opts.apiPrecedence) {
                 if (supports[apiInOrder]) {
