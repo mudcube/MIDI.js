@@ -1,5 +1,6 @@
 generator/sf2/*
 generator/ruby/soundfont*
+generator/nodejs/config.js
 **/source*
 **/build*
 */soundfont/*
