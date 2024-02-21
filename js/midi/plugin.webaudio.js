@@ -34,7 +34,7 @@
 
 		midi.programChange = function(channelId, program, delay) {
 // 			if (delay) {
-// 				return setTimeout(function() {
+// 				setTimeout(function() {
 // 					var channel = root.channels[channelId];
 // 					channel.instrument = program;
 // 				}, delay);
@@ -59,6 +59,9 @@
 		midi.noteOn = function(channelId, noteId, velocity, delay) {
 			delay = delay || 0;
 
+			/// convert relative delay to absolute delay
+			var startTime = delay < ctx.currentTime ? delay + ctx.currentTime : delay;
+
 			/// check whether the note exists
 			var channel = root.channels[channelId];
 			var instrument = channel.instrument;
@@ -67,11 +70,6 @@
 			if (!buffer) {
 // 				console.log(MIDI.GM.byId[instrument].id, instrument, channelId);
 				return;
-			}
-
-			/// convert relative delay to absolute delay
-			if (delay < ctx.currentTime) {
-				delay += ctx.currentTime;
 			}
 		
 			/// create audio buffer
@@ -101,17 +99,12 @@
 			source.connect(source.gainNode);
 			///
 			if (useStreamingBuffer) {
-				if (delay) {
-					return setTimeout(function() {
-						buffer.currentTime = 0;
-						buffer.play()
-					}, delay * 1000);
-				} else {
+				setTimeout(function() {
 					buffer.currentTime = 0;
 					buffer.play()
-				}
+				}, delay * 1000);
 			} else {
-				source.start(delay || 0);
+				source.start(startTime);
 			}
 			///
 			sources[channelId + '' + noteId] = source;
@@ -122,16 +115,15 @@
 		midi.noteOff = function(channelId, noteId, delay) {
 			delay = delay || 0;
 
+			/// convert relative delay to absolute delay
+			var startTime = delay < ctx.currentTime ? delay + ctx.currentTime : delay;
+
 			/// check whether the note exists
 			var channel = root.channels[channelId];
 			var instrument = channel.instrument;
 			var bufferId = instrument + '' + noteId;
 			var buffer = audioBuffers[bufferId];
 			if (buffer) {
-				if (delay < ctx.currentTime) {
-					delay += ctx.currentTime;
-				}
-				///
 				var source = sources[channelId + '' + noteId];
 				if (source) {
 					if (source.gainNode) {
@@ -139,23 +131,19 @@
 						// a 'release' parameter for ADSR like time settings.'
 						// add { 'metadata': { release: 0.3 } } to soundfont files
 						var gain = source.gainNode.gain;
-						gain.linearRampToValueAtTime(gain.value, delay);
-						gain.linearRampToValueAtTime(-1.0, delay + 0.3);
+						gain.linearRampToValueAtTime(gain.value, startTime);
+						gain.linearRampToValueAtTime(-1.0, startTime + 0.3);
 					}
 					///
 					if (useStreamingBuffer) {
-						if (delay) {
-							setTimeout(function() {
-								buffer.pause();
-							}, delay * 1000);
-						} else {
+						setTimeout(function() {
 							buffer.pause();
-						}
+						}, delay * 1000);
 					} else {
 						if (source.noteOff) {
-							source.noteOff(delay + 0.5);
+							source.noteOff(startTime + 0.5);
 						} else {
-							source.stop(delay + 0.5);
+							source.stop(startTime + 0.5);
 						}
 					}
 					///
